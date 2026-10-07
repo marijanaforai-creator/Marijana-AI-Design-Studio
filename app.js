@@ -33,8 +33,34 @@ const styles=[
 {name:"Poslovni",desc:"precizan, moderan, pouzdan",palette:2,heading:"Montserrat",body:"Inter",radius:6,shadow:"0 14px 32px rgba(0,0,0,.10)"},
 {name:"Kreativni",desc:"izražajan, savremen, drugačiji",palette:5,heading:"Raleway",body:"Manrope",radius:16,shadow:"0 20px 50px rgba(0,0,0,.14)"},
 {name:"Wealth",desc:"bogato, stabilno, sofisticirano",palette:6,heading:"Playfair Display",body:"DM Sans",radius:10,shadow:"0 22px 55px rgba(0,0,0,.16)"}];
+const TEMPLATES={
+ planner:{name:"Premium Planner",desc:"10 strana · A5 · planer za preduzetnice",pages:10,names:["Naslovna strana","Godišnji pregled","Mesečni planer","Mesečni planer","Nedeljni planer","Nedeljni planer","Nedeljni planer","Nedeljni planer","Habit tracker","Notes"],style:"Wellness"},
+ workbook:{name:"Workbook",desc:"8 strana · vođeni radni materijal",pages:8,names:["Naslovna","Kako koristiti workbook","Ciljevi","Vežba 1","Vežba 2","Akcioni plan","Praćenje napretka","Notes"],style:"Minimalistički"},
+ ebook:{name:"Ebook",desc:"12 strana · editorial struktura",pages:12,names:["Naslovna","Sadržaj","Uvod","Poglavlje 1","Poglavlje 2","Poglavlje 3","Poglavlje 4","Poglavlje 5","Zaključak","Akcioni koraci","Resursi","Notes"],style:"Editorial"},
+ journal:{name:"Journal",desc:"12 strana · refleksija i beleške",pages:12,names:["Naslovna","Kako se osećam","Jutarnja refleksija","Dnevni zapis","Dnevni zapis","Dnevni zapis","Dnevni zapis","Nedeljna refleksija","Zahvalnost","Lekcije","Plan za sutra","Notes"],style:"Ženstveni"},
+ social:{name:"Social Media Pack",desc:"10 strana · sadržaj za društvene mreže",pages:10,names:["Naslovna","Content pillars","30 ideja","Reels","Carousel","Stories","Hooks","CTA biblioteka","Hashtag prostor","Notes"],style:"Kreativni"}
+};
+function templateElements(key,pages,name){
+ const t=TEMPLATES[key]||TEMPLATES.planner;const out={};
+ for(let i=1;i<=pages;i++){
+  const title=t.names[i-1]||("Strana "+i);
+  out[String(i)]=[
+   {id:uid(),type:"text",text:i===1?name:title,x:11,y:i===1?20:12,w:78,h:15,font:state.headingFont,fontSize:i===1?30:24,color:i===1?"#E7D2A7":"#171717",align:"center",rotate:0,opacity:100,locked:false},
+   {id:uid(),type:"text",text:i===1?"Opiši · Dizajniraj · Ostvari":"Dodaj sadržaj ove strane kroz AI razgovor ili elemente.",x:14,y:i===1?42:30,w:72,h:18,font:state.bodyFont,fontSize:10,color:i===1?"#E7D2A7":"#555555",align:"center",rotate:0,opacity:75,locked:false}
+  ];
+ }
+ return out;
+}
+function applyTemplate(key){
+ const t=TEMPLATES[key];if(!t)return;
+ pushHistory();state.pages=t.pages;state.active=1;state.elements=templateElements(key,t.pages,state.name);
+ $("pageCount").value=t.pages;
+ if(t.style){const i=styles.findIndex(x=>x.name===t.style);if(i>=0)applyStyle(i)}
+ render();addMessage("Šablon „"+t.name+"“ je primenjen. Sada ga možemo prilagoditi kroz AI.");
+ saveProject(true);
+}
 const state={
-name:"Moj Premium Planner",format:"A5",pages:10,active:1,headingFont:"Cormorant Garamond",bodyFont:"DM Sans",
+name:"Moj Premium Planner",format:"A5",pages:10,active:1,width:794,height:1123,projectId:"p_"+Date.now(),assets:[],headingFont:"Cormorant Garamond",bodyFont:"DM Sans",
 color:"#8EA386",opacity:100,gradientStart:"#171717",gradientEnd:"#C8A66A",gradientAngle:135,savedColors:[],palette:"sage",style:"wellness",
 brandProfile:1,plan:"pro",aiUsed:0,selectedElement:null,previewMode:false,history:[],historyIndex:-1,
 elements:{}
@@ -121,8 +147,35 @@ function updateColorInfo(){
  const mx=Math.max(r,g,b)/255,mn=Math.min(r,g,b)/255,l=(mx+mn)/2,d=mx-mn;let s=0,hh=0;if(d){s=d/(1-Math.abs(2*l-1));if(mx===r)hh=60*(((g-b)/255/d)%6);else if(mx===g)hh=60*((b-r)/255/d+2);else hh=60*((r-g)/255/d+4);if(hh<0)hh+=360}
  $("rgbValue").textContent="RGB "+r+", "+g+", "+b;$("hslValue").textContent="HSL "+Math.round(hh)+"°, "+Math.round(s*100)+"%, "+Math.round(l*100)+"%";
 }
+function formatDimensions(format){
+ const m={"A5":[794,1123],"A4":[794,1123],"US Letter":[816,1056],"Instagram 1080 × 1350":[1080,1350]};
+ return m[format]||[state.width||794,state.height||1123];
+}
+function updateCanvasDimensions(){
+ if(state.format!=="Prilagođeno"){const d=formatDimensions(state.format);state.width=d[0];state.height=d[1]}
+ const p=$("preview");if(p){p.style.aspectRatio=state.width+"/"+state.height;p.style.height="auto";p.style.width="min(420px,65%)"}
+ const fields=$("customSizeFields");if(fields)fields.hidden=state.format!=="Prilagođeno";
+ if($("customWidth"))$("customWidth").value=state.width;
+ if($("customHeight"))$("customHeight").value=state.height;
+}
+function exportJSON(){
+ const blob=new Blob([JSON.stringify({...state,history:[],historyIndex:-1},null,2)],{type:"application/json"});
+ const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=(state.name||"projekat")+".json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+function exportPDF(){
+ saveProject(true);const w=window.open("","_blank");if(!w){addMessage("Pregledač je blokirao prozor za PDF. Dozvoli pop-up za ovaj sajt.");return}
+ w.document.write("<html><head><title>"+esc(state.name)+"</title><style>@page{size:"+state.width+"px "+state.height+"px;margin:0}body{margin:0} .page{width:"+state.width+"px;height:"+state.height+"px;position:relative;overflow:hidden;background:#fff}</style></head><body>"+$("preview").outerHTML+"</body></html>");
+ w.document.close();setTimeout(()=>w.print(),350);
+}
+function exportSVG(){
+ const p=$("preview"),bg=state.active===1?"#171717":"#F6F1E8";
+ let els="";
+ (state.elements[pageKey()]||[]).forEach(el=>{if(el.type==="text"||el.type==="link"){els+='<text x="'+(el.x/100*state.width)+'" y="'+((el.y+el.fontSize/100*1.2)/100*state.height)+'" font-family="'+esc(el.font||state.bodyFont)+'" font-size="'+el.fontSize+'" fill="'+(el.color||"#171717")+'" text-anchor="'+(el.align==="center"?"middle":el.align==="right"?"end":"start")+'">'+esc(el.text||"")+"</text>"}});
+ const svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+state.width+'" height="'+state.height+'" viewBox="0 0 '+state.width+" "+state.height+'"><rect width="100%" height="100%" fill="'+bg+'"/>'+els+"</svg>";
+ const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([svg],{type:"image/svg+xml"}));a.download=(state.name||"strana")+"-strana-"+state.active+".svg";a.click();
+}
 function render(){
- state.name=$("projectName").value;state.format=$("format").value;state.pages=Math.max(1,Math.min(30,Number($("pageCount").value)||10));
+ state.name=$("projectName").value;state.format=$("format").value;state.pages=Math.max(1,Math.min(30,Number($("pageCount").value)||10));updateCanvasDimensions();
  if(state.active>state.pages)state.active=state.pages;ensurePage();
  $("stageTitle").textContent=state.name;
  const strip=$("pagesStrip"),list=$("pageList");strip.innerHTML="";list.innerHTML="";
@@ -203,8 +256,11 @@ function duplicatePage(){
  pushHistory();const src=state.elements[pageKey()]||[];state.pages++;state.active=state.pages;state.elements[pageKey()]=JSON.parse(JSON.stringify(src)).map(x=>({...x,id:uid()}));$("pageCount").value=state.pages;render();addMessage("Strana je duplirana.")
 }
 function deleteElement(){if(!selected())return;pushHistory();state.elements[pageKey()]=state.elements[pageKey()].filter(x=>x.id!==state.selectedElement);state.selectedElement=null;render()}
-function saveProject(){
- localStorage.setItem("marijanaDesignStudioProject",JSON.stringify({...state,history:[],historyIndex:-1}));addMessage("Projekat je sačuvan lokalno u ovom pregledaču.");
+function saveProject(silent=false){
+ const clean={...state,history:[],historyIndex:-1,updatedAt:new Date().toISOString()};
+ localStorage.setItem("marijanaDesignStudioProject",JSON.stringify(clean));
+ try{const all=JSON.parse(localStorage.getItem("marijanaDesignStudioProjects")||"{}");all[state.projectId]={...clean};localStorage.setItem("marijanaDesignStudioProjects",JSON.stringify(all))}catch(e){}
+ if(!silent)addMessage("Projekat je sačuvan lokalno u ovom pregledaču.");
 }
 function loadProject(){
  try{const raw=localStorage.getItem("marijanaDesignStudioProject");if(!raw)return;const x=JSON.parse(raw);Object.assign(state,x);state.history=[];state.historyIndex=-1;$("projectName").value=state.name;$("format").value=state.format;$("pageCount").value=state.pages}catch(e){}
@@ -308,6 +364,41 @@ function initBrand(){
  $("applyBrand").onclick=()=>{const p=brandProfiles[Number(sel.value)-1];state.headingFont=p.data.heading;state.bodyFont=p.data.body;updateColor(p.data.color);$("headingFont").value=p.data.heading;$("bodyFont").value=p.data.body;render();$("brandPanel").hidden=true};load()
 }
 function initBrandStorage(){try{const x=JSON.parse(localStorage.getItem("marijanaBrandProfiles"));if(Array.isArray(x))x.forEach((p,i)=>{if(brandProfiles[i])brandProfiles[i]=p})}catch(e){}}
+function renderTemplates(){
+ const g=$("templateGrid");if(!g)return;
+ g.innerHTML=Object.entries(TEMPLATES).map(([k,t])=>'<button class="template-card" data-template="'+k+'"><span class="template-icon">Aa</span><strong>'+t.name+'</strong><small>'+t.desc+'</small><b>Primeni →</b></button>').join("");
+ g.querySelectorAll("[data-template]").forEach(b=>b.onclick=()=>{applyTemplate(b.dataset.template);$("templatesPanel").hidden=true});
+}
+function renderProjects(){
+ const box=$("projectLibrary");if(!box)return;
+ let all={};try{all=JSON.parse(localStorage.getItem("marijanaDesignStudioProjects")||"{}")}catch(e){}
+ const items=Object.values(all).sort((a,b)=>String(b.updatedAt||"").localeCompare(String(a.updatedAt||"")));
+ box.innerHTML=items.length?items.map(p=>'<div class="project-row"><div><strong>'+esc(p.name||"Bez naziva")+'</strong><small>'+esc(p.format||"A5")+' · '+(p.pages||1)+' strana</small></div><div><button data-open-project="'+p.projectId+'">Otvori</button><button data-delete-project="'+p.projectId+'" class="danger-lite">Obriši</button></div></div>').join(""):'<div class="empty-library">Još nema sačuvanih projekata.</div>';
+ box.querySelectorAll("[data-open-project]").forEach(b=>b.onclick=()=>loadProjectById(b.dataset.openProject));
+ box.querySelectorAll("[data-delete-project]").forEach(b=>b.onclick=()=>{deleteProject(b.dataset.deleteProject);renderProjects()});
+}
+function loadProjectById(id){
+ let all={};try{all=JSON.parse(localStorage.getItem("marijanaDesignStudioProjects")||"{}")}catch(e){}
+ const p=all[id];if(!p)return;
+ Object.assign(state,p);state.history=[];state.historyIndex=-1;
+ $("projectName").value=state.name;$("format").value=state.format;$("pageCount").value=state.pages;
+ $("projectsPanel").hidden=true;render();addMessage("Projekat „"+state.name+"“ je otvoren.");
+}
+function deleteProject(id){
+ let all={};try{all=JSON.parse(localStorage.getItem("marijanaDesignStudioProjects")||"{}")}catch(e){}
+ delete all[id];localStorage.setItem("marijanaDesignStudioProjects",JSON.stringify(all));
+}
+function initToolPanels(){
+ $("templatesButton").onclick=()=>{$("templatesPanel").hidden=false;renderTemplates()};
+ $("closeTemplates").onclick=()=>{$("templatesPanel").hidden=true};
+ $("projectsButton").onclick=()=>{$("projectsPanel").hidden=false;renderProjects()};
+ $("closeProjects").onclick=()=>{$("projectsPanel").hidden=true};
+ $("exportButton").onclick=()=>{$("exportPanel").hidden=false};
+ $("closeExport").onclick=()=>{$("exportPanel").hidden=true};
+ ["templatesPanel","projectsPanel","exportPanel"].forEach(id=>$(id).addEventListener("click",e=>{if(e.target.id===id)$(id).hidden=true}));
+ $("exportJson").onclick=exportJSON;$("exportPdf").onclick=exportPDF;$("exportSvg").onclick=exportSVG;
+ renderTemplates();
+}
 function initNewProjectModal(){
  const modal=$("newProjectModal"),openBtn=$("newProject"),closeBtn=$("closeNewProject"),cancelBtn=$("cancelNewProject"),createBtn=$("createNewProject");
  if(!modal||!openBtn)return;
@@ -321,23 +412,23 @@ function initNewProjectModal(){
   const name=$("newProjectName").value.trim()||"Novi projekat";
   const format=$("newProjectFormat").value;
   const pages=Math.max(1,Math.min(30,Number($("newProjectPages").value)||10));
-  pushHistory();state.name=name;state.format=format;state.pages=pages;state.active=1;state.elements={};
+  pushHistory();state.name=name;state.format=format;state.pages=pages;state.active=1;state.projectId="p_"+Date.now();state.elements={};
   $("projectName").value=name;$("format").value=format;$("pageCount").value=pages;ensurePage();
-  if(startType==="planner"){state.elements["1"][0].text=name}
-  if(startType==="workbook"){state.elements["1"][0].text=name;state.elements["1"][1].text="Workbook struktura — sadržaj, vežbe i prostor za rad."}
-  if(startType==="ebook"){state.elements["1"][0].text=name;state.elements["1"][1].text="Editorial digitalni proizvod — spreman za AI razradu sadržaja i dizajna."}
-  modal.hidden=true;render();addMessage("Projekat „"+name+"“ je kreiran. Sada možemo da ga gradimo kroz AI razgovor.");
+  if(startType==="planner"){state.elements=templateElements("planner",pages,name)}
+  if(startType==="workbook"){state.elements=templateElements("workbook",pages,name)}
+  if(startType==="ebook"){state.elements=templateElements("ebook",pages,name)}
+  modal.hidden=true;render();saveProject(true);addMessage("Projekat „"+name+"“ je kreiran. Sada možemo da ga gradimo kroz AI razgovor.");
  };
 }
 function init(){
- loadProject();initBrandStorage();initPricing();initInsert();initElementInspector();initColors();initLibraries();initBrand();initNewProjectModal();
+ loadProject();initBrandStorage();initPricing();initInsert();initElementInspector();initColors();initLibraries();initBrand();initToolPanels();initNewProjectModal();updateCanvasDimensions();
  $("send").onclick=send;$("prompt").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send()}});
  document.querySelectorAll("[data-prompt]").forEach(b=>b.onclick=()=>{$("prompt").value=b.dataset.prompt;send()});
  $("pageCount").addEventListener("change",()=>{const p=currentPlan();if(!DEV_MODE&&Number($("pageCount").value)>p.pages){$("pageCount").value=p.pages;state.pages=p.pages;limitMessage("pages");render()}});
- $("projectName").oninput=render;$("format").onchange=render;$("pageCount").oninput=render;$("headingFont").onchange=e=>{state.headingFont=e.target.value;render()};$("bodyFont").onchange=e=>{state.bodyFont=e.target.value;render()};
+ $("projectName").oninput=render;$("format").onchange=()=>{updateCanvasDimensions();render()};$("customWidth").oninput=e=>{state.width=Number(e.target.value)||794;render()};$("customHeight").oninput=e=>{state.height=Number(e.target.value)||1123;render()};$("pageCount").oninput=render;$("headingFont").onchange=e=>{state.headingFont=e.target.value;render()};$("bodyFont").onchange=e=>{state.bodyFont=e.target.value;render()};
  $("save").onclick=saveProject;$("undoBtn").onclick=undo;$("redoBtn").onclick=redo;$("addPage").onclick=addPage;$("duplicatePage").onclick=duplicatePage;
  $("previewMode").onclick=()=>{state.previewMode=!state.previewMode;$("previewMode").textContent=state.previewMode?"Uredi":"Pregled";render()};
- const exportBtn=document.createElement("button");exportBtn.className="ghost-btn";exportBtn.textContent="Izvezi";exportBtn.onclick=()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=(state.name||"projekat")+".json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};$("save").parentElement.appendChild(exportBtn);
- ensurePage();pushHistory();render();renderSavedColors();
+
+ ensurePage();pushHistory();render();renderSavedColors();setInterval(()=>saveProject(true),5000);
 }
 init();
