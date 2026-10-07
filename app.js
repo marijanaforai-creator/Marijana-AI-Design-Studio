@@ -172,7 +172,36 @@ function parseDesignCommand(value){
  if(/(?:crn|crnu|black)/.test(v)){updateColor("#171717");return "Primeniла sam crnu boju."}
  return null;
 }
-function send(){const value=$("prompt").value.trim();if(!value)return;addMessage(value,"user");$("prompt").value="";const result=parseDesignCommand(value);if(result){addMessage(result);return}setTimeout(()=>addMessage("Razumela sam zahtev. Kada povežemo pravi AI backend, ovaj razgovor će moći da generiše i menja kompletan dizajn projekta. Za sada možeš koristiti direktne komande za stranice, tekst, slike, mockupove i osnovne izmene."),250)}
+async function send(){
+ const value=$("prompt").value.trim();if(!value)return;
+ addMessage(value,"user");$("prompt").value="";
+ const direct=parseDesignCommand(value);if(direct){addMessage(direct);return}
+ addMessage("AI dizajner radi…");
+ try{
+  const response=await fetch("/api/design-agent",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:value,project:{name:state.name,format:state.format,pages:state.pages,active:state.active,style:state.style,headingFont:state.headingFont,bodyFont:state.bodyFont,color:state.color}})});
+  const data=await response.json();if(!response.ok)throw new Error(data.error||"AI servis nije dostupan.");
+  const raw=String(data.content||"").trim();let result=null;try{result=JSON.parse(raw)}catch(e){const m=raw.match(/\{[\\s\\S]*\}/);if(m)try{result=JSON.parse(m[0])}catch(e2){}}
+  if(result?.actions?.length) applyAIActions(result.actions);
+  addMessage(result?.message||raw||"AI nije vratio odgovor.");
+ }catch(e){addMessage("AI backend još nije povezan u ovom okruženju. Kada se aplikacija postavi na Vercel i doda OPENAI_API_KEY, razgovor će raditi direktno.");}
+}
+function applyAIActions(actions){
+ pushHistory();
+ for(const a of actions||[]){
+  if(a.type==="select_page"){state.active=Math.max(1,Math.min(state.pages,Number(a.page)||1));ensurePage()}
+  else if(a.type==="add_page"){addPage()}
+  else if(a.type==="duplicate_page"){duplicatePage()}
+  else if(a.type==="delete_selected"){deleteElement()}
+  else if(a.type==="change_color"){updateColor(a.color)}
+  else if(a.type==="change_fonts"){if(a.headingFont)state.headingFont=a.headingFont;if(a.bodyFont)state.bodyFont=a.bodyFont}
+  else if(a.type==="add_element"){
+   const e=a.element||{};const el={id:uid(),type:e.type||"text",text:e.text||"",url:e.url||"",mockup:e.mockup||"book",src:e.src||"",aiPrompt:e.aiPrompt||"",x:Number(e.x??12),y:Number(e.y??18),w:Number(e.w??70),h:Number(e.h??20),font:e.font||state.bodyFont,fontSize:Number(e.fontSize??14),color:e.color||state.color,align:e.align||"left",rotate:0,opacity:100,locked:false};
+   if(el.type==="mockup"&&!el.src)el.src=mockupSvg(el.mockup);
+   state.elements[pageKey()].push(el);state.selectedElement=el.id;
+  }
+ }
+ render();
+}
 function initInsert(){
  const open=()=>{$("insertPanel").hidden=false};$("insertButton").onclick=open;$("insertButtonSide").onclick=open;$("closeInsert").onclick=closeInsertPanel;
  document.querySelectorAll("[data-insert]").forEach(b=>b.onclick=()=>insertBy(b.dataset.insert));
