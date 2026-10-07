@@ -116,13 +116,13 @@ function ensurePage(page=state.active){
   {id:uid(),type:"text",text:page===1?"Premium digitalni proizvod — spreman za dalju AI izradu i uređivanje.":"Ova stranica je deo strukture projekta. Klikni element i menjaj ga.",x:14,y:38,w:72,h:18,font:state.bodyFont,fontSize:10,color:page===1?"#E7D2A7":"#555555",align:"center",rotate:0,opacity:75,locked:false}
  ];
 }
-function snapshot(){return JSON.stringify({elements:state.elements,pages:state.pages,active:state.active})}
+function snapshot(){return JSON.stringify({elements:state.elements,pages:state.pages,active:state.active,pageNames:state.pageNames,width:state.width,height:state.height,name:state.name,format:state.format,headingFont:state.headingFont,bodyFont:state.bodyFont,color:state.color,style:state.style,palette:state.palette})}
 function pushHistory(){
  const s=snapshot(); if(state.history[state.historyIndex]===s)return;
  state.history=state.history.slice(0,state.historyIndex+1);state.history.push(s);if(state.history.length>40)state.history.shift();state.historyIndex=state.history.length-1;
 }
 function restoreSnapshot(s){
- const x=JSON.parse(s);state.elements=x.elements;state.pages=x.pages;state.active=x.active;state.selectedElement=null;render();
+ const x=JSON.parse(s);state.elements=x.elements||{};state.pages=x.pages||1;state.active=x.active||1;state.pageNames=x.pageNames||state.pageNames;state.width=x.width||state.width;state.height=x.height||state.height;state.name=x.name||state.name;state.format=x.format||state.format;state.headingFont=x.headingFont||state.headingFont;state.bodyFont=x.bodyFont||state.bodyFont;state.color=x.color||state.color;state.style=x.style||state.style;state.palette=x.palette||state.palette;state.selectedElement=null;$("projectName").value=state.name;$("format").value=state.format;$("pageCount").value=state.pages;render();
 }
 function undo(){if(state.historyIndex>0){state.historyIndex--;restoreSnapshot(state.history[state.historyIndex])}}
 function redo(){if(state.historyIndex<state.history.length-1){state.historyIndex++;restoreSnapshot(state.history[state.historyIndex])}}
@@ -266,15 +266,15 @@ function movePage(n,direction){
  const names=state.pageNames||[];const tmp=names[n-1];names[n-1]=names[target-1]||("Strana "+target);names[target-1]=tmp||("Strana "+n);
  state.active=target;render();
 }
-function addPage(){
- if(!hasAccess("pages")){limitMessage("pages");return}
- pushHistory();state.pages++;state.pageNames=state.pageNames||[];state.pageNames[state.pages-1]="Strana "+state.pages;state.active=state.pages;ensurePage();$("pageCount").value=state.pages;render();addMessage("Nova strana je dodata.")
+function addPage(recordHistory=true,name){
+ if(!hasAccess("pages")){limitMessage("pages");return false}
+ if(recordHistory)pushHistory();state.pages++;state.pageNames=state.pageNames||[];state.pageNames[state.pages-1]=name||("Strana "+state.pages);state.active=state.pages;ensurePage();$("pageCount").value=state.pages;render();if(recordHistory)addMessage("Nova strana je dodata.");return true
 }
-function duplicatePage(){
- if(!hasAccess("pages")){limitMessage("pages");return}
- pushHistory();const src=state.elements[pageKey()]||[];state.pages++;state.pageNames=state.pageNames||[];state.pageNames[state.pages-1]=(state.pageNames[state.active-1]||"Strana "+state.active)+" — kopija";state.active=state.pages;state.elements[pageKey()]=JSON.parse(JSON.stringify(src)).map(x=>({...x,id:uid()}));$("pageCount").value=state.pages;render();addMessage("Strana je duplirana.")
+function duplicatePage(recordHistory=true){
+ if(!hasAccess("pages")){limitMessage("pages");return false}
+ if(recordHistory)pushHistory();const src=state.elements[pageKey()]||[];state.pages++;state.pageNames=state.pageNames||[];state.pageNames[state.pages-1]=(state.pageNames[state.active-1]||"Strana "+state.active)+" — kopija";state.active=state.pages;state.elements[pageKey()]=JSON.parse(JSON.stringify(src)).map(x=>({...x,id:uid()}));$("pageCount").value=state.pages;render();if(recordHistory)addMessage("Strana je duplirana.");return true
 }
-function deleteElement(){if(!selected())return;pushHistory();state.elements[pageKey()]=state.elements[pageKey()].filter(x=>x.id!==state.selectedElement);state.selectedElement=null;render()}
+function deleteElement(recordHistory=true){if(!selected())return false;if(recordHistory)pushHistory();state.elements[pageKey()]=state.elements[pageKey()].filter(x=>x.id!==state.selectedElement);state.selectedElement=null;render();return true}
 function saveProject(silent=false){
  const clean={...state,history:[],historyIndex:-1,updatedAt:new Date().toISOString()};
  localStorage.setItem("marijanaDesignStudioProject",JSON.stringify(clean));
@@ -323,20 +323,22 @@ async function send(){
  }catch(e){addMessage("AI backend još nije povezan u ovom okruženju. Kada se aplikacija postavi na Vercel i doda OPENAI_API_KEY, razgovor će raditi direktno.");}
 }
 function applyAIActions(actions){
+ const before=snapshot();
  pushHistory();
  for(const a of actions||[]){
   if(a.type==="select_page"){state.active=Math.max(1,Math.min(state.pages,Number(a.page)||1));ensurePage()}
-  else if(a.type==="add_page"){addPage()}
-  else if(a.type==="duplicate_page"){duplicatePage()}
-  else if(a.type==="delete_selected"){deleteElement()}
+  else if(a.type==="add_page"){addPage(false,a.name)}
+  else if(a.type==="duplicate_page"){duplicatePage(false)}
+  else if(a.type==="delete_selected"){deleteElement(false)}
   else if(a.type==="change_color"){updateColor(a.color)}
   else if(a.type==="change_fonts"){if(a.headingFont)state.headingFont=a.headingFont;if(a.bodyFont)state.bodyFont=a.bodyFont}
   else if(a.type==="add_element"){
    const e=a.element||{};const el={id:uid(),type:e.type||"text",text:e.text||"",url:e.url||"",mockup:e.mockup||"book",src:e.src||"",aiPrompt:e.aiPrompt||"",x:Number(e.x??12),y:Number(e.y??18),w:Number(e.w??70),h:Number(e.h??20),font:e.font||state.bodyFont,fontSize:Number(e.fontSize??14),color:e.color||state.color,align:e.align||"left",rotate:0,opacity:100,locked:false};
    if(el.type==="mockup"&&!el.src)el.src=mockupSvg(el.mockup);
-   state.elements[pageKey()].push(el);state.selectedElement=el.id;
+   const targetPage=Math.max(1,Math.min(state.pages,Number(a.page)||state.active));ensurePage(targetPage);state.elements[String(targetPage)].push(el);state.selectedElement=targetPage===state.active?el.id:null;
   }
  }
+ if(snapshot()!==before)pushHistory();
  render();
 }
 function renderAssetLibrary(){
@@ -450,13 +452,22 @@ function initNewProjectModal(){
   modal.hidden=true;render();saveProject(true);addMessage("Projekat „"+name+"“ je kreiran. Sada možemo da ga gradimo kroz AI razgovor.");
  };
 }
+let clipboardElement=null;
+function copySelectedElement(){const el=selected();if(!el)return;clipboardElement=JSON.parse(JSON.stringify(el));addMessage("Element je kopiran.")}
+function pasteElement(){if(!clipboardElement)return;pushHistory();const copy={...clipboardElement,id:uid(),x:Math.min(88,(clipboardElement.x||10)+3),y:Math.min(88,(clipboardElement.y||10)+3)};ensurePage();state.elements[pageKey()].push(copy);state.selectedElement=copy.id;render()}
+function hideContextMenu(){const m=$("contextMenu");if(m)m.hidden=true}
+function showContextMenu(e,el){e.preventDefault();e.stopPropagation();state.selectedElement=el.id;render();const m=$("contextMenu");if(!m)return;m.hidden=false;m.style.left=Math.min(e.clientX,window.innerWidth-190)+"px";m.style.top=Math.min(e.clientY,window.innerHeight-150)+"px"}
+function initContextMenu(){if($("contextMenu"))return;const style=document.createElement("style");style.textContent=".design-context-menu{position:fixed;z-index:9999;min-width:170px;padding:6px;background:#fffdf8;border:1px solid rgba(23,23,23,.12);border-radius:12px;box-shadow:0 14px 35px rgba(0,0,0,.16)}.design-context-menu button{display:block;width:100%;border:0;background:transparent;text-align:left;padding:9px 11px;border-radius:8px;cursor:pointer;font:500 13px DM Sans,Arial}.design-context-menu button:hover{background:#f3eee4}.design-context-menu button.danger{color:#a23b32}";document.head.appendChild(style);const m=document.createElement("div");m.id="contextMenu";m.className="design-context-menu";m.hidden=true;m.innerHTML="<button data-cm-copy>Kopiraj</button><button data-cm-paste>Nalepi</button><button data-cm-undo>Poništi</button><button data-cm-redo>Ponovi</button><button class=\"danger\" data-cm-delete>Obriši</button>";document.body.appendChild(m);m.querySelector("[data-cm-copy]").onclick=()=>{copySelectedElement();hideContextMenu()};m.querySelector("[data-cm-paste]").onclick=()=>{pasteElement();hideContextMenu()};m.querySelector("[data-cm-undo]").onclick=()=>{undo();hideContextMenu()};m.querySelector("[data-cm-redo]").onclick=()=>{redo();hideContextMenu()};m.querySelector("[data-cm-delete]").onclick=()=>{deleteElement();hideContextMenu()};document.addEventListener("click",hideContextMenu);window.addEventListener("resize",hideContextMenu)}
 function initShortcuts(){
+ initContextMenu();
  document.addEventListener("keydown",e=>{
   const tag=(e.target&&e.target.tagName||"").toLowerCase();
   const typing=tag==="input"||tag==="textarea"||tag==="select";
   if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="s"){e.preventDefault();saveProject();return}
   if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="z"&&!typing){e.preventDefault();undo();return}
   if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="y"&&!typing){e.preventDefault();redo();return}
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="c"&&!typing&&selected()){e.preventDefault();copySelectedElement();return}
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="v"&&!typing&&clipboardElement){e.preventDefault();pasteElement();return}
   if(e.key==="Delete"&&!typing&&selected()){e.preventDefault();deleteElement()}
   if(e.key==="Escape"){["templatesPanel","projectsPanel","exportPanel","pricingPanel","newProjectModal","insertPanel","brandPanel"].forEach(id=>{const el=$(id);if(el)el.hidden=true})}
  });
