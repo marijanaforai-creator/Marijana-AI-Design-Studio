@@ -56,7 +56,21 @@
         <div class="inspector-head"><span class="eyebrow">PROJECT</span><h3>Struktura</h3></div>
         <div id="pageList" class="page-list"></div>
         <div class="inspector-section"><label>Vizuelni stil</label><div class="style-pills"><span>Premium</span><span>Minimal</span><span>Feminine</span></div></div>
-        <div class="inspector-section"><label>Paleta</label><div class="swatches"><i></i><i></i><i></i><i></i></div><small>Ivory · Black · Champagne Gold · Azure</small></div>
+        <div class="inspector-section color-library">
+<label>Color Library</label>
+<div class="color-input-row"><input id="colorPicker" type="color" value="#8EA386"><input id="hexInput" value="#8EA386" maxlength="7" spellcheck="false"><button id="copyHex" class="mini-btn">Copy HEX</button></div>
+<div class="color-values"><span id="rgbValue">RGB 142, 163, 134</span><span id="hslValue">HSL 105°, 14%, 58%</span></div>
+<div class="opacity-row"><label>Opacity <b id="opacityValue">100%</b></label><input id="opacity" type="range" min="0" max="100" value="100"></div>
+<div class="gradient-editor">
+<div class="gradient-preview" id="gradientPreview"></div>
+<div class="gradient-controls"><input id="gradientStart" type="color" value="#171717"><input id="gradientEnd" type="color" value="#C8A66A"><input id="gradientAngle" type="number" min="0" max="360" value="135"><span>°</span><button id="copyGradient" class="mini-btn">Copy CSS</button></div>
+</div>
+<div class="preset-grid">
+<button data-color="#F6F1E8">Ivory</button><button data-color="#171717">Black</button><button data-color="#C8A66A">Gold</button><button data-color="#3D78A8">Azure</button><button data-color="#8EA386">Sage</button><button data-color="#D8C7B0">Sand</button><button data-color="#B79ACB">Lavender</button><button data-color="#D9A6A6">Rose</button>
+</div>
+<div class="saved-colors" id="savedColors"></div>
+<small>HEX vrednost može direktno da se unese ili nalepi. Gradient podržava ugao i dva color stopa.</small>
+</div>
         <div class="inspector-section"><label>Tipografija</label><div class="font-selects"><select id="headingFont"><option>Cormorant Garamond</option><option>Playfair Display</option><option>Lora</option><option>Libre Baskerville</option><option>Raleway</option></select><select id="bodyFont"><option>DM Sans</option><option>Montserrat</option><option>Manrope</option><option>Inter</option></select></div><div id="fontPreview" class="font-preview"><strong>Premium naslov</strong><span>Ovde će se prikazivati pregled odabranih fontova.</span></div></div>
       </aside>
     </main>
