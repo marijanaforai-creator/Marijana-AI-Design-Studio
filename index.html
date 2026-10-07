@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="sr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Marijana AI Design Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark">MF</span><div><strong>Marijana AI</strong><small>Design Studio</small></div></div>
+      <div class="top-actions"><span class="status-dot"></span><span>Studio spreman</span><button id="newProject" class="ghost-btn">+ Novi projekat</button></div>
+    </header>
+
+    <main class="workspace">
+      <aside class="sidebar">
+        <div class="eyebrow">AI DESIGN AGENT</div>
+        <h1>Opiši šta želiš.<br><em>Mi gradimo dizajn.</em></h1>
+        <p class="intro">Razgovorom definiši proizvod, a Studio će pripremiti strukturu, stil i stranice za uređivanje.</p>
+
+        <div class="project-card">
+          <label>Naziv projekta</label>
+          <input id="projectName" value="Moj Premium Planner">
+          <div class="two-col">
+            <div><label>Format</label><select id="format"><option>A5</option><option>A4</option><option>US Letter</option><option>Instagram 1080 × 1350</option><option>Prilagođeno</option></select></div>
+            <div><label>Stranice</label><input id="pageCount" type="number" min="1" max="30" value="10"></div>
+          </div>
+        </div>
+
+        <div class="chat">
+          <div class="chat-head"><span class="ai-badge">AI</span><strong>Art Director</strong><span class="live">LIVE</span></div>
+          <div id="messages" class="messages">
+            <div class="msg ai">Ćao, Marijana. Reci mi šta želiš da napravimo — planner, ebook, workbook, journal ili nešto potpuno novo.</div>
+          </div>
+          <div class="prompt-row">
+            <textarea id="prompt" placeholder="Npr. Napravi luksuzni A5 planner za preduzetnice..."></textarea>
+            <button id="send" aria-label="Pošalji">↑</button>
+          </div>
+          <div class="chips"><button data-prompt="Napravi premium planner">Premium planner</button><button data-prompt="Napravi workbook">Workbook</button><button data-prompt="Napravi ebook">Ebook</button></div>
+        </div>
+      </aside>
+
+      <section class="stage">
+        <div class="stage-head"><div><span class="eyebrow">LIVE CANVAS</span><h2 id="stageTitle">Moj Premium Planner</h2></div><div class="stage-actions"><button class="ghost-btn">Pregled</button><button class="gold-btn" id="save">Sačuvaj projekat</button></div></div>
+        <div class="canvas-area">
+          <div class="pages-strip" id="pagesStrip"></div>
+          <div class="preview-wrap"><div class="preview" id="preview"></div></div>
+        </div>
+      </section>
+
+      <aside class="inspector">
+        <div class="inspector-head"><span class="eyebrow">PROJECT</span><h3>Struktura</h3></div>
+        <div id="pageList" class="page-list"></div>
+        <div class="inspector-section"><label>Vizuelni stil</label><div class="style-pills"><span>Premium</span><span>Minimal</span><span>Feminine</span></div></div>
+        <div class="inspector-section"><label>Paleta</label><div class="swatches"><i></i><i></i><i></i><i></i></div><small>Ivory · Black · Champagne Gold · Azure</small></div>
+        <div class="inspector-section"><label>Tipografija</label><div class="font-card"><strong>Cormorant Garamond</strong><span>Naslovi</span></div><div class="font-card"><strong>DM Sans</strong><span>Tekst</span></div></div>
+      </aside>
+    </main>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
