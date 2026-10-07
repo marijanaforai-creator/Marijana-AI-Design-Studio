@@ -13,7 +13,7 @@
   <div class="app-shell">
     <header class="topbar">
       <div class="brand"><span class="brand-mark">MF</span><div><strong>Marijana AI</strong><small>Design Studio</small></div></div>
-      <div class="top-actions"><span class="status-dot"></span><span>Studio spreman</span><button id="newProject" class="ghost-btn">+ Novi projekat</button></div>
+      <div class="top-actions"><span class="status-dot"></span><span id="accessStatus">Studio spreman</span><button id="pricingButton" class="ghost-btn">Planovi</button><button id="newProject" class="ghost-btn">+ Novi projekat</button></div>
     </header>
 
     <main class="workspace">
@@ -88,6 +88,17 @@
       </aside>
     </main>
   </div><input id="imageUpload" type="file" accept="image/*" multiple hidden><div id="insertPanel" class="insert-panel" hidden><div class="insert-head"><div><span class="eyebrow">DODAJ U STRANU</span><h3>Insert</h3></div><button id="closeInsert" class="close-btn">×</button></div><div class="insert-grid"><button data-insert="upload">🖼️<strong>Slika</strong><small>Sa računara</small></button><button data-insert="url">🔗<strong>Slika sa linka</strong><small>URL slike</small></button><button data-insert="ai">✨<strong>AI slika</strong><small>Generisana vizuelno</small></button><button data-insert="mockup">📦<strong>Mockup</strong><small>Knjiga · telefon · laptop</small></button><button data-insert="shape">◼<strong>Oblik</strong><small>Kartica · okvir · blok</small></button><button data-insert="icon">✦<strong>Ikonica</strong><small>Simbol · dekoracija</small></button><button data-insert="link">🔗<strong>Povezivanje</strong><small>Link na element</small></button><button data-insert="video">▶<strong>Video</strong><small>Video blok</small></button><button data-insert="table">▦<strong>Tabela</strong><small>Struktura podataka</small></button><button data-insert="chart">◒<strong>Grafikon</strong><small>Vizuelizacija</small></button><button data-insert="text">T<strong>Tekst</strong><small>Novi tekstualni blok</small></button><button data-insert="divider">—<strong>Linija</strong><small>Dekorativni element</small></button></div><div class="mockup-library"><span>Biblioteka mockupa</span><div><button data-mockup="book">📕 Knjiga</button><button data-mockup="tablet">▣ Tablet</button><button data-mockup="phone">▯ Telefon</button><button data-mockup="laptop">▱ Laptop</button><button data-mockup="planner">📓 Planner</button></div></div></div>
+<div id="pricingPanel" class="pricing-overlay" hidden>
+  <div class="pricing-modal">
+    <div class="pricing-head">
+      <div><span class="eyebrow">MARijana AI DESIGN STUDIO</span><h2>Planovi i mogućnosti</h2><p>Izaberi nivo koji odgovara načinu na koji želiš da koristiš Studio.</p></div>
+      <button id="closePricing" class="close-btn">×</button>
+    </div>
+    <div class="owner-banner"><strong>Development access · FULL ACCESS</strong><span>Dok razvijamo Studio, ti imaš sve funkcije otključane. Ovaj režim možemo isključiti pre javnog lansiranja.</span></div>
+    <div id="pricingGrid" class="pricing-grid"></div>
+    <div class="pricing-foot"><span>Napomena: checkout/pretplata će se povezati kasnije sa payment sistemom. Sada gradimo proizvodnu logiku planova.</span></div>
+  </div>
+</div>
   <script src="app.js"></script>
 </body>
 </html>
