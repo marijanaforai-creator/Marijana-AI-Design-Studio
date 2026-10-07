@@ -1,8 +1,4 @@
 {
-  "scripts": {
-    "dev": "vercel dev",
-    "build": "echo Design Studio ready"
-  },
   "dependencies": {
     "openai": "^6.0.0"
   }
