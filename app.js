@@ -466,7 +466,7 @@ function init(){
  $("send").onclick=send;$("prompt").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send()}});
  document.querySelectorAll("[data-prompt]").forEach(b=>b.onclick=()=>{$("prompt").value=b.dataset.prompt;send()});
  $("pageCount").addEventListener("change",()=>{const p=currentPlan();if(!DEV_MODE&&Number($("pageCount").value)>p.pages){$("pageCount").value=p.pages;state.pages=p.pages;limitMessage("pages");render()}});
- $("projectName").oninput=render;$("format").onchange=()=>{updateCanvasDimensions();render()};$("customWidth").oninput=e=>{state.width=Number(e.target.value)||794;render()};$("customHeight").oninput=e=>{state.height=Number(e.target.value)||1123;render()};$("pageCount").oninput=render;$("headingFont").onchange=e=>{state.headingFont=e.target.value;render()};$("bodyFont").onchange=e=>{state.bodyFont=e.target.value;render()};
+ $("projectName").oninput=render;$("format").onchange=()=>{updateCanvasDimensions();render()};if($("customWidth"))$("customWidth").oninput=e=>{state.width=Number(e.target.value)||794;render()};if($("customHeight"))$("customHeight").oninput=e=>{state.height=Number(e.target.value)||1123;render()};$("pageCount").oninput=render;$("headingFont").onchange=e=>{state.headingFont=e.target.value;render()};$("bodyFont").onchange=e=>{state.bodyFont=e.target.value;render()};
  $("save").onclick=saveProject;$("undoBtn").onclick=undo;$("redoBtn").onclick=redo;$("addPage").onclick=addPage;$("duplicatePage").onclick=duplicatePage;
  $("previewMode").onclick=()=>{state.previewMode=!state.previewMode;$("previewMode").textContent=state.previewMode?"Uredi":"Pregled";render()};
 
