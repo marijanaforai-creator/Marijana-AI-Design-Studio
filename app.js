@@ -1,4 +1,17 @@
 const $=id=>document.getElementById(id);
+const DEV_MODE=true;
+const PLANS={
+  free:{name:"FREE",price:"0 €",period:"zauvek",pages:5,ai:10,brands:3,aiImages:0,pdf:false,customSize:false,team:1,description:"Za istraživanje i prve digitalne proizvode.",cta:"Počni besplatno"},
+  pro:{name:"CREATOR PRO",price:"12,90 €",period:"mesečno",pages:50,ai:100,brands:20,aiImages:20,pdf:true,customSize:true,team:1,description:"Glavni plan za kreatore i digitalne proizvode.",cta:"Izaberi Pro",popular:true},
+  proplus:{name:"PRO+ AI",price:"24,90 €",period:"mesečno",pages:100,ai:300,brands:50,aiImages:60,pdf:true,customSize:true,team:1,description:"Za ozbiljnu AI produkciju i kompletne proizvode.",cta:"Izaberi Pro+"
+  },
+  business:{name:"BUSINESS",price:"49 €",period:"mesečno",pages:200,ai:1000,brands:100,aiImages:150,pdf:true,customSize:true,team:5,description:"Za male biznise, edukatore i timove.",cta:"Izaberi Business"},
+  agency:{name:"STUDIO / AGENCY",price:"99 €",period:"mesečno",pages:999,ai:3000,brands:999,aiImages:500,pdf:true,customSize:true,team:20,description:"Za agencije i profesionalnu produkciju.",cta:"Izaberi Agency"}
+};
+const FEATURE_COPY={
+  pages:"stranica po projektu",ai:"AI akcija mesečno",brands:"Brand profila",aiImages:"AI slika mesečno"
+};
+
 const pageNames=["Naslovna strana","Godišnji pregled","Mesečni planer","Mesečni planer","Nedeljni planer","Nedeljni planer","Nedeljni planer","Nedeljni planer","Habit tracker","Notes"];
 const fonts=["Cormorant Garamond","DM Sans","Playfair Display","Montserrat","Libre Baskerville","Manrope","Inter","Lora","Raleway"];
 const brandProfiles=Array.from({length:20},(_,i)=>({id:i+1,name:"Brend "+(i+1),data:{name:"",description:"",color:"#8EA386",tone:"Elegantno",heading:"Cormorant Garamond",body:"DM Sans"}}));
@@ -23,9 +36,49 @@ const styles=[
 const state={
 name:"Moj Premium Planner",format:"A5",pages:10,active:1,headingFont:"Cormorant Garamond",bodyFont:"DM Sans",
 color:"#8EA386",opacity:100,gradientStart:"#171717",gradientEnd:"#C8A66A",gradientAngle:135,savedColors:[],palette:"sage",style:"wellness",
-brandProfile:1,selectedElement:null,previewMode:false,history:[],historyIndex:-1,
+brandProfile:1,plan:"pro",aiUsed:0,selectedElement:null,previewMode:false,history:[],historyIndex:-1,
 elements:{}
 };
+function currentPlan(){return PLANS[state.plan]||PLANS.pro}
+function hasAccess(key){
+  if(DEV_MODE)return true;
+  const p=currentPlan();
+  if(key==="pages")return state.pages<p.pages;
+  if(key==="ai")return state.aiUsed<p.ai;
+  if(key==="pdf"||key==="customSize"||key==="aiImages")return !!p[key];
+  if(key==="brand")return p.brands>0;
+  return true;
+}
+function limitMessage(feature,planName="CREATOR PRO"){
+  const labels={pages:"više stranica",ai:"više AI akcija",pdf:"PDF export",customSize:"prilagođene dimenzije",aiImages:"AI slike",brand:"više Brand profila"};
+  addMessage("Ova mogućnost je deo "+planName+" plana: "+(labels[feature]||feature)+". Otvori „Planovi“ da vidiš opcije.");
+}
+function renderPricing(){
+  const grid=$("pricingGrid"); if(!grid)return;
+  grid.innerHTML=Object.entries(PLANS).map(([key,p])=>'<article class="pricing-card '+(p.popular?"featured":"")+'">'+(p.popular?'<span class="pricing-popular">NAJPOPULARNIJI</span>':"")+
+    '<div class="pricing-name">'+p.name+'</div><div class="pricing-price">'+p.price+' <small>/ '+p.period+'</small></div><p>'+p.description+'</p>'+
+    '<ul><li>Do '+p.pages+' '+FEATURE_COPY.pages+'</li><li>'+p.ai+' '+FEATURE_COPY.ai+'</li><li>'+p.brands+' '+FEATURE_COPY.brands+'</li><li>'+p.aiImages+' '+FEATURE_COPY.aiImages+'</li><li class="'+(p.pdf?"yes":"no")+'">'+(p.pdf?"✓ PDF export":"— PDF export")+'</li><li class="'+(p.customSize?"yes":"no")+'">'+(p.customSize?"✓ Custom size":"— Custom size")+'</li><li>Team: '+p.team+'</li></ul>'+
+    '<button class="pricing-cta '+(p.popular?"primary":"")+'" data-plan="'+key+'">'+p.cta+'</button></article>').join("");
+  grid.querySelectorAll("[data-plan]").forEach(b=>b.onclick=()=>selectPlan(b.dataset.plan));
+}
+function selectPlan(key){
+  state.plan=key; localStorage.setItem("marijanaDesignStudioPlan",key);
+  if(DEV_MODE)addMessage("Development režim: "+PLANS[key].name+" je prikazan kao aktivan, ali su sve funkcije i dalje otključane.");
+  else addMessage("Plan je izabran. Payment checkout povezujemo u sledećoj fazi.");
+  updateAccessStatus(); $("pricingPanel").hidden=true;
+}
+function updateAccessStatus(){
+  const el=$("accessStatus"); if(!el)return;
+  el.textContent=DEV_MODE?"DEV · FULL ACCESS":(PLANS[state.plan]?.name||"FREE");
+}
+function initPricing(){
+  try{const saved=localStorage.getItem("marijanaDesignStudioPlan");if(saved&&PLANS[saved])state.plan=saved}catch(e){}
+  $("pricingButton").onclick=()=>{$("pricingPanel").hidden=false;renderPricing()};
+  $("closePricing").onclick=()=>$("pricingPanel").hidden=true;
+  $("pricingPanel").addEventListener("click",e=>{if(e.target.id==="pricingPanel")$("pricingPanel").hidden=true});
+  updateAccessStatus(); renderPricing();
+}
+
 function uid(){return"el_"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,7)}
 function normalizeHex(v){v=(v||"").trim();if(!v.startsWith("#"))v="#"+v;return /^#[0-9a-fA-F]{6}$/.test(v)?v.toUpperCase():null}
 function esc(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
@@ -129,7 +182,7 @@ function mockupSvg(kind){
 function insertBy(kind){
  if(kind==="upload"){$("imageUpload").click();return}
  if(kind==="url"){const url=prompt("Nalepi URL slike:");if(url)insertElement("image",{src:url,alt:"Ubačena slika",w:76,h:42,radius:10,shadow:true});return}
- if(kind==="ai"){const q=prompt("Opiši kakvu sliku želiš:");if(q)insertElement("image",{src:mockupSvg("planner"),alt:q,w:76,h:42,radius:12,shadow:true,aiPrompt:q});return}
+ if(kind==="ai"){if(!hasAccess("aiImages")){limitMessage("aiImages","PRO+ AI");return} const q=prompt("Opiši kakvu sliku želiš:");if(q)insertElement("image",{src:mockupSvg("planner"),alt:q,w:76,h:42,radius:12,shadow:true,aiPrompt:q});return}
  if(kind==="mockup"){insertElement("mockup",{mockup:"book",src:mockupSvg("book"),w:58,h:48});return}
  if(kind==="shape"){insertElement("shape",{text:"",w:76,h:18,color:state.color,radius:12});return}
  if(kind==="icon"){insertElement("icon",{text:"✦",w:16,h:12,fontSize:34,color:state.color});return}
@@ -142,9 +195,11 @@ function insertBy(kind){
 }
 function closeInsertPanel(){$("insertPanel").hidden=true}
 function addPage(){
+ if(!hasAccess("pages")){limitMessage("pages");return}
  pushHistory();state.pages++;state.active=state.pages;ensurePage();$("pageCount").value=state.pages;render();addMessage("Nova strana je dodata.")
 }
 function duplicatePage(){
+ if(!hasAccess("pages")){limitMessage("pages");return}
  pushHistory();const src=state.elements[pageKey()]||[];state.pages++;state.active=state.pages;state.elements[pageKey()]=JSON.parse(JSON.stringify(src)).map(x=>({...x,id:uid()}));$("pageCount").value=state.pages;render();addMessage("Strana je duplirana.")
 }
 function deleteElement(){if(!selected())return;pushHistory();state.elements[pageKey()]=state.elements[pageKey()].filter(x=>x.id!==state.selectedElement);state.selectedElement=null;render()}
@@ -174,6 +229,8 @@ function parseDesignCommand(value){
 }
 async function send(){
  const value=$("prompt").value.trim();if(!value)return;
+ if(!hasAccess("ai")){limitMessage("ai","CREATOR PRO");return}
+ if(!DEV_MODE){state.aiUsed++;localStorage.setItem("marijanaDesignStudioAIUsed",String(state.aiUsed))}
  addMessage(value,"user");$("prompt").value="";
  const direct=parseDesignCommand(value);if(direct){addMessage(direct);return}
  addMessage("AI dizajner radi…");
@@ -252,9 +309,10 @@ function initBrand(){
 }
 function initBrandStorage(){try{const x=JSON.parse(localStorage.getItem("marijanaBrandProfiles"));if(Array.isArray(x))x.forEach((p,i)=>{if(brandProfiles[i])brandProfiles[i]=p})}catch(e){}}
 function init(){
- loadProject();initBrandStorage();initInsert();initElementInspector();initColors();initLibraries();initBrand();
+ loadProject();initBrandStorage();initPricing();initInsert();initElementInspector();initColors();initLibraries();initBrand();
  $("send").onclick=send;$("prompt").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send()}});
  document.querySelectorAll("[data-prompt]").forEach(b=>b.onclick=()=>{$("prompt").value=b.dataset.prompt;send()});
+ $("pageCount").addEventListener("change",()=>{const p=currentPlan();if(!DEV_MODE&&Number($("pageCount").value)>p.pages){$("pageCount").value=p.pages;state.pages=p.pages;limitMessage("pages");render()}});
  $("projectName").oninput=render;$("format").onchange=render;$("pageCount").oninput=render;$("headingFont").onchange=e=>{state.headingFont=e.target.value;render()};$("bodyFont").onchange=e=>{state.bodyFont=e.target.value;render()};
  $("newProject").onclick=()=>{pushHistory();state.name="Novi projekat";state.pages=10;state.active=1;state.elements={};$("projectName").value=state.name;$("pageCount").value=10;ensurePage();render();addMessage("Novi projekat je spreman. Opiši šta želiš da napravimo.")};
  $("save").onclick=saveProject;$("undoBtn").onclick=undo;$("redoBtn").onclick=redo;$("addPage").onclick=addPage;$("duplicatePage").onclick=duplicatePage;
