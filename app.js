@@ -155,7 +155,24 @@ function loadProject(){
  try{const raw=localStorage.getItem("marijanaDesignStudioProject");if(!raw)return;const x=JSON.parse(raw);Object.assign(state,x);state.history=[];state.historyIndex=-1;$("projectName").value=state.name;$("format").value=state.format;$("pageCount").value=state.pages}catch(e){}
 }
 function addMessage(text,type="ai"){const m=document.createElement("div");m.className="msg "+type;m.textContent=text;$("messages").appendChild(m);$("messages").scrollTop=99999}
-function send(){const value=$("prompt").value.trim();if(!value)return;addMessage(value,"user");$("prompt").value="";setTimeout(()=>addMessage("Razumela sam. Ovaj zahtev može da se pretvori u stranice, elemente, slike, mockupove, tipografiju i raspored. Kada povežemo AI backend, isti razgovor će direktno menjati projekat."),250)}
+function parseDesignCommand(value){
+ const v=value.toLowerCase();
+ const pageMatch=v.match(/(?:stran(?:a|i)|page)\\s*(\\d+)/i);
+ if(pageMatch){const n=Math.max(1,Math.min(state.pages,Number(pageMatch[1])));state.active=n}
+ if(/(?:dodaj|ubaci).*(?:slik|fotograf)/.test(v)){insertElement("image",{src:mockupSvg("planner"),alt:value,w:70,h:40,radius:10,shadow:true,aiPrompt:value});return "Dodala sam vizuelni blok na aktivnu stranu. Možeš ga pomerati i menjati u Element panelu."}
+ if(/(?:mockup|makap)/.test(v)){const kind=/telefon|phone/.test(v)?"phone":/tablet/.test(v)?"tablet":/laptop/.test(v)?"laptop":/planner/.test(v)?"planner":"book";insertElement("mockup",{mockup:kind,src:mockupSvg(kind),w:55,h:45});return "Dodala sam "+kind+" mockup na aktivnu stranu."}
+ if(/(?:dodaj|ubaci).*(?:tekst|naslov)/.test(v)){insertElement("text",{text:value.replace(/.*?(?:tekst|naslov)[:\\s]*/i,"")||"Novi tekst",w:76,h:15,font:state.bodyFont,fontSize:14,color:"#171717",align:"left"});return "Dodala sam tekstualni element."}
+ if(/(?:nov|dodaj).*(?:stran|page)/.test(v)){addPage();return "Dodala sam novu stranu."}
+ if(/(?:dupliraj|kopiraj).*(?:stran)/.test(v)){duplicatePage();return "Duplirala sam aktivnu stranu."}
+ if(/(?:obriši|obrisi).*(?:element|slik|tekst)/.test(v)){deleteElement();return "Obrisala sam izabrani element."}
+ if(/(?:undo|poništi|ponisti)/.test(v)){undo();return "Vratila sam prethodnu izmenu."}
+ if(/(?:redo|ponovi)/.test(v)){redo();return "Ponovila sam poslednju izmenu."}
+ if(/(?:sage|zelena|zelenu)/.test(v)){updateColor("#8EA386");return "Primeniла sam Sage Green boju."}
+ if(/(?:zlat|gold)/.test(v)){updateColor("#C8A66A");return "Primeniла sam champagne gold boju."}
+ if(/(?:crn|crnu|black)/.test(v)){updateColor("#171717");return "Primeniла sam crnu boju."}
+ return null;
+}
+function send(){const value=$("prompt").value.trim();if(!value)return;addMessage(value,"user");$("prompt").value="";const result=parseDesignCommand(value);if(result){addMessage(result);return}setTimeout(()=>addMessage("Razumela sam zahtev. Kada povežemo pravi AI backend, ovaj razgovor će moći da generiše i menja kompletan dizajn projekta. Za sada možeš koristiti direktne komande za stranice, tekst, slike, mockupove i osnovne izmene."),250)}
 function initInsert(){
  const open=()=>{$("insertPanel").hidden=false};$("insertButton").onclick=open;$("insertButtonSide").onclick=open;$("closeInsert").onclick=closeInsertPanel;
  document.querySelectorAll("[data-insert]").forEach(b=>b.onclick=()=>insertBy(b.dataset.insert));
