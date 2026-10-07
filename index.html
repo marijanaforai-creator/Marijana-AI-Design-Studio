@@ -45,7 +45,7 @@
       </aside>
 
       <section class="stage">
-        <div class="stage-head"><div><span class="eyebrow">LIVE CANVAS</span><h2 id="stageTitle">Moj Premium Planner</h2></div><div class="stage-actions"><button class="ghost-btn">Pregled</button><button class="gold-btn" id="save">Sačuvaj projekat</button></div></div>
+        <div class="stage-head"><div><span class="eyebrow">LIVE CANVAS</span><h2 id="stageTitle">Moj Premium Planner</h2></div><div class="stage-actions"><button class="ghost-btn" id="previewMode">Pregled</button><button class="ghost-btn" id="insertButton">＋ Dodaj</button><button class="gold-btn" id="save">Sačuvaj projekat</button></div></div>
         <div class="canvas-area">
           <div class="pages-strip" id="pagesStrip"></div>
           <div class="preview-wrap"><div class="preview" id="preview"></div></div>
@@ -53,7 +53,7 @@
       </section>
 
       <aside class="inspector">
-        <div class="inspector-head"><span class="eyebrow">PROJEKAT</span><h3>Struktura</h3></div>
+        <div class="inspector-head"><span class="eyebrow">PROJEKAT</span><h3>Struktura</h3></div><div class="quick-tools"><button id="undoBtn">↶</button><button id="redoBtn">↷</button><button id="duplicatePage">Kopiraj stranu</button><button id="addPage">＋ Strana</button></div>
 <div class="brand-launch"><button id="brandButton"><span class="brand-icon">B</span><span><strong>Brend</strong><small>20 profila brenda</small></span><b>›</b></button></div>
 <div id="brandPanel" class="brand-panel" hidden>
 <div class="brand-panel-head"><div><span class="eyebrow">IDENTITET BRENDA</span><h3>Brend</h3></div><button id="closeBrand" class="close-btn">×</button></div>
@@ -67,8 +67,8 @@
 <div class="brand-row"><button id="saveBrand" class="gold-btn">Sačuvaj brend</button><button id="applyBrand" class="ghost-btn">Primeni na projekat</button></div>
 <div class="brand-note">Profil čuva identitet brenda za buduće projekte.</div>
 </div>
-        <div id="pageList" class="page-list"></div>
-        <div class="inspector-section"><label>Vizuelni stil</label><div class="style-pills"><span>Premium</span><span>Minimal</span><span>Feminine</span></div></div>
+        <div id="pageList" class="page-list"></div><div id="elementInspector" class="element-inspector" hidden><div class="element-head"><span class="eyebrow">ELEMENT</span><button id="closeElementInspector" class="close-btn">×</button></div><div id="elementTypeLabel" class="element-type"></div><label>Sadržaj</label><textarea id="elementContent"></textarea><div class="mini-grid"><div><label>Veličina</label><input id="elementSize" type="number" min="6" max="180"></div><div><label>Rotacija</label><input id="elementRotate" type="number" min="-180" max="180"></div></div><div class="mini-grid"><div><label>X</label><input id="elementX" type="number"></div><div><label>Y</label><input id="elementY" type="number"></div></div><label>Font</label><select id="elementFont"></select><label>Boja</label><input id="elementColor" type="color"><label>Poravnanje</label><div class="align-buttons"><button data-align="left">L</button><button data-align="center">C</button><button data-align="right">D</button></div><div class="element-actions"><button id="duplicateElement">Dupliraj</button><button id="moveElementBack">Nazad</button><button id="moveElementFront">Napred</button><button id="lockElement">Zaključaj</button><button id="deleteElement" class="danger-btn">Obriši</button></div></div>
+        <div class="inspector-section"><label>Dodaj element</label><button class="insert-launch" id="insertButtonSide">＋ Slika · Mockup · Link · Element</button></div><div class="inspector-section"><label>Vizuelni stil</label><div class="style-pills"><span>Premium</span><span>Minimal</span><span>Feminine</span></div></div>
         <div class="inspector-section color-library">
 <label>Color Library</label>
 <div class="color-input-row"><input id="colorPicker" type="color" value="#8EA386"><input id="hexInput" value="#8EA386" maxlength="7" spellcheck="false"><button id="copyHex" class="mini-btn">Copy HEX</button></div>
@@ -87,7 +87,7 @@
         <div class="inspector-section"><label>Stil dizajna</label><div id="styleGrid" class="style-grid"></div></div><div class="inspector-section"><label>Tipografija</label><div class="font-selects"><select id="headingFont"><option>Cormorant Garamond</option><option>Playfair Display</option><option>Lora</option><option>Libre Baskerville</option><option>Raleway</option></select><select id="bodyFont"><option>DM Sans</option><option>Montserrat</option><option>Manrope</option><option>Inter</option></select></div><div id="fontPreview" class="font-preview"><strong>Premium naslov</strong><span>Ovde će se prikazivati pregled odabranih fontova.</span></div></div>
       </aside>
     </main>
-  </div>
+  </div><input id="imageUpload" type="file" accept="image/*" multiple hidden><div id="insertPanel" class="insert-panel" hidden><div class="insert-head"><div><span class="eyebrow">DODAJ U STRANU</span><h3>Insert</h3></div><button id="closeInsert" class="close-btn">×</button></div><div class="insert-grid"><button data-insert="upload">🖼️<strong>Slika</strong><small>Sa računara</small></button><button data-insert="url">🔗<strong>Slika sa linka</strong><small>URL slike</small></button><button data-insert="ai">✨<strong>AI slika</strong><small>Generisana vizuelno</small></button><button data-insert="mockup">📦<strong>Mockup</strong><small>Knjiga · telefon · laptop</small></button><button data-insert="shape">◼<strong>Oblik</strong><small>Kartica · okvir · blok</small></button><button data-insert="icon">✦<strong>Ikonica</strong><small>Simbol · dekoracija</small></button><button data-insert="link">🔗<strong>Povezivanje</strong><small>Link na element</small></button><button data-insert="video">▶<strong>Video</strong><small>Video blok</small></button><button data-insert="table">▦<strong>Tabela</strong><small>Struktura podataka</small></button><button data-insert="chart">◒<strong>Grafikon</strong><small>Vizuelizacija</small></button><button data-insert="text">T<strong>Tekst</strong><small>Novi tekstualni blok</small></button><button data-insert="divider">—<strong>Linija</strong><small>Dekorativni element</small></button></div><div class="mockup-library"><span>Biblioteka mockupa</span><div><button data-mockup="book">📕 Knjiga</button><button data-mockup="tablet">▣ Tablet</button><button data-mockup="phone">▯ Telefon</button><button data-mockup="laptop">▱ Laptop</button><button data-mockup="planner">📓 Planner</button></div></div></div>
   <script src="app.js"></script>
 </body>
 </html>
