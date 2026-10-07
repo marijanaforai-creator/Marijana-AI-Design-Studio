@@ -308,13 +308,33 @@ function initBrand(){
  $("applyBrand").onclick=()=>{const p=brandProfiles[Number(sel.value)-1];state.headingFont=p.data.heading;state.bodyFont=p.data.body;updateColor(p.data.color);$("headingFont").value=p.data.heading;$("bodyFont").value=p.data.body;render();$("brandPanel").hidden=true};load()
 }
 function initBrandStorage(){try{const x=JSON.parse(localStorage.getItem("marijanaBrandProfiles"));if(Array.isArray(x))x.forEach((p,i)=>{if(brandProfiles[i])brandProfiles[i]=p})}catch(e){}}
+function initNewProjectModal(){
+ const modal=$("newProjectModal"),openBtn=$("newProject"),closeBtn=$("closeNewProject"),cancelBtn=$("cancelNewProject"),createBtn=$("createNewProject");
+ if(!modal||!openBtn)return;
+ let startType="blank";
+ const close=()=>{modal.hidden=true};
+ openBtn.onclick=()=>{modal.hidden=false;$("newProjectName").focus()};
+ closeBtn.onclick=close;cancelBtn.onclick=close;
+ modal.addEventListener("click",e=>{if(e.target===modal)close()});
+ document.querySelectorAll("[data-start]").forEach(btn=>btn.onclick=()=>{startType=btn.dataset.start;document.querySelectorAll("[data-start]").forEach(x=>x.classList.toggle("active",x===btn));});
+ createBtn.onclick=()=>{
+  const name=$("newProjectName").value.trim()||"Novi projekat";
+  const format=$("newProjectFormat").value;
+  const pages=Math.max(1,Math.min(30,Number($("newProjectPages").value)||10));
+  pushHistory();state.name=name;state.format=format;state.pages=pages;state.active=1;state.elements={};
+  $("projectName").value=name;$("format").value=format;$("pageCount").value=pages;ensurePage();
+  if(startType==="planner"){state.elements["1"][0].text=name}
+  if(startType==="workbook"){state.elements["1"][0].text=name;state.elements["1"][1].text="Workbook struktura — sadržaj, vežbe i prostor za rad."}
+  if(startType==="ebook"){state.elements["1"][0].text=name;state.elements["1"][1].text="Editorial digitalni proizvod — spreman za AI razradu sadržaja i dizajna."}
+  modal.hidden=true;render();addMessage("Projekat „"+name+"“ je kreiran. Sada možemo da ga gradimo kroz AI razgovor.");
+ };
+}
 function init(){
- loadProject();initBrandStorage();initPricing();initInsert();initElementInspector();initColors();initLibraries();initBrand();
+ loadProject();initBrandStorage();initPricing();initInsert();initElementInspector();initColors();initLibraries();initBrand();initNewProjectModal();
  $("send").onclick=send;$("prompt").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send()}});
  document.querySelectorAll("[data-prompt]").forEach(b=>b.onclick=()=>{$("prompt").value=b.dataset.prompt;send()});
  $("pageCount").addEventListener("change",()=>{const p=currentPlan();if(!DEV_MODE&&Number($("pageCount").value)>p.pages){$("pageCount").value=p.pages;state.pages=p.pages;limitMessage("pages");render()}});
  $("projectName").oninput=render;$("format").onchange=render;$("pageCount").oninput=render;$("headingFont").onchange=e=>{state.headingFont=e.target.value;render()};$("bodyFont").onchange=e=>{state.bodyFont=e.target.value;render()};
- $("newProject").onclick=()=>{pushHistory();state.name="Novi projekat";state.pages=10;state.active=1;state.elements={};$("projectName").value=state.name;$("pageCount").value=10;ensurePage();render();addMessage("Novi projekat je spreman. Opiši šta želiš da napravimo.")};
  $("save").onclick=saveProject;$("undoBtn").onclick=undo;$("redoBtn").onclick=redo;$("addPage").onclick=addPage;$("duplicatePage").onclick=duplicatePage;
  $("previewMode").onclick=()=>{state.previewMode=!state.previewMode;$("previewMode").textContent=state.previewMode?"Uredi":"Pregled";render()};
  const exportBtn=document.createElement("button");exportBtn.className="ghost-btn";exportBtn.textContent="Izvezi";exportBtn.onclick=()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=(state.name||"projekat")+".json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};$("save").parentElement.appendChild(exportBtn);
