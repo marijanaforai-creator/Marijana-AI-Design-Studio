@@ -185,7 +185,7 @@ function render(){
   const item=document.createElement("div");item.className="page-item"+(i===state.active?" active":"");item.innerHTML='<span class="page-no">'+String(i).padStart(2,"0")+'</span><span>'+esc(name)+'</span>';item.onclick=t.onclick;list.appendChild(item)
  }
  $("fontPreview").querySelector("strong").style.fontFamily='"'+state.headingFont+'"';$("fontPreview").querySelector("span").style.fontFamily='"'+state.bodyFont+'"';
- renderPreview();renderElementInspector();
+ renderPreview();renderElementInspector();renderLayers();
 }
 function renderPreview(){
  const p=$("preview");p.className="preview"+(state.active===1?" cover":"")+(state.previewMode?" preview-mode":"");p.innerHTML="";
@@ -203,10 +203,23 @@ function renderPreview(){
   else if(el.type==="video")d.innerHTML="▶ Video<br><small>"+esc(el.url||"Dodaj video URL")+"</small>";
   else if(el.type==="table")d.innerHTML="▦ Tabela<br><small>3 × 4</small>";
   else if(el.type==="chart")d.innerHTML="◒ Grafikon<br><small>Podaci za vizuelizaciju</small>";
-  if(!state.previewMode&&!el.locked){const h=document.createElement("span");h.className="resize-handle";d.appendChild(h)}
-  d.addEventListener("pointerdown",e=>startDrag(e,el));d.addEventListener("click",e=>{e.stopPropagation();state.selectedElement=el.id;render()});p.appendChild(d);
+  if(!state.previewMode&&!el.locked){const h=document.createElement("span");h.className="resize-handle";h.addEventListener("pointerdown",ev=>startResize(ev,el));d.appendChild(h)}
+  d.addEventListener("pointerdown",e=>{if(e.target.classList.contains("resize-handle"))return;startDrag(e,el)});d.addEventListener("click",e=>{e.stopPropagation();state.selectedElement=el.id;render()});p.appendChild(d);
  });
  p.onclick=()=>{state.selectedElement=null;renderElementInspector()}
+}
+function startResize(e,el){
+ if(state.previewMode||el.locked)return;
+ e.preventDefault();e.stopPropagation();pushHistory();
+ const p=$("preview"),rect=p.getBoundingClientRect(),sx=e.clientX,sy=e.clientY,ow=el.w,oh=el.h;
+ const move=ev=>{el.w=Math.max(5,Math.min(100-el.x,ow+(ev.clientX-sx)/rect.width*100));el.h=Math.max(5,Math.min(100-el.y,oh+(ev.clientY-sy)/rect.height*100));renderPreview();renderElementInspector();renderLayers()};
+ const up=()=>{document.removeEventListener("pointermove",move);document.removeEventListener("pointerup",up);};
+ document.addEventListener("pointermove",move);document.addEventListener("pointerup",up);state.selectedElement=el.id;renderElementInspector();
+}
+function renderLayers(){
+ const box=$("layersPanel");if(!box)return;const els=state.elements[pageKey()]||[];
+ box.innerHTML=els.length?els.slice().reverse().map((el,idx)=>'<button class="layer-row '+(el.id===state.selectedElement?"active":"")+'" data-layer="'+el.id+'"><span>'+({text:"T",image:"▧",mockup:"▣",shape:"◼",icon:"✦",link:"↗",video:"▶",table:"▦",chart:"◒",divider:"—"}[el.type]||"•")+'</span><strong>'+esc(el.text||el.type)+"</strong><small>"+(el.locked?"🔒":"")+"</small></button>").join(""):'<div class="empty-library">Nema elemenata na ovoj strani.</div>';
+ box.querySelectorAll("[data-layer]").forEach(b=>b.onclick=()=>{state.selectedElement=b.dataset.layer;render()});
 }
 function startDrag(e,el){
  if(state.previewMode||el.locked)return;
