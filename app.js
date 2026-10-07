@@ -148,7 +148,7 @@ function updateColorInfo(){
  $("rgbValue").textContent="RGB "+r+", "+g+", "+b;$("hslValue").textContent="HSL "+Math.round(hh)+"°, "+Math.round(s*100)+"%, "+Math.round(l*100)+"%";
 }
 function formatDimensions(format){
- const m={"A5":[794,1123],"A4":[794,1123],"US Letter":[816,1056],"Instagram 1080 × 1350":[1080,1350]};
+ const m={"A5":[559,794],"A4":[794,1123],"US Letter":[816,1056],"Instagram 1080 × 1350":[1080,1350]};
  return m[format]||[state.width||794,state.height||1123];
 }
 function updateCanvasDimensions(){
@@ -289,6 +289,11 @@ function parseDesignCommand(value){
  const v=value.toLowerCase();
  const pageMatch=v.match(/(?:stran(?:a|i)|page)\\s*(\\d+)/i);
  if(pageMatch){const n=Math.max(1,Math.min(state.pages,Number(pageMatch[1])));state.active=n}
+ if(/(?:premium planner|napravi planner)/.test(v)){applyTemplate("planner");return "Napravila sam početnu strukturu Premium Plannera."}
+ if(/(?:napravi workbook|workbook)/.test(v)){applyTemplate("workbook");return "Napravila sam početnu strukturu Workbooka."}
+ if(/(?:napravi ebook|ebook)/.test(v)){applyTemplate("ebook");return "Napravila sam početnu strukturu Ebooka."}
+ if(/(?:napravi journal|journal)/.test(v)){applyTemplate("journal");return "Napravila sam početnu strukturu Journala."}
+ if(/(?:social media|društven.*mrež)/.test(v)){applyTemplate("social");return "Napravila sam početnu strukturu Social Media paketa."}
  if(/(?:dodaj|ubaci).*(?:slik|fotograf)/.test(v)){insertElement("image",{src:mockupSvg("planner"),alt:value,w:70,h:40,radius:10,shadow:true,aiPrompt:value});return "Dodala sam vizuelni blok na aktivnu stranu. Možeš ga pomerati i menjati u Element panelu."}
  if(/(?:mockup|makap)/.test(v)){const kind=/telefon|phone/.test(v)?"phone":/tablet/.test(v)?"tablet":/laptop/.test(v)?"laptop":/planner/.test(v)?"planner":"book";insertElement("mockup",{mockup:kind,src:mockupSvg(kind),w:55,h:45});return "Dodala sam "+kind+" mockup na aktivnu stranu."}
  if(/(?:dodaj|ubaci).*(?:tekst|naslov)/.test(v)){insertElement("text",{text:value.replace(/.*?(?:tekst|naslov)[:\\s]*/i,"")||"Novi tekst",w:76,h:15,font:state.bodyFont,fontSize:14,color:"#171717",align:"left"});return "Dodala sam tekstualni element."}
@@ -445,8 +450,19 @@ function initNewProjectModal(){
   modal.hidden=true;render();saveProject(true);addMessage("Projekat „"+name+"“ je kreiran. Sada možemo da ga gradimo kroz AI razgovor.");
  };
 }
+function initShortcuts(){
+ document.addEventListener("keydown",e=>{
+  const tag=(e.target&&e.target.tagName||"").toLowerCase();
+  const typing=tag==="input"||tag==="textarea"||tag==="select";
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="s"){e.preventDefault();saveProject();return}
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="z"&&!typing){e.preventDefault();undo();return}
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="y"&&!typing){e.preventDefault();redo();return}
+  if(e.key==="Delete"&&!typing&&selected()){e.preventDefault();deleteElement()}
+  if(e.key==="Escape"){["templatesPanel","projectsPanel","exportPanel","pricingPanel","newProjectModal","insertPanel","brandPanel"].forEach(id=>{const el=$(id);if(el)el.hidden=true})}
+ });
+}
 function init(){
- loadProject();initBrandStorage();initPricing();initInsert();initElementInspector();initColors();initLibraries();initBrand();initToolPanels();initNewProjectModal();updateCanvasDimensions();
+ loadProject();initBrandStorage();initPricing();initInsert();initElementInspector();initColors();initLibraries();initBrand();initToolPanels();initNewProjectModal();initShortcuts();updateCanvasDimensions();
  $("send").onclick=send;$("prompt").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send()}});
  document.querySelectorAll("[data-prompt]").forEach(b=>b.onclick=()=>{$("prompt").value=b.dataset.prompt;send()});
  $("pageCount").addEventListener("change",()=>{const p=currentPlan();if(!DEV_MODE&&Number($("pageCount").value)>p.pages){$("pageCount").value=p.pages;state.pages=p.pages;limitMessage("pages");render()}});
