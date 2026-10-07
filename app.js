@@ -53,14 +53,14 @@ function templateElements(key,pages,name){
 }
 function applyTemplate(key){
  const t=TEMPLATES[key];if(!t)return;
- pushHistory();state.pages=t.pages;state.active=1;state.elements=templateElements(key,t.pages,state.name);
+ pushHistory();state.pages=t.pages;state.pageNames=[...t.names];state.active=1;state.elements=templateElements(key,t.pages,state.name);
  $("pageCount").value=t.pages;
  if(t.style){const i=styles.findIndex(x=>x.name===t.style);if(i>=0)applyStyle(i)}
  render();addMessage("Šablon „"+t.name+"“ je primenjen. Sada ga možemo prilagoditi kroz AI.");
  saveProject(true);
 }
 const state={
-name:"Moj Premium Planner",format:"A5",pages:10,active:1,width:794,height:1123,projectId:"p_"+Date.now(),assets:[],headingFont:"Cormorant Garamond",bodyFont:"DM Sans",
+name:"Moj Premium Planner",format:"A5",pages:10,active:1,width:559,height:794,projectId:"p_"+Date.now(),pageNames:[...pageNames],assets:[],headingFont:"Cormorant Garamond",bodyFont:"DM Sans",
 color:"#8EA386",opacity:100,gradientStart:"#171717",gradientEnd:"#C8A66A",gradientAngle:135,savedColors:[],palette:"sage",style:"wellness",
 brandProfile:1,plan:"pro",aiUsed:0,selectedElement:null,previewMode:false,history:[],historyIndex:-1,
 elements:{}
@@ -180,12 +180,12 @@ function render(){
  $("stageTitle").textContent=state.name;
  const strip=$("pagesStrip"),list=$("pageList");strip.innerHTML="";list.innerHTML="";
  for(let i=1;i<=state.pages;i++){
-  const name=pageNames[i-1]||"Strana "+i;
+  const name=(state.pageNames&&state.pageNames[i-1])||"Strana "+i;
   const t=document.createElement("div");t.className="thumb"+(i===state.active?" active":"");t.innerHTML="<div>"+i+"</div><span>"+esc(name)+"</span>";t.onclick=()=>{state.active=i;state.selectedElement=null;ensurePage();render()};strip.appendChild(t);
-  const item=document.createElement("div");item.className="page-item"+(i===state.active?" active":"");item.innerHTML='<span class="page-no">'+String(i).padStart(2,"0")+'</span><span>'+esc(name)+'</span>';item.onclick=t.onclick;list.appendChild(item)
+  const item=document.createElement("div");item.className="page-item"+(i===state.active?" active":"");item.innerHTML='<span class="page-no">'+String(i).padStart(2,"0")+'</span><span class="page-title">'+esc(name)+'</span><span class="page-move"><button data-page-up="'+i+'">↑</button><button data-page-down="'+i+'">↓</button></span>';item.onclick=t.onclick;item.querySelectorAll("[data-page-up],[data-page-down]").forEach(b=>b.onclick=ev=>{ev.stopPropagation();movePage(Number(b.dataset.pageUp||b.dataset.pageDown),b.dataset.pageUp?"up":"down")});list.appendChild(item)
  }
  $("fontPreview").querySelector("strong").style.fontFamily='"'+state.headingFont+'"';$("fontPreview").querySelector("span").style.fontFamily='"'+state.bodyFont+'"';
- renderPreview();renderElementInspector();renderLayers();
+ renderPreview();renderElementInspector();renderLayers();renderAssetLibrary();
 }
 function renderPreview(){
  const p=$("preview");p.className="preview"+(state.active===1?" cover":"")+(state.previewMode?" preview-mode":"");p.innerHTML="";
@@ -260,13 +260,19 @@ function insertBy(kind){
  if(kind==="divider"){insertElement("divider",{w:70,h:2,color:state.color});}
 }
 function closeInsertPanel(){$("insertPanel").hidden=true}
+function movePage(n,direction){
+ const target=direction==="up"?n-1:n+1;if(target<1||target>state.pages)return;
+ pushHistory();const a=state.elements[String(n)]||[];state.elements[String(n)]=state.elements[String(target)]||[];state.elements[String(target)]=a;
+ const names=state.pageNames||[];const tmp=names[n-1];names[n-1]=names[target-1]||("Strana "+target);names[target-1]=tmp||("Strana "+n);
+ state.active=target;render();
+}
 function addPage(){
  if(!hasAccess("pages")){limitMessage("pages");return}
- pushHistory();state.pages++;state.active=state.pages;ensurePage();$("pageCount").value=state.pages;render();addMessage("Nova strana je dodata.")
+ pushHistory();state.pages++;state.pageNames=state.pageNames||[];state.pageNames[state.pages-1]="Strana "+state.pages;state.active=state.pages;ensurePage();$("pageCount").value=state.pages;render();addMessage("Nova strana je dodata.")
 }
 function duplicatePage(){
  if(!hasAccess("pages")){limitMessage("pages");return}
- pushHistory();const src=state.elements[pageKey()]||[];state.pages++;state.active=state.pages;state.elements[pageKey()]=JSON.parse(JSON.stringify(src)).map(x=>({...x,id:uid()}));$("pageCount").value=state.pages;render();addMessage("Strana je duplirana.")
+ pushHistory();const src=state.elements[pageKey()]||[];state.pages++;state.pageNames=state.pageNames||[];state.pageNames[state.pages-1]=(state.pageNames[state.active-1]||"Strana "+state.active)+" — kopija";state.active=state.pages;state.elements[pageKey()]=JSON.parse(JSON.stringify(src)).map(x=>({...x,id:uid()}));$("pageCount").value=state.pages;render();addMessage("Strana je duplirana.")
 }
 function deleteElement(){if(!selected())return;pushHistory();state.elements[pageKey()]=state.elements[pageKey()].filter(x=>x.id!==state.selectedElement);state.selectedElement=null;render()}
 function saveProject(silent=false){
@@ -328,11 +334,17 @@ function applyAIActions(actions){
  }
  render();
 }
+function renderAssetLibrary(){
+ const box=$("assetLibrary");if(!box)return;
+ const assets=state.assets||[];
+ box.innerHTML=assets.length?assets.map(a=>'<button class="asset-thumb" data-asset="'+a.id+'"><img src="'+a.src+'" alt=""><small>'+esc(a.name||"Slika")+'</small></button>').join(""):'<div class="empty-library">Uploadovane slike će se pojaviti ovde.</div>';
+ box.querySelectorAll("[data-asset]").forEach(b=>b.onclick=()=>{const a=assets.find(x=>x.id===b.dataset.asset);if(a)insertElement("image",{src:a.src,alt:a.name,w:76,h:42,radius:10,shadow:true})});
+}
 function initInsert(){
  const open=()=>{$("insertPanel").hidden=false};$("insertButton").onclick=open;$("insertButtonSide").onclick=open;$("closeInsert").onclick=closeInsertPanel;
  document.querySelectorAll("[data-insert]").forEach(b=>b.onclick=()=>insertBy(b.dataset.insert));
  document.querySelectorAll("[data-mockup]").forEach(b=>b.onclick=()=>insertElement("mockup",{mockup:b.dataset.mockup,src:mockupSvg(b.dataset.mockup),w:b.dataset.mockup==="phone"?34:58,h:48}));
- $("imageUpload").onchange=e=>{Array.from(e.target.files||[]).forEach(file=>{const reader=new FileReader();reader.onload=ev=>insertElement("image",{src:ev.target.result,alt:file.name,w:76,h:42,radius:10,shadow:true});reader.readAsDataURL(file)});e.target.value=""};
+ $("imageUpload").onchange=e=>{Array.from(e.target.files||[]).forEach(file=>{const reader=new FileReader();reader.onload=ev=>{state.assets=state.assets||[];state.assets.unshift({id:uid(),name:file.name,src:ev.target.result});state.assets=state.assets.slice(0,30);insertElement("image",{src:ev.target.result,alt:file.name,w:76,h:42,radius:10,shadow:true});saveProject(true);renderAssetLibrary()};reader.readAsDataURL(file)});e.target.value=""};
 }
 function initElementInspector(){
  $("closeElementInspector").onclick=()=>{state.selectedElement=null;render()};
@@ -425,7 +437,7 @@ function initNewProjectModal(){
   const name=$("newProjectName").value.trim()||"Novi projekat";
   const format=$("newProjectFormat").value;
   const pages=Math.max(1,Math.min(30,Number($("newProjectPages").value)||10));
-  pushHistory();state.name=name;state.format=format;state.pages=pages;state.active=1;state.projectId="p_"+Date.now();state.elements={};
+  pushHistory();state.name=name;state.format=format;state.pages=pages;state.pageNames=Array.from({length:pages},(_,i)=>pageNames[i]||"Strana "+(i+1));state.active=1;state.projectId="p_"+Date.now();state.elements={};
   $("projectName").value=name;$("format").value=format;$("pageCount").value=pages;ensurePage();
   if(startType==="planner"){state.elements=templateElements("planner",pages,name)}
   if(startType==="workbook"){state.elements=templateElements("workbook",pages,name)}
