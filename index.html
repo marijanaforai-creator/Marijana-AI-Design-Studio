@@ -99,6 +99,20 @@
     <div class="pricing-foot"><span>Napomena: checkout/pretplata će se povezati kasnije sa payment sistemom. Sada gradimo proizvodnu logiku planova.</span></div>
   </div>
 </div>
+<div id="newProjectModal" class="project-modal" hidden>
+<div class="project-modal-card">
+<div class="project-modal-head"><div><span class="eyebrow">NOVI PROJEKAT</span><h2>Šta želiš da napravimo?</h2><p>Postavi osnovu projekta, a zatim nastavljamo sa AI dizajnom.</p></div><button id="closeNewProject" class="close-btn">×</button></div>
+<div class="project-form">
+<label>Naziv projekta</label><input id="newProjectName" value="Moj novi projekat" placeholder="Npr. Premium Planner">
+<div class="project-form-grid"><div><label>Format</label><select id="newProjectFormat"><option>A5</option><option>A4</option><option>US Letter</option><option>Instagram 1080 × 1350</option><option>Prilagođeno</option></select></div><div><label>Broj strana</label><input id="newProjectPages" type="number" min="1" max="30" value="10"></div></div>
+<label>Početak projekta</label><div class="project-start-grid">
+<button class="project-start active" data-start="blank"><strong>Prazan projekat</strong><small>Kreiraj od nule</small></button>
+<button class="project-start" data-start="planner"><strong>Premium planner</strong><small>Početna struktura planera</small></button>
+<button class="project-start" data-start="workbook"><strong>Workbook</strong><small>Naslov + sadržajne strane</small></button>
+<button class="project-start" data-start="ebook"><strong>Ebook</strong><small>Editorial početna struktura</small></button>
+</div>
+<div class="project-modal-actions"><button id="cancelNewProject" class="ghost-btn">Otkaži</button><button id="createNewProject" class="gold-btn">Kreiraj projekat →</button></div>
+</div></div></div>
   <script src="app.js"></script>
 </body>
 </html>
