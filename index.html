@@ -139,29 +139,14 @@
 <script>
 window.createProjectFallback=function(){
   try{
-    const name=(document.getElementById("newProjectName")?.value||"Novi projekat").trim()||"Novi projekat";
-    const format=document.getElementById("newProjectFormat")?.value||"A5";
-    const selected=document.querySelector("[data-start].active");
-    const startType=selected?.dataset.start||"blank";
-    const pages=startType==="master80"?84:Math.max(1,Math.min(200,Number(document.getElementById("newProjectPages")?.value)||1));
-    const projectFormat=startType==="master80"?"A4":format;
-    const id="p_"+Date.now();
-    const project={
-      name,format:projectFormat,pages,active:1,width:projectFormat==="Prilagođeno"?1440:559,height:projectFormat==="Prilagođeno"?2880:794,printWidthMm:projectFormat==="Prilagođeno"?381:148,printHeightMm:projectFormat==="Prilagođeno"?762:210,customUnit:projectFormat==="Prilagođeno"?"in":"mm",
-      projectId:id,pageNames:Array.from({length:pages},(_,i)=>i===0?"O meni":"Strana "+(i+1)),
-      assets:[],headingFont:"Cormorant Garamond",bodyFont:"DM Sans",color:"#8EA386",opacity:100,
-      gradientStart:"#171717",gradientEnd:"#C8A66A",gradientAngle:135,savedColors:[],palette:"sage",
-      style:"wellness",brandProfile:1,plan:"pro",aiUsed:0,selectedElement:null,previewMode:false,
-      history:[],historyIndex:-1,elements:{},updatedAt:new Date().toISOString()
-    };
-    localStorage.setItem("marijanaDesignStudioProject",JSON.stringify(project));
-    const all=JSON.parse(localStorage.getItem("marijanaDesignStudioProjects")||"{}");
-    all[id]=project;
-    localStorage.setItem("marijanaDesignStudioProjects",JSON.stringify(all));
-    location.reload();
+    if(typeof window.createNewProjectFromModal==="function"){
+      window.createNewProjectFromModal();
+      return;
+    }
+    throw new Error("Studio funkcija za novi projekat nije učitana.");
   }catch(e){
     alert("Ne mogu da kreiram projekat: "+(e?.message||e));
   }
-};
+}
 </script></body>
 </html>
