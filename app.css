@@ -128,3 +128,11 @@ body{min-height:100vh}
 .brand-more.open{display:block}
 .brand-more-toggle{width:100%;margin-top:10px;border:1px solid rgba(217,182,111,.18);background:rgba(255,255,255,.03);color:#e8d9f4;border-radius:7px;padding:8px 10px;font:600 10px "DM Sans";cursor:pointer}
 .brand-more-toggle:hover{border-color:var(--gold);background:rgba(255,255,255,.05)}
+
+
+/* Compact expandable effects panel */
+.effects-more-toggle{width:100%;margin:4px 0 8px;border:1px solid rgba(217,182,111,.18);background:rgba(255,255,255,.03);color:#e8d9f4;border-radius:7px;padding:8px 10px;font:600 10px "DM Sans";cursor:pointer;text-align:left;display:flex;justify-content:space-between;align-items:center}
+.effects-more-toggle:hover{border-color:var(--gold);background:rgba(255,255,255,.05)}
+.effects-more-toggle span{font-size:15px;line-height:1;color:var(--gold)}
+.effects-details[hidden]{display:none}
+.effects-details{padding-top:3px}
