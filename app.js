@@ -419,7 +419,9 @@ function initLibraries(){
 function initBrand(){
  const sel=$("brandProfile");sel.innerHTML=brandProfiles.map(p=>'<option value="'+p.id+'">'+p.name+"</option>").join("");
  function load(){const p=brandProfiles[Number(sel.value)-1];$("brandName").value=p.data.name;$("brandDescription").value=p.data.description;$("brandColor").value=p.data.color;$("brandHex").value=p.data.color;$("brandTone").value=p.data.tone;$("brandHeading").value=p.data.heading;$("brandBody").value=p.data.body}
- sel.onchange=load;$("brandButton").onclick=()=>{$("brandPanel").hidden=false};$("closeBrand").onclick=()=>{$("brandPanel").hidden=true};
+ sel.onchange=load;$("brandButton").onclick=()=>{$("brandPanel").hidden=false;$("brandButton").setAttribute("aria-expanded","true")};
+ $("closeBrand").onclick=()=>{$("brandPanel").hidden=true;$("brandButton").setAttribute("aria-expanded","false")};
+ if($("toggleBrandMore"))$("toggleBrandMore").onclick=()=>{const box=$("brandMore"),btn=$("toggleBrandMore"),open=box.classList.toggle("open");btn.innerHTML=open?'Prikaži manje <span>⌃</span>':'Prikaži više <span>⌄</span>'};
  $("brandColor").oninput=e=>$("brandHex").value=e.target.value.toUpperCase();$("brandHex").onchange=e=>{const x=normalizeHex(e.target.value);if(x){$("brandHex").value=x;$("brandColor").value=x}};
  $("saveBrand").onclick=()=>{const p=brandProfiles[Number(sel.value)-1];p.data={name:$("brandName").value,description:$("brandDescription").value,color:$("brandColor").value,tone:$("brandTone").value,heading:$("brandHeading").value,body:$("brandBody").value};localStorage.setItem("marijanaBrandProfiles",JSON.stringify(brandProfiles));$("saveBrand").textContent="Sačuvano ✓";setTimeout(()=>$("saveBrand").textContent="Sačuvaj brend",1000)};
  $("applyBrand").onclick=()=>{const p=brandProfiles[Number(sel.value)-1];state.headingFont=p.data.heading;state.bodyFont=p.data.body;updateColor(p.data.color);$("headingFont").value=p.data.heading;$("bodyFont").value=p.data.body;render();$("brandPanel").hidden=true};load()
