@@ -151,6 +151,7 @@ window.createProjectFallback=function(){
     const totalPages=startType==="master80"?84:pages;
     const project={name,format:projectFormat,pages:totalPages,active:1,width:s[0],height:s[1],printWidthMm:s[2],printHeightMm:s[3],customUnit:"mm",projectId:"p_"+now,pageNames:Array.from({length:totalPages},(_,i)=>"Strana "+(i+1)),assets:[],headingFont:"Cormorant Garamond",bodyFont:"DM Sans",color:"#8EA386",opacity:100,gradientStart:"#171717",gradientEnd:"#C8A66A",gradientAngle:135,savedColors:[],palette:"sage",style:"wellness",brandProfile:1,plan:"pro",aiUsed:0,selectedElement:null,previewMode:false,history:[],historyIndex:-1,elements:{"1":[]},updatedAt:new Date().toISOString()};
     localStorage.setItem("marijanaDesignStudioProject",JSON.stringify(project));
+    sessionStorage.setItem("marijanaDesignStudioOpenProject",project.projectId);
     const all=JSON.parse(localStorage.getItem("marijanaDesignStudioProjects")||"{}");
     all[project.projectId]=project;
     localStorage.setItem("marijanaDesignStudioProjects",JSON.stringify(all));
