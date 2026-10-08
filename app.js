@@ -247,6 +247,11 @@ function renderStudioEffects(){
  if($("studioShadow"))$("studioShadow").checked=!!el.shadow;
 }
 function initStudioEffects(){
+ if($("toggleStudioEffects")&&$("studioEffectsDetails"))$("toggleStudioEffects").onclick=()=>{
+  const details=$("studioEffectsDetails"),open=!details.hidden;details.hidden=open;
+  $("toggleStudioEffects").innerHTML=open?'Prikaži više <span>⌄</span>':'Prikaži manje <span>⌃</span>';
+ };
+
  const bindings=[["studioBlur","blur","studioBlurValue",v=>v+"px"],["studioBrightness","brightness","studioBrightnessValue",v=>v+"%"],["studioContrast","contrast","studioContrastValue",v=>v+"%"],["studioSaturation","saturation","studioSaturationValue",v=>v+"%"],["studioOpacity","opacity","studioOpacityValue",v=>v+"%"],["studioRadius","radius","studioRadiusValue",v=>v+"px"]];
  bindings.forEach(([id,key,label,fmt])=>{if($(id))$(id).oninput=e=>{const el=selected();if(!el)return;el[key]=Number(e.target.value);if($(label))$(label).textContent=fmt(el[key]);renderPreview();renderElementInspector()}});
  if($("studioAnimation"))$("studioAnimation").onchange=e=>{const el=selected();if(el){el.animation=e.target.value;renderPreview();renderElementInspector()}};
