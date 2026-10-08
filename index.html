@@ -54,16 +54,18 @@
 
       <aside class="inspector">
         <div class="inspector-head"><span class="eyebrow">PROJEKAT</span><h3>Struktura</h3></div><div class="quick-tools"><button id="undoBtn">↶</button><button id="redoBtn">↷</button><button id="duplicatePage">Kopiraj stranu</button><button id="addPage">＋ Strana</button></div>
-<div class="brand-launch"><button id="brandButton"><span class="brand-icon">B</span><span><strong>Brend</strong><small>20 profila brenda</small></span><b>›</b></button></div>
+<div class="brand-launch"><button id="brandButton" aria-expanded="false"><span class="brand-icon">B</span><span><strong>Brend</strong><small>20 profila brenda</small></span><b class="brand-chevron">⌄</b></button></div>
 <div id="brandPanel" class="brand-panel" hidden>
 <div class="brand-panel-head"><div><span class="eyebrow">IDENTITET BRENDA</span><h3>Brend</h3></div><button id="closeBrand" class="close-btn">×</button></div>
 <label>Izaberi profil</label><select id="brandProfile"></select>
 <label>Naziv brenda</label><input id="brandName" placeholder="Naziv brenda">
+<div class="brand-more" id="brandMore">
 <label>Opis / pozicioniranje</label><textarea id="brandDescription" placeholder="Čime se brend bavi i kome se obraća?"></textarea>
 <label>Glavna boja</label><div class="brand-color"><input id="brandColor" type="color" value="#8EA386"><input id="brandHex" value="#8EA386"></div>
 <label>Stil komunikacije</label><select id="brandTone"><option>Elegantno</option><option>Profesionalno</option><option>Toplo</option><option>Minimalistički</option><option>Energično</option><option>Luksuzno</option></select>
 <label>Font naslova</label><select id="brandHeading"><option>Cormorant Garamond</option><option>Playfair Display</option><option>Lora</option><option>Libre Baskerville</option><option>Montserrat</option></select>
-<label>Font teksta</label><select id="brandBody"><option>DM Sans</option><option>Montserrat</option><option>Manrope</option><option>Inter</option></select>
+<label>Font teksta</label><select id="brandBody"><option>DM Sans</option><option>Montserrat</option><option>Manrope</option><option>Inter</option></select></div>
+<button type="button" id="toggleBrandMore" class="brand-more-toggle">Prikaži više <span>⌄</span></button>
 <div class="brand-row"><button id="saveBrand" class="gold-btn">Sačuvaj brend</button><button id="applyBrand" class="ghost-btn">Primeni na projekat</button></div>
 <div class="brand-note">Profil čuva identitet brenda za buduće projekte.</div>
 </div>
