@@ -770,6 +770,7 @@ function createNewProjectFromModal(){
   alert("Projekat nije kreiran. Greška: "+(err?.message||err));
  }
 }
+window.createNewProjectFromModal=createNewProjectFromModal;
 function initNewProjectModal(){
  const modal=$("newProjectModal"),openBtn=$("newProject"),closeBtn=$("closeNewProject"),cancelBtn=$("cancelNewProject"),createBtn=$("createNewProject");
  if(!modal||!openBtn)return;
