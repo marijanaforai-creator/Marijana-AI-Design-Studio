@@ -103,3 +103,14 @@ body{min-height:100vh}
 .preview-wrap{overflow:auto}
 @media(max-width:1050px){.workspace{height:calc(100vh - 78px)}}
 @media(max-width:720px){html,body{overflow:auto}.app-shell{height:auto;min-height:100vh}.topbar{position:relative}.workspace{height:auto;min-height:0;overflow:visible}.stage{height:720px}.stage-head{height:auto;min-height:86px}.canvas-area{height:auto;min-height:634px}}
+
+
+/* Final header separation: keep project title inside its own toolbar row */
+.stage-head{display:grid;grid-template-columns:minmax(180px,1fr) auto;align-items:center;gap:16px;height:92px;min-height:92px;flex:0 0 92px;padding:12px 24px;overflow:hidden}
+.stage-head>div:first-child{min-width:0;height:100%;justify-content:center;overflow:hidden}
+.stage-head h2{display:block;margin:4px 0 0;font-size:22px;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.stage-actions{display:flex;align-items:center;justify-content:flex-end;gap:7px;white-space:nowrap}
+.canvas-area{height:calc(100% - 92px)}
+@media(max-width:1180px){.stage-head{grid-template-columns:minmax(150px,1fr) auto;gap:10px;padding-left:18px;padding-right:18px}.stage-head h2{font-size:20px}.stage-actions{gap:5px}.stage-actions .ghost-btn,.stage-actions .gold-btn{padding:8px 9px;font-size:10px}}
+@media(max-width:900px){.stage-head{grid-template-columns:1fr;height:auto;min-height:92px}.stage-actions{justify-content:flex-start;overflow-x:auto;padding-bottom:2px}.canvas-area{height:calc(100% - 92px)}}
+@media(max-width:720px){.stage-head{height:auto;min-height:92px}.canvas-area{height:auto;min-height:634px}}
