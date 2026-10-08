@@ -300,10 +300,10 @@ function applyTemplate(key){
  saveProject(true);
 }
 const state={
-name:"Moj Premium Planner",format:"A5",pages:10,active:1,width:559,height:794,printWidthMm:148,printHeightMm:210,customUnit:"mm",projectId:"p_"+Date.now(),pageNames:[...pageNames],assets:[],headingFont:"Cormorant Garamond",bodyFont:"DM Sans",
+name:"Novi projekat",format:"A5",pages:1,active:1,width:559,height:794,printWidthMm:148,printHeightMm:210,customUnit:"mm",projectId:"p_"+Date.now(),pageNames:["Strana 1"],assets:[],headingFont:"Cormorant Garamond",bodyFont:"DM Sans",
 color:"#8EA386",opacity:100,gradientStart:"#171717",gradientEnd:"#C8A66A",gradientAngle:135,savedColors:[],palette:"sage",style:"wellness",
 brandProfile:1,plan:"pro",aiUsed:0,selectedElement:null,previewMode:false,history:[],historyIndex:-1,
-elements:{}
+elements:{"1":[]}
 };
 function currentPlan(){return PLANS[state.plan]||PLANS.pro}
 function hasAccess(key){
