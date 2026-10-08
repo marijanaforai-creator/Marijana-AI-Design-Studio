@@ -72,3 +72,15 @@ body{background:radial-gradient(circle at 55% -10%,#3a1b59 0,#160c25 34%,#090510
 @keyframes dasFloat{0%,100%{translate:0 0}50%{translate:0 -7px}}
 @keyframes dasBlurIn{from{opacity:0;filter:blur(10px)}to{opacity:1}}
 .animation-fade{animation:dasFade .55s ease both}.animation-slide-up{animation:dasSlideUp .6s cubic-bezier(.2,.7,.2,1) both}.animation-slide-right{animation:dasSlideRight .6s cubic-bezier(.2,.7,.2,1) both}.animation-zoom{animation:dasZoom .55s cubic-bezier(.2,.8,.2,1) both}.animation-float{animation:dasFloat 2.8s ease-in-out infinite}.animation-blur-in{animation:dasBlurIn .7s ease both}
+
+.studio-effects-panel{border:1px solid rgba(200,166,106,.35);background:linear-gradient(180deg,rgba(255,253,248,.98),rgba(246,241,232,.9));border-radius:14px;padding:14px;margin:12px 0;box-shadow:0 8px 24px rgba(23,23,23,.06)}
+.studio-effects-panel>label{font-weight:800;letter-spacing:.08em;color:#171717;margin-bottom:10px;display:block}
+.effects-hint{font-size:12px;line-height:1.5;color:#777;padding:10px;border-radius:10px;background:#fff}
+#effectsControls{display:grid;gap:9px}
+#effectsControls .effect-row{display:grid;gap:4px}
+#effectsControls .effect-row label{display:flex;justify-content:space-between;font-size:12px;color:#4b4843}
+#effectsControls input[type=range]{width:100%;accent-color:#C8A66A}
+#effectsControls select{width:100%;padding:8px 10px;border:1px solid rgba(23,23,23,.12);border-radius:9px;background:#fff;font:500 12px DM Sans,Arial}
+.effects-extra{margin-top:5px;padding-top:9px;border-top:1px solid rgba(23,23,23,.08);display:grid;gap:2px}
+.effects-extra span{font-size:11px;font-weight:700}
+.effects-extra small{font-size:10px;color:#8a847b}
