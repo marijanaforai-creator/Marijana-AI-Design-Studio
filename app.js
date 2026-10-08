@@ -814,6 +814,8 @@ function init(){
 
  ensurePage();pushHistory();render();renderSavedColors();setInterval(()=>saveProject(true),5000);
 }
+// Expose this handler before init() so the New Project button still works even if a later init step fails.
+window.createNewProjectFromModal=createNewProjectFromModal;
 init();
 window.importProductFactory=function(payload){
   try{
