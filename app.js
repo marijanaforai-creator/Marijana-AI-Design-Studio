@@ -743,6 +743,33 @@ function initToolPanels(){
  $("exportJson").onclick=exportJSON;$("exportPdf").onclick=exportPDF;$("exportSvg").onclick=exportSVG;
  renderTemplates();
 }
+function createNewProjectFromModal(){
+ try{
+  const modal=$("newProjectModal");
+  const name=$("newProjectName").value.trim()||"Novi projekat";
+  const format=$("newProjectFormat").value;
+  const selected=document.querySelector("[data-start].active");
+  const startType=selected?.dataset.start||"blank";
+  const pages=startType==="master80"?84:Math.max(1,Math.min(200,Number($("newProjectPages").value)||10));
+  const projectFormat=startType==="master80"?"A4":format;
+  pushHistory();
+  state.name=name;state.format=projectFormat;state.pages=pages;state.pageNames=Array.from({length:pages},(_,i)=>pageNames[i]||"Strana "+(i+1));state.active=1;state.projectId="p_"+Date.now();state.elements={};
+  if(projectFormat==="Prilagođeno"){state.customUnit="mm";state.printWidthMm=148;state.printHeightMm=210;state.width=mmToPx(148);state.height=mmToPx(210);}
+  $("projectName").value=name;$("format").value=projectFormat;$("pageCount").value=pages;
+  ensurePage();
+  if(startType==="planner")state.elements=templateElements("planner",pages,name);
+  if(startType==="workbook")state.elements=templateElements("workbook",pages,name);
+  if(startType==="ebook")state.elements=templateElements("ebook",pages,name);
+  if(startType==="master80")state.elements=templateElements("master80",84,name);
+  modal.hidden=true;
+  render();
+  saveProject(true);
+  addMessage("Projekat „"+name+"“ je kreiran. Sada možemo da ga gradimo kroz AI razgovor.");
+ }catch(err){
+  console.error("Greška pri kreiranju projekta:",err);
+  alert("Projekat nije kreiran. Greška: "+(err?.message||err));
+ }
+}
 function initNewProjectModal(){
  const modal=$("newProjectModal"),openBtn=$("newProject"),closeBtn=$("closeNewProject"),cancelBtn=$("cancelNewProject"),createBtn=$("createNewProject");
  if(!modal||!openBtn)return;
@@ -752,26 +779,7 @@ function initNewProjectModal(){
  closeBtn.onclick=close;cancelBtn.onclick=close;
  modal.addEventListener("click",e=>{if(e.target===modal)close()});
  document.querySelectorAll("[data-start]").forEach(btn=>btn.onclick=()=>{startType=btn.dataset.start;document.querySelectorAll("[data-start]").forEach(x=>x.classList.toggle("active",x===btn));});
- createBtn.onclick=()=>{
-  try{
-   const name=$("newProjectName").value.trim()||"Novi projekat";
-   const format=$("newProjectFormat").value;
-   const pages=startType==="master80"?84:Math.max(1,Math.min(200,Number($("newProjectPages").value)||10));
-   const projectFormat=startType==="master80"?"A4":format;
-   pushHistory();
-   state.name=name;state.format=projectFormat;state.pages=pages;state.pageNames=Array.from({length:pages},(_,i)=>pageNames[i]||"Strana "+(i+1));state.active=1;state.projectId="p_"+Date.now();state.elements={};
-   if(projectFormat==="Prilagođeno"){state.customUnit="mm";state.printWidthMm=148;state.printHeightMm=210;state.width=mmToPx(148);state.height=mmToPx(210);}
-   $("projectName").value=name;$("format").value=projectFormat;$("pageCount").value=pages;ensurePage();
-   if(startType==="planner")state.elements=templateElements("planner",pages,name);
-   if(startType==="workbook")state.elements=templateElements("workbook",pages,name);
-   if(startType==="ebook")state.elements=templateElements("ebook",pages,name);
-   if(startType==="master80")state.elements=templateElements("master80",84,name);
-   modal.hidden=true;render();saveProject(true);addMessage("Projekat „"+name+"“ je kreiran. Sada možemo da ga gradimo kroz AI razgovor.");
-  }catch(err){
-   console.error("Greška pri kreiranju projekta:",err);
-   addMessage("Projekat nije kreiran. Osveži stranicu (Ctrl+F5) i pokušaj ponovo.","ai");
-  }
- };
+ createBtn.onclick=createNewProjectFromModal;
 }
 let clipboardElement=null;
 function copySelectedElement(){const el=selected();if(!el)return;clipboardElement=JSON.parse(JSON.stringify(el));addMessage("Element je kopiran.")}
