@@ -147,3 +147,18 @@ body{min-height:100vh}
 .stage-actions button{white-space:nowrap;flex:0 0 auto}
 @media(max-width:1200px){.stage-head{grid-template-columns:minmax(170px,1fr) auto;gap:10px;padding-left:14px;padding-right:14px}.stage-head>div:first-child{min-width:170px}.stage-head h2{font-size:20px}.stage-actions{gap:5px}.stage-actions .ghost-btn,.stage-actions .gold-btn{padding:8px 10px;font-size:10px}}
 @media(max-width:980px){.stage-head{grid-template-columns:1fr;grid-template-rows:auto auto;height:auto;min-height:92px;gap:7px;padding-top:10px;padding-bottom:10px}.stage-head>div:first-child{min-width:0}.stage-actions{justify-content:flex-start;overflow-x:auto;max-width:100%;padding-bottom:2px}.canvas-area{height:calc(100% - 92px)}}
+
+
+/* Keep the complete toolbar visible inside the center workspace */
+@media(max-width:1400px){
+ .stage-head{grid-template-columns:1fr;grid-template-rows:auto auto;height:116px;min-height:116px;padding:10px 16px;gap:7px;overflow:hidden}
+ .stage-head>div:first-child{min-width:0;height:auto}
+ .stage-head h2{font-size:20px}
+ .stage-actions{width:100%;min-width:0;justify-content:flex-start;gap:6px;overflow:hidden}
+ .stage-actions button{padding:8px 10px;font-size:10px;min-width:0}
+}
+@media(max-width:1050px){
+ .stage-head{height:112px;min-height:112px;padding:9px 12px}
+ .stage-actions{gap:5px}
+ .stage-actions button{padding:7px 9px;font-size:9px}
+}
