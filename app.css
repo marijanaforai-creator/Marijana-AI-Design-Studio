@@ -114,3 +114,8 @@ body{min-height:100vh}
 @media(max-width:1180px){.stage-head{grid-template-columns:minmax(150px,1fr) auto;gap:10px;padding-left:18px;padding-right:18px}.stage-head h2{font-size:20px}.stage-actions{gap:5px}.stage-actions .ghost-btn,.stage-actions .gold-btn{padding:8px 9px;font-size:10px}}
 @media(max-width:900px){.stage-head{grid-template-columns:1fr;height:auto;min-height:92px}.stage-actions{justify-content:flex-start;overflow-x:auto;padding-bottom:2px}.canvas-area{height:calc(100% - 92px)}}
 @media(max-width:720px){.stage-head{height:auto;min-height:92px}.canvas-area{height:auto;min-height:634px}}
+
+
+/* Move the main working page slightly upward without changing its size */
+.preview-wrap{align-items:start;padding-top:18px}
+@media(max-width:720px){.preview-wrap{padding-top:14px}}
