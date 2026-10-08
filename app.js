@@ -151,87 +151,130 @@ function masterWorkbookElements(name){
   ["Master checklist i narednih 90 dana","Šta radiš sada, šta kasnije","Pretvori sistem u konkretne prioritete."],
   ["Završna Master formula","NAPRAVI → POKRENI → IZMERI → NAUČI → POBOLJŠAJ → PONOVI","Tvoj biznis nije jedan proizvod. Tvoj biznis je sistem."]
  ];
- for(let i=1;i<=48;i++){
-  const d= i===1 ? {title:introPages[0][0],intro:introPages[0][1],body:introPages[0][2]} : {title:introPages[i-1]?.[0]||("Strana "+i),intro:introPages[i-1]?.[1]||"Radni prostor za ovu celinu.",body:introPages[i-1]?.[2]||"Dodaj, prilagodi i proveri sadržaj ove strane."};
-  out[String(i)]=[
-   wbText(d.title,9,8,82,9,i===1?27:18,i===1?"#E7D2A7":"#171717","left",{font:state.headingFont}),
-   wbText(d.intro,9,19,82,7,10,i===1?"#E7D2A7":"#8EA386","left"),
-   wbBox(d.body,9,30,82,23,i===1?"#2B2925":"#F4EFE6","#4C463E",10,{radius:12}),
-   wbText("BELEŠKE / PRAKTIČNA PRIMENA",9,58,82,6,9,"#3A352F","left",{font:"DM Sans"}),
-   ...Array.from({length:5},(_,j)=>wbLine(9,66+j*5.2,82)),
-   wbText(String(i).padStart(2,"0"),86,93,5,4,7,"#A79D8D","right",{font:"DM Sans"})
-  ];
+
+ function addFooter(els,i,label="Master Workbook"){
+  els.push(wbText(label+" · "+String(i).padStart(2,"0"),8,96,84,3.5,7,"#A79D8D","left",{font:"DM Sans"}));
  }
- function wbChecklist(els,labels,startY){
- labels.forEach((label,i)=>{
-  const y=startY+i*8;
-  els.push(wbBox("",8,y,84,6.5,"#FBF8F2","#E1D9CC",8,{radius:6}));
-  els.push(wbText("☐ "+label,11,y+1,78,4.5,8.5,"#3D3832","left",{font:"DM Sans"}));
- });
-}
-function wbTimeline(els,labels,startY){
- labels.forEach((label,i)=>{
-  const y=startY+i*8;
-  els.push(wbText(String(i+1).padStart(2,"0"),8,y,7,5,8,"#8EA386","center",{font:"DM Sans"}));
-  els.push(wbLine(17,y+5,73));
-  els.push(wbText(label,17,y,70,5,8.5,"#3D3832","left",{font:"DM Sans"}));
- });
-}
-function wbKpi(els,labels,startY){
- const gap=3,cw=(84-gap*2)/3;
- labels.slice(0,9).forEach((label,i)=>{
-  const x=8+(i%3)*(cw+gap),y=startY+Math.floor(i/3)*15;
-  els.push(wbBox("",x,y,cw,11,"#F4EFE6","#D8D0C2",8,{radius:8}));
-  els.push(wbText(label,x+2,y+2,cw-4,4,7.5,"#514A42","center",{font:"DM Sans"}));
-  els.push(wbLine(x+4,y+8,cw-8));
- });
-}
-WORKBOOK_SHEETS.forEach((s,idx)=>{
- const p=49+idx,els=[
-  wbText(s.title,8,7,84,8,16,"#171717","left",{font:state.headingFont}),
-  wbText(s.intro,8,17,84,7,9.5,"#8EA386","left")
- ];
- if([0,1,2,3,4,5,8,17,18,19,20,21,22].includes(idx)){
-  const cut=Math.ceil(s.fields.length/2);
-  s.fields.slice(0,cut).forEach((f,j)=>wbField(els,f,29+j*10,false));
-  s.fields.slice(cut).forEach((f,j)=>wbField(els,f,29+j*10,true));
-  if(s.example)wbExample(els,s.example);
- }else if([6,7,13,15,16,23,24,25,26].includes(idx)){
-  wbChecklist(els,s.fields,29);
-  if(s.example)els.push(wbBox("PRIMER\n"+s.example,8,79,84,12,"#F4EFE6","#4C463E",8,{radius:9}));
- }else if([27,28,29].includes(idx)){
-  wbTimeline(els,s.fields,29);
-  if(s.example)els.push(wbBox("PRIMER · "+s.example,8,79,84,12,"#F4EFE6","#4C463E",8,{radius:9}));
- }else if(idx===30){
-  wbKpi(els,s.fields,29);
-  els.push(wbText("Zapažanje / odluka na osnovu brojeva",8,78,84,5,9,"#3A352F","left",{font:"DM Sans"}));
-  els.push(wbLine(8,87,84));
-  els.push(wbText("Sledeći korak",8,90,28,4,8,"#8EA386","left",{font:"DM Sans"}));
-  els.push(wbLine(37,94,55));
- }else if(idx===31){
-  ["Dani 1–30","Dani 31–60","Dani 61–90"].forEach((label,j)=>{
-   const x=8+j*28;
-   els.push(wbBox(label+"\n\nGlavni fokus:\n\nMetrika:\n\nAkcija:",x,29,25,48,"#F4EFE6","#4C463E",8,{radius:9}));
+ function sectionCover(els,i,title,intro,body){
+  els.push(wbText("CELINA",9,7,20,5,8,"#8EA386","left",{font:"DM Sans"}));
+  els.push(wbText(title,9,15,82,15,23,"#171717","left",{font:state.headingFont}));
+  els.push(wbText(intro,9,32,78,8,11,"#5E574E","left"));
+  els.push(wbBox("",9,44,82,30,"#F4EFE6","#D8D0C2",9,{radius:14}));
+  els.push(wbText(body,13,50,74,17,10,"#3D3832","left"));
+  els.push(wbText("VAŽNO",13,69,20,5,8,"#8EA386","left",{font:"DM Sans"}));
+  els.push(wbLine(28,73,57));
+ }
+ function processPage(els,steps,note){
+  const gap=3,cw=(84-gap*(steps.length-1))/steps.length;
+  steps.forEach((step,i)=>{
+   const x=8+i*(cw+gap);
+   els.push(wbBox(String(i+1).padStart(2,"0")+"\n"+step,x,30,cw,25,"#F4EFE6","#3D3832",8,{radius:10}));
+   if(i<steps.length-1)els.push(wbText("→",x+cw,39,3,5,9,"#8EA386","center",{font:"DM Sans"}));
   });
-  els.push(wbText("Jedna najvažnija odluka za narednih 90 dana",8,82,84,5,9,"#3A352F","left",{font:"DM Sans"}));
-  els.push(wbLine(8,91,84));
+  els.push(wbBox("VAŽNO · "+note,8,63,84,14,"#F8F3EA","#4C463E",8.5,{radius:9}));
  }
- els.push(wbText("Master Workbook · radna strana "+(idx+1),8,96,84,3.5,7,"#A79D8D","left",{font:"DM Sans"}));
- out[String(p)]=els;
-});
+ function examplePage(els,example,questions){
+  els.push(wbBox("PRIMER",8,29,28,7,"#8EA386","#FFFDF8",8,{radius:7}));
+  els.push(wbBox(example,8,38,84,22,"#F4EFE6","#3D3832",9,{radius:10}));
+  els.push(wbText("TVOJA VERZIJA",8,65,38,5,8.5,"#8EA386","left",{font:"DM Sans"}));
+  questions.forEach((q,i)=>wbField(els,q,73+i*7.2,true));
+ }
+ function notesPage(els){
+  els.push(wbText("TVOJE BELEŠKE",8,30,40,6,9,"#8EA386","left",{font:"DM Sans"}));
+  for(let i=0;i<8;i++)els.push(wbLine(8,39+i*7.2,84));
+  els.push(wbBox("SLEDEĆI KORAK",8,84,28,6,"#8EA386","#FFFDF8",7.5,{radius:7}));
+  els.push(wbLine(40,90,52));
+ }
+
+ const segmentPages={3,6,15,29,30,36,43};
+ const processMap={
+  7:["IDEJA","STRUKTURA","SADRŽAJ","PROVERA","DIZAJN"],
+  8:["PLAN","SADRŽAJ","PROVERA","STRANICA","FINALNA PROVERA"],
+  13:["PROIZVOD","BESPLATAN SADRŽAJ","EMAIL","SADRŽAJ","PRODAJA"],
+  18:["FILTER","BLUEPRINT","SADRŽAJ","PRAKSA","REZULTAT"],
+  19:["NASLOV","UVOD","CELINE","PRAKSA","CTA"],
+  28:["BESPLATAN SADRŽAJ","PRIJAVA","EMAIL LISTA","VREDNOST","SLEDEĆI KORAK"],
+  31:["PONUDA","SALES PAGE","CHECKOUT","KUPOVINA"],
+  33:["PROBLEM","ŽELJA","REŠENJE","REZULTAT"],
+  34:["BESPLATAN SADRŽAJ","EMAIL","PONUDA","CHECKOUT"],
+  36:["PRE-LAUNCH","LANSIRANJE","PRVA PRODAJA","ANALIZA"],
+  37:["PONUDA","SADRŽAJ","EMAILI","CHECKOUT","ISPORUKA"],
+  38:["NAJAVA","PROBLEM","VREDNOST","PONUDA","PODSETNIK"],
+  39:["PRODAJA","BROJEVI","FEEDBACK","LEKCIJA","IZMENA"],
+  41:["SADRŽAJ","RECIKLIRANJE","LANSIRANJE","ANALIZA","PONAVLJANJE"],
+  43:["PRVA PRODAJA","SISTEM","KPI","OPTIMIZACIJA"],
+  46:["IDEJA","PROIZVOD","SADRŽAJ","PRODAJA","ISPORUKA","OPTIMIZACIJA"],
+  48:["NAPRAVI","POKRENI","IZMERI","NAUČI","POBOLJŠAJ","PONOVI"]
+ };
+
+ for(let i=1;i<=48;i++){
+  const d=introPages[i-1]||["Strana "+i,"Radni prostor","Dodaj, prilagodi i proveri sadržaj ove strane."];
+  const els=[];
+  if(i===1){
+   els.push(wbBox("",7,7,86,83,"#2B2925","#E7D2A7",10,{radius:18}));
+   els.push(wbText("MASTER WORKBOOK",13,15,74,6,9,"#C8A66A","center",{font:"DM Sans"}));
+   els.push(wbText(d[0].replace(" — ","\n"),13,27,74,24,28,"#E7D2A7","center",{font:state.headingFont}));
+   els.push(wbLine(25,56,50,"#C8A66A"));
+   els.push(wbText(d[1],15,61,70,8,12,"#F4EFE6","center"));
+   els.push(wbText(d[2],15,72,70,9,9,"#CFC7B9","center"));
+   els.push(wbText("IDEJA  ·  PROIZVOD  ·  BESPLATAN SADRŽAJ  ·  EMAIL  ·  PRODAJA  ·  LANSIRANJE  ·  RAST",13,83,74,5,7.2,"#C8A66A","center",{font:"DM Sans"}));
+  }else if(i===2){
+   els.push(wbText(d[0],8,8,84,9,20,"#171717","left",{font:state.headingFont}));
+   els.push(wbText(d[1],8,19,84,6,9.5,"#8EA386","left"));
+   const sections=["01 · IDEJA","02 · PROIZVOD","03 · BESPLATAN SADRŽAJ","04 · EMAIL SISTEM","05 · PRODAJNI SISTEM","06 · LANSIRANJE","07 · ANALIZA I RAST","08 · MASTER PLAN"];
+   sections.forEach((s,j)=>{
+    const col=j%2,row=Math.floor(j/2),x=8+col*43,y=30+row*14;
+    els.push(wbBox(s,x,y,39,10,"#F4EFE6","#3D3832",8.5,{radius:8}));
+    els.push(wbText("→",x+32,y+3,5,4,8,"#8EA386","center",{font:"DM Sans"}));
+   });
+   els.push(wbBox("32 RADNE STRANICE\nza konkretan rad kroz sistem",8,74,84,14,"#F8F3EA","#3D3832",9,{radius:9}));
+  }else if(segmentPages.has(i)){
+   sectionCover(els,i,d[0],d[1],d[2]);
+   const map=processMap[i+1]||processMap[i];
+   if(map)processPage(els,map,"Prvo razumevanje procesa, zatim konkretna primena.");
+   else{
+    els.push(wbText("ŠTA ŽELIM DA POSTIGNEM?",9,79,40,5,8.5,"#8EA386","left",{font:"DM Sans"}));
+    els.push(wbLine(9,88,82));
+   }
+  }else if(processMap[i]){
+   els.push(wbText(d[0],8,8,84,9,17,"#171717","left",{font:state.headingFont}));
+   els.push(wbText(d[1],8,19,84,7,9.5,"#8EA386","left"));
+   processPage(els,processMap[i],d[2]);
+   els.push(wbText("TVOJA BELEŠKA",8,80,30,5,8.5,"#8EA386","left",{font:"DM Sans"}));
+   els.push(wbLine(8,89,84));
+  }else if([4,5,9,10,11,12,14,17,20,21,22,23,24,25,26,27,32,35,40,42,44,45,47].includes(i)){
+   els.push(wbText(d[0],8,8,84,10,17,"#171717","left",{font:state.headingFont}));
+   els.push(wbText(d[1],8,19,84,7,9.5,"#8EA386","left"));
+   els.push(wbBox(d[2],8,29,55,22,"#F4EFE6","#3D3832",9,{radius:10}));
+   els.push(wbBox("VAŽNO",67,29,25,7,"#8EA386","#FFFDF8",8,{radius:7}));
+   els.push(wbText(i===14?"Koristan besplatan sadržaj treba da vodi ka malom rezultatu.":i===20?"Prvo definiši sadržaj i praktičnu vrednost, pa tek onda izgled.":"Jedna stranica treba da ima jasnu svrhu i sledeći korak.",67,39,25,24,8,"#4C463E","left"));
+   els.push(wbText("PRIMER / PRIMENA",8,58,35,5,8.5,"#8EA386","left",{font:"DM Sans"}));
+   els.push(wbBox("Ovde ostavi prostor za konkretan primer iz svog proizvoda.",8,66,84,12,"#F8F3EA","#5E574E",8.5,{radius:9}));
+   els.push(wbText("BELEŠKE",8,82,25,5,8.5,"#8EA386","left",{font:"DM Sans"}));
+   els.push(wbLine(8,90,84));
+  }else{
+   els.push(wbText(d[0],8,8,84,10,17,"#171717","left",{font:state.headingFont}));
+   els.push(wbText(d[1],8,19,84,7,9.5,"#8EA386","left"));
+   examplePage(els,"Primer izvorne strukture: "+d[2],["Kako ovo izgleda u mom proizvodu?","Šta treba da uradim sada?"]);
+   notesPage(els);
+  }
+  addFooter(els,i);
+  out[String(i)]=els;
+ }
+
  const endPages=[
   {title:"ZAVRŠNE BELEŠKE",intro:"Prostor da zapišeš ono što želiš da sačuvaš nakon rada kroz Master Workbook.",fields:["Najvažnija odluka","Šta sam završila","Šta želim da poboljšam","Sledeći konkretan korak"]},
   {title:"AUTORSKA PRAVA I KORIŠĆENJE",intro:"© 2026 Marijana Forai · Digital Soul. Sva prava zadržana.",fields:["Autor / vlasnik","Godina izdanja","Verzija dokumenta","Kontakt za pitanja"]},
   {title:"RESURSI I LINKOVI",intro:"Dodaj svoje zvanične linkove na jednom mestu.",fields:["Web sajt","Prodavnica / proizvodi","Instagram","Email","Ostali resursi"]},
-  {title:"HVALA · SLEDEĆI KORAK",intro:"Ovaj workbook je napravljen da se koristi, dopunjava i ponavlja.",fields:["Šta sada radim","Koji proizvod razvijam","Kada proveravam napredak"]},
+  {title:"HVALA · SLEDEĆI KORAK",intro:"Ovaj workbook je napravljen da se koristi, dopunjava i ponavlja.",fields:["Šta sada radim","Koji proizvod razvijam","Kada proveravam napredak"]}
  ];
  endPages.forEach((s,j)=>{
   const p=81+j,els=[wbText(s.title,10,12,80,10,22,"#171717","center",{font:state.headingFont}),wbText(s.intro,12,25,76,9,10,"#5A544C","center")];
   if(p===82){
-    els.push(wbBox("© 2026 Marijana Forai · Digital Soul\nSadržaj ovog materijala je namenjen ličnoj upotrebi kupca i nije dozvoljeno neovlašćeno kopiranje, preprodavanje, distribuiranje ili javno objavljivanje celog ili delova materijala bez dozvole vlasnika autorskih prava.",12,38,76,30,"#F4EFE6","#3A352F",9,{radius:12}));
-    els.push(wbText("Za pravne/licencne uslove prilagodi ovu stranicu svojoj konkretnoj prodajnoj ponudi.",14,72,72,10,8,"#8A8175","center"));
+   els.push(wbBox("© 2026 Marijana Forai · Digital Soul\nSadržaj ovog materijala je namenjen ličnoj upotrebi kupca i nije dozvoljeno neovlašćeno kopiranje, preprodavanje, distribuiranje ili javno objavljivanje celog ili delova materijala bez dozvole vlasnika autorskih prava.",12,38,76,30,"#F4EFE6","#3A352F",9,{radius:12}));
+   els.push(wbText("Za pravne/licencne uslove prilagodi ovu stranicu svojoj konkretnoj prodajnoj ponudi.",14,72,72,10,8,"#8A8175","center"));
   }else{
-    s.fields.forEach((f,j)=>wbField(els,f,39+j*10,true));
+   s.fields.forEach((f,j)=>wbField(els,f,39+j*10,true));
   }
   els.push(wbText("Digital Soul · Master Workbook",10,94,80,4,7,"#A79D8D","center",{font:"DM Sans"}));
   out[String(p)]=els;
