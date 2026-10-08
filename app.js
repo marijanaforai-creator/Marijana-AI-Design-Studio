@@ -650,6 +650,7 @@ async function send(){
   addMessage(result?.message||raw||"AI nije vratio odgovor.");
  }catch(e){addMessage("AI backend još nije povezan u ovom okruženju. Kada se aplikacija postavi na Vercel i doda OPENAI_API_KEY, razgovor će raditi direktno.");}
 }
+window.sendPrompt=send;
 function applyAIActions(actions){
  const before=snapshot();
  pushHistory();
