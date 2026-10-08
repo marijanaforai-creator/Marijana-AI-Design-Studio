@@ -186,9 +186,22 @@ function exportJSON(){
  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=(state.name||"projekat")+".json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 }
 function exportPDF(){
- saveProject(true);const w=window.open("","_blank");if(!w){addMessage("Pregledač je blokirao prozor za PDF. Dozvoli pop-up za ovaj sajt.");return}
- w.document.write("<html><head><title>"+esc(state.name)+"</title><style>@page{size:"+state.width+"px "+state.height+"px;margin:0}body{margin:0} .page{width:"+state.width+"px;height:"+state.height+"px;position:relative;overflow:hidden;background:#fff}</style></head><body>"+$("preview").outerHTML+"</body></html>");
- w.document.close();setTimeout(()=>w.print(),350);
+ saveProject(true);
+ const w=window.open("","_blank");if(!w){addMessage("Pregledač je blokirao prozor za PDF. Dozvoli pop-up za ovaj sajt.");return}
+ const oldActive=state.active;
+ const pages=[];
+ for(let i=1;i<=state.pages;i++){state.active=i;render();pages.push('<section class="print-page">'+$("preview").outerHTML+'</section>')}
+ state.active=oldActive;render();
+ const widthMm=state.printWidthMm||PRINT_SIZES[state.format]?.mm?.[0]||210;
+ const heightMm=state.printHeightMm||PRINT_SIZES[state.format]?.mm?.[1]||297;
+ w.document.write("<html><head><title>"+esc(state.name)+"</title><style>"+
+ "@page{size:"+widthMm+"mm "+heightMm+"mm;margin:0}"+
+ "html,body{margin:0;padding:0;background:#fff}"+
+ ".print-page{width:"+widthMm+"mm;height:"+heightMm+"mm;page-break-after:always;break-after:page;overflow:hidden;position:relative}"+
+ ".print-page:last-child{page-break-after:auto;break-after:auto}"+
+ ".print-page .preview{width:100%!important;height:100%!important;max-width:none!important;aspect-ratio:auto!important;box-shadow:none!important;margin:0!important}"+
+ "</style></head><body>"+pages.join("")+"</body></html>");
+ w.document.close();setTimeout(()=>w.print(),500);
 }
 function exportSVG(){
  const p=$("preview"),bg=state.active===1?"#171717":"#F6F1E8";
