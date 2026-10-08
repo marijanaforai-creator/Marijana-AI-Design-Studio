@@ -132,9 +132,36 @@
 <button class="project-start" data-start="workbook"><strong>Radna sveska</strong><small>Naslovna i sadržajne strane</small></button>\n<button class="project-start" data-start="master80"><strong>Moj prvi digitalni proizvod</strong><small>80 radnih strana + 4 završne</small></button>
 <button class="project-start" data-start="ebook"><strong>E-knjiga</strong><small>Početna struktura e-knjige</small></button>
 </div>
-<div class="project-modal-actions"><button id="cancelNewProject" class="ghost-btn">Otkaži</button><button type="button" id="createNewProject" class="gold-btn" onclick="if(window.createNewProjectFromModal)window.createNewProjectFromModal()">Kreiraj projekat →</button></div>
+<div class="project-modal-actions"><button id="cancelNewProject" class="ghost-btn">Otkaži</button><button type="button" id="createNewProject" class="gold-btn" onclick="window.createProjectFallback()">Kreiraj projekat →</button></div>
 </div></div></div>
   <script src="app.js"></script>
   <script src="product-factory.js"></script>
-</body>
+<script>
+window.createProjectFallback=function(){
+  try{
+    const name=(document.getElementById("newProjectName")?.value||"Novi projekat").trim()||"Novi projekat";
+    const format=document.getElementById("newProjectFormat")?.value||"A5";
+    const selected=document.querySelector("[data-start].active");
+    const startType=selected?.dataset.start||"blank";
+    const pages=startType==="master80"?84:Math.max(1,Math.min(200,Number(document.getElementById("newProjectPages")?.value)||1));
+    const projectFormat=startType==="master80"?"A4":format;
+    const id="p_"+Date.now();
+    const project={
+      name,format:projectFormat,pages,active:1,width:559,height:794,printWidthMm:148,printHeightMm:210,customUnit:"mm",
+      projectId:id,pageNames:Array.from({length:pages},(_,i)=>i===0?"O meni":"Strana "+(i+1)),
+      assets:[],headingFont:"Cormorant Garamond",bodyFont:"DM Sans",color:"#8EA386",opacity:100,
+      gradientStart:"#171717",gradientEnd:"#C8A66A",gradientAngle:135,savedColors:[],palette:"sage",
+      style:"wellness",brandProfile:1,plan:"pro",aiUsed:0,selectedElement:null,previewMode:false,
+      history:[],historyIndex:-1,elements:{},updatedAt:new Date().toISOString()
+    };
+    localStorage.setItem("marijanaDesignStudioProject",JSON.stringify(project));
+    const all=JSON.parse(localStorage.getItem("marijanaDesignStudioProjects")||"{}");
+    all[id]=project;
+    localStorage.setItem("marijanaDesignStudioProjects",JSON.stringify(all));
+    location.reload();
+  }catch(e){
+    alert("Ne mogu da kreiram projekat: "+(e?.message||e));
+  }
+};
+</script></body>
 </html>
