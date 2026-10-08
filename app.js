@@ -598,10 +598,19 @@ function loadProject(){
   }
   if(!raw)return;
   const x=JSON.parse(raw);
+  // Stari početni Premium planer više nije automatski projekat.
+  // Ako nema eksplicitno otvorenog projekta, sačuvaj ga u biblioteci ali pokreni čist projekat.
+  if(!requestedId && (x.name==="Moj Premium planer" || x.name==="Moj Premium Planner")){
+    state.name="Novi projekat";state.format="A5";state.pages=1;state.active=1;
+    state.width=559;state.height=794;state.printWidthMm=148;state.printHeightMm=210;
+    state.pageNames=["Strana 1"];state.elements={"1":[]};state.projectId="p_"+Date.now();
+    $("projectName").value=state.name;$("format").value=state.format;$("pageCount").value=state.pages;
+    return;
+  }
   Object.assign(state,x);
   state.history=[];state.historyIndex=-1;
   $("projectName").value=state.name;$("format").value=state.format;$("pageCount").value=state.pages;
- }catch(e){}
+ }catch(e){console.error("Učitavanje projekta nije uspelo:",e)}
 }
 function addMessage(text,type="ai"){const m=document.createElement("div");m.className="msg "+type;m.textContent=text;$("messages").appendChild(m);$("messages").scrollTop=99999}
 function parseDesignCommand(value){
