@@ -38,7 +38,7 @@
           </div>
           <div class="prompt-row">
             <textarea id="prompt" placeholder="Npr. Napravi luksuzni A5 planer za preduzetnike i preduzetnice..."></textarea>
-            <button id="send" aria-label="Pošalji">↑</button>
+            <button type="button" id="send" aria-label="Pošalji" onclick="if(window.sendPrompt)window.sendPrompt()">↑</button>
           </div>
           <div class="chips"><button data-prompt="Napravi premium planer">Premium planer</button><button data-prompt="Napravi radnu svesku">Radna sveska</button><button data-prompt="Napravi e-knjigu">E-knjiga</button></div>
         </div>
