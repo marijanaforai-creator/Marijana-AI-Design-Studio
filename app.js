@@ -588,7 +588,20 @@ function saveProject(silent=false){
  if(!silent)addMessage("Projekat je sačuvan lokalno u ovom pregledaču.");
 }
 function loadProject(){
- try{const raw=localStorage.getItem("marijanaDesignStudioProject");if(!raw)return;const x=JSON.parse(raw);Object.assign(state,x);state.history=[];state.historyIndex=-1;$("projectName").value=state.name;$("format").value=state.format;$("pageCount").value=state.pages}catch(e){}
+ try{
+  let raw=localStorage.getItem("marijanaDesignStudioProject");
+  const requestedId=sessionStorage.getItem("marijanaDesignStudioOpenProject");
+  if(requestedId){
+    const all=JSON.parse(localStorage.getItem("marijanaDesignStudioProjects")||"{}");
+    if(all[requestedId]) raw=JSON.stringify(all[requestedId]);
+    sessionStorage.removeItem("marijanaDesignStudioOpenProject");
+  }
+  if(!raw)return;
+  const x=JSON.parse(raw);
+  Object.assign(state,x);
+  state.history=[];state.historyIndex=-1;
+  $("projectName").value=state.name;$("format").value=state.format;$("pageCount").value=state.pages;
+ }catch(e){}
 }
 function addMessage(text,type="ai"){const m=document.createElement("div");m.className="msg "+type;m.textContent=text;$("messages").appendChild(m);$("messages").scrollTop=99999}
 function parseDesignCommand(value){
