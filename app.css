@@ -162,3 +162,22 @@ body{min-height:100vh}
  .stage-actions{gap:5px}
  .stage-actions button{padding:7px 9px;font-size:9px}
 }
+
+
+/* Final toolbar fix: never clip actions; wrap them inside the center column */
+.stage{min-width:0}
+.stage-head{display:grid;grid-template-columns:minmax(170px,1fr) minmax(360px,auto);align-items:center;gap:12px;height:auto;min-height:92px;padding:10px 14px;overflow:visible}
+.stage-head>div:first-child{min-width:0;max-width:100%}
+.stage-head h2{max-width:100%;font-size:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stage-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:6px;min-width:0;max-width:100%;overflow:visible}
+.stage-actions button{flex:0 1 auto;white-space:nowrap;padding:8px 10px;font-size:10px}
+.canvas-area{height:auto;flex:1;min-height:0}
+@media(max-width:1250px){
+ .stage-head{grid-template-columns:1fr;gap:7px;padding:9px 12px}
+ .stage-actions{justify-content:flex-start;max-width:100%}
+ .stage-actions button{padding:7px 9px;font-size:9px}
+}
+@media(max-width:1050px){
+ .stage-head{min-height:100px}
+ .stage-actions{gap:5px}
+}
