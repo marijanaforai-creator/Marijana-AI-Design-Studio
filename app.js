@@ -195,7 +195,7 @@ function renderPreview(){
   const d=document.createElement("div");d.className="design-element "+el.type+"-element"+(el.id===state.selectedElement?" selected":"")+(el.locked?" locked":"");
   d.dataset.id=el.id;d.style.left=el.x+"%";d.style.top=el.y+"%";d.style.width=el.w+"%";d.style.height=el.h+"%";d.style.opacity=(el.opacity??100)/100;d.style.transform="rotate("+(el.rotate||0)+"deg)";d.style.fontFamily='"'+(el.font||state.bodyFont)+'"';d.style.fontSize=(el.fontSize||12)+"px";d.style.color=el.color||"#171717";d.style.textAlign=el.align||"left";
   if(el.type==="text"||el.type==="link")d.textContent=el.text||"Tekst";
-  else if(el.type==="image"){const img=document.createElement("img");img.src=el.src;img.alt=el.alt||"";img.style.borderRadius=(el.radius||0)+"px";img.style.boxShadow=el.shadow?"0 10px 25px rgba(0,0,0,.16)":"none";d.appendChild(img)}
+  else if(el.type==="image"){const img=document.createElement("img");img.src=el.src;img.alt=el.alt||"";img.style.borderRadius=(el.radius||0)+"px";img.style.boxShadow=el.shadow?"0 10px 25px rgba(0,0,0,.16)":"none";img.style.filter="blur("+(el.blur||0)+"px) brightness("+(el.brightness??100)+"%) contrast("+(el.contrast??100)+"%) saturate("+(el.saturation??100)+"%)";d.appendChild(img)}
   else if(el.type==="mockup"){const img=document.createElement("img");img.src=el.src||mockupSvg(el.mockup||"book");img.style.objectFit="contain";img.style.padding="8%";d.appendChild(img)}
   else if(el.type==="shape"){d.style.background=el.color||"#C8A66A";d.style.borderRadius=(el.radius||12)+"px"}
   else if(el.type==="icon"){d.textContent=el.text||"✦"}
@@ -235,12 +235,15 @@ function renderElementInspector(){
  const box=$("elementInspector"),el=selected();if(!el){box.hidden=true;return}box.hidden=false;
  $("elementTypeLabel").textContent=({text:"TEKST",image:"SLIKA",mockup:"MOCKUP",shape:"OBLIK",icon:"IKONICA",link:"POVEZIVANJE",video:"VIDEO",table:"TABELA",chart:"GRAFIKON",divider:"LINIJA"})[el.type]||el.type.toUpperCase();
  $("elementContent").value=el.text||el.url||"";$("elementSize").value=el.fontSize||12;$("elementRotate").value=el.rotate||0;$("elementX").value=Math.round(el.x);$("elementY").value=Math.round(el.y);$("elementColor").value=normalizeHex(el.color||"#171717")||"#171717";
+ const controls={effectBlur:el.blur||0,effectBrightness:el.brightness??100,effectContrast:el.contrast??100,effectSaturation:el.saturation??100,effectRadius:el.radius||0,elementOpacity:el.opacity??100};
+ Object.entries(controls).forEach(([id,val])=>{if($(id))$(id).value=val});
+ if($("blurValue"))$("blurValue").textContent=(el.blur||0)+"px";if($("brightnessValue"))$("brightnessValue").textContent=(el.brightness??100)+"%";if($("contrastValue"))$("contrastValue").textContent=(el.contrast??100)+"%";if($("saturationValue"))$("saturationValue").textContent=(el.saturation??100)+"%";if($("radiusValue"))$("radiusValue").textContent=(el.radius||0)+"px";if($("elementOpacityValue"))$("elementOpacityValue").textContent=(el.opacity??100)+"%";if($("elementAnimation"))$("elementAnimation").value=el.animation||"none";if($("elementShadow"))$("elementShadow").checked=!!el.shadow;
  const fs=$("elementFont");fs.innerHTML=fonts.map(x=>"<option>"+x+"</option>").join("");fs.value=el.font||state.bodyFont;
  document.querySelectorAll("[data-align]").forEach(b=>b.classList.toggle("active",b.dataset.align===(el.align||"left")));
 }
 function insertElement(type,extra={}){
  ensurePage();pushHistory();
- const el={id:uid(),type,x:12,y:18,w:76,h:20,opacity:100,rotate:0,locked:false,...extra};state.elements[pageKey()].push(el);state.selectedElement=el.id;render();closeInsertPanel();addMessage("Element je dodat na aktivnu stranu.");
+ const el={id:uid(),type,x:12,y:18,w:76,h:20,opacity:100,rotate:0,locked:false,blur:0,brightness:100,contrast:100,saturation:100,radius:0,shadow:false,animation:"none",...extra};state.elements[pageKey()].push(el);state.selectedElement=el.id;render();closeInsertPanel();addMessage("Element je dodat na aktivnu stranu.");
 }
 function mockupSvg(kind){
  const labels={book:"BOOK MOCKUP",tablet:"TABLET",phone:"PHONE",laptop:"LAPTOP",planner:"PLANNER"};
@@ -333,7 +336,7 @@ function applyAIActions(actions){
   else if(a.type==="change_color"){updateColor(a.color)}
   else if(a.type==="change_fonts"){if(a.headingFont)state.headingFont=a.headingFont;if(a.bodyFont)state.bodyFont=a.bodyFont}
   else if(a.type==="add_element"){
-   const e=a.element||{};const el={id:uid(),type:e.type||"text",text:e.text||"",url:e.url||"",mockup:e.mockup||"book",src:e.src||"",aiPrompt:e.aiPrompt||"",x:Number(e.x??12),y:Number(e.y??18),w:Number(e.w??70),h:Number(e.h??20),font:e.font||state.bodyFont,fontSize:Number(e.fontSize??14),color:e.color||state.color,align:e.align||"left",rotate:0,opacity:100,locked:false};
+   const e=a.element||{};const el={id:uid(),type:e.type||"text",text:e.text||"",url:e.url||"",mockup:e.mockup||"book",src:e.src||"",aiPrompt:e.aiPrompt||"",x:Number(e.x??12),y:Number(e.y??18),w:Number(e.w??70),h:Number(e.h??20),font:e.font||state.bodyFont,fontSize:Number(e.fontSize??14),color:e.color||state.color,align:e.align||"left",rotate:Number(e.rotate??0),opacity:Number(e.opacity??100),locked:!!e.locked,blur:Number(e.blur??0),brightness:Number(e.brightness??100),contrast:Number(e.contrast??100),saturation:Number(e.saturation??100),radius:Number(e.radius??0),shadow:!!e.shadow,animation:e.animation||"none"};
    if(el.type==="mockup"&&!el.src)el.src=mockupSvg(el.mockup);
    const targetPage=Math.max(1,Math.min(state.pages,Number(a.page)||state.active));ensurePage(targetPage);state.elements[String(targetPage)].push(el);state.selectedElement=targetPage===state.active?el.id:null;
   }
@@ -362,6 +365,10 @@ function initElementInspector(){
  $("elementY").oninput=e=>{const el=selected();if(el){el.y=Number(e.target.value);renderPreview()}};
  $("elementColor").oninput=e=>{const el=selected();if(el){el.color=e.target.value;renderPreview()}};
  $("elementFont").onchange=e=>{const el=selected();if(el){el.font=e.target.value;renderPreview()}};
+ const effectBindings=[["effectBlur","blur","blurValue",v=>v+"px"],["effectBrightness","brightness","brightnessValue",v=>v+"%"],["effectContrast","contrast","contrastValue",v=>v+"%"],["effectSaturation","saturation","saturationValue",v=>v+"%"],["effectRadius","radius","radiusValue",v=>v+"px"],["elementOpacity","opacity","elementOpacityValue",v=>v+"%"]];
+ effectBindings.forEach(([id,key,label,fmt])=>{if($(id))$(id).oninput=e=>{const el=selected();if(!el)return;el[key]=Number(e.target.value);if($(label))$(label).textContent=fmt(el[key]);renderPreview()}});
+ if($("elementAnimation"))$("elementAnimation").onchange=e=>{const el=selected();if(el){el.animation=e.target.value;renderPreview()}};
+ if($("elementShadow"))$("elementShadow").onchange=e=>{const el=selected();if(el){el.shadow=e.target.checked;renderPreview()}};
  document.querySelectorAll("[data-align]").forEach(b=>b.onclick=()=>{const el=selected();if(el){el.align=b.dataset.align;renderElementInspector();renderPreview()}});
  $("duplicateElement").onclick=()=>{const el=selected();if(!el)return;pushHistory();const copy={...el,id:uid(),x:Math.min(80,el.x+3),y:Math.min(80,el.y+3)};state.elements[pageKey()].push(copy);state.selectedElement=copy.id;render()};
  $("deleteElement").onclick=deleteElement;
@@ -469,6 +476,7 @@ function initShortcuts(){
   if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="c"&&!typing&&selected()){e.preventDefault();copySelectedElement();return}
   if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="v"&&!typing&&clipboardElement){e.preventDefault();pasteElement();return}
   if(e.key==="Delete"&&!typing&&selected()){e.preventDefault();deleteElement()}
+  if(!typing&&selected()&&["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.key)){e.preventDefault();const el=selected();pushHistory();const step=e.shiftKey?1:0.25;if(e.key==="ArrowUp")el.y=Math.max(0,el.y-step);if(e.key==="ArrowDown")el.y=Math.min(100-el.h,el.y+step);if(e.key==="ArrowLeft")el.x=Math.max(0,el.x-step);if(e.key==="ArrowRight")el.x=Math.min(100-el.w,el.x+step);renderPreview();renderElementInspector();renderLayers()}
   if(e.key==="Escape"){["templatesPanel","projectsPanel","exportPanel","pricingPanel","newProjectModal","insertPanel","brandPanel"].forEach(id=>{const el=$(id);if(el)el.hidden=true})}
  });
 }
