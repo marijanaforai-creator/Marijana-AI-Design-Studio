@@ -60,7 +60,7 @@ function applyTemplate(key){
  saveProject(true);
 }
 const state={
-name:"Moj Premium Planner",format:"A5",pages:10,active:1,width:559,height:794,projectId:"p_"+Date.now(),pageNames:[...pageNames],assets:[],headingFont:"Cormorant Garamond",bodyFont:"DM Sans",
+name:"Moj Premium Planner",format:"A5",pages:10,active:1,width:559,height:794,printWidthMm:148,printHeightMm:210,customUnit:"mm",projectId:"p_"+Date.now(),pageNames:[...pageNames],assets:[],headingFont:"Cormorant Garamond",bodyFont:"DM Sans",
 color:"#8EA386",opacity:100,gradientStart:"#171717",gradientEnd:"#C8A66A",gradientAngle:135,savedColors:[],palette:"sage",style:"wellness",
 brandProfile:1,plan:"pro",aiUsed:0,selectedElement:null,previewMode:false,history:[],historyIndex:-1,
 elements:{}
@@ -147,16 +147,39 @@ function updateColorInfo(){
  const mx=Math.max(r,g,b)/255,mn=Math.min(r,g,b)/255,l=(mx+mn)/2,d=mx-mn;let s=0,hh=0;if(d){s=d/(1-Math.abs(2*l-1));if(mx===r)hh=60*(((g-b)/255/d)%6);else if(mx===g)hh=60*((b-r)/255/d+2);else hh=60*((r-g)/255/d+4);if(hh<0)hh+=360}
  $("rgbValue").textContent="RGB "+r+", "+g+", "+b;$("hslValue").textContent="HSL "+Math.round(hh)+"°, "+Math.round(s*100)+"%, "+Math.round(l*100)+"%";
 }
+const PRINT_SIZES={
+ "A4":{px:[794,1123],mm:[210,297]},
+ "A5":{px:[559,794],mm:[148,210]},
+ "A6":{px:[397,559],mm:[105,148]},
+ "B5":{px:[665,945],mm:[176,250]},
+ "US Letter":{px:[816,1056],mm:[215.9,279.4]},
+ "Half Letter":{px:[528,816],mm:[139.7,215.9]},
+ "6 × 9 in":{px:[576,864],mm:[152.4,228.6]},
+ "7 × 10 in":{px:[672,960],mm:[177.8,254]},
+ "8 × 10 in":{px:[768,960],mm:[203.2,254]},
+ "8 × 8 in":{px:[768,768],mm:[203.2,203.2]},
+ "Instagram 1080 × 1350":{px:[1080,1350],mm:[285.75,356.25]}
+};
 function formatDimensions(format){
- const m={"A5":[559,794],"A4":[794,1123],"US Letter":[816,1056],"Instagram 1080 × 1350":[1080,1350]};
- return m[format]||[state.width||794,state.height||1123];
+ const s=PRINT_SIZES[format];return s?s.px:[state.width||794,state.height||1123];
 }
+function unitToMm(value,unit){
+ const n=Number(value)||0;return unit==="cm"?n*10:unit==="in"?n*25.4:n;
+}
+function mmToPx(mm){return Math.round(mm*96/25.4)}
 function updateCanvasDimensions(){
- if(state.format!=="Prilagođeno"){const d=formatDimensions(state.format);state.width=d[0];state.height=d[1]}
+ if(state.format!=="Prilagođeno"){
+  const s=PRINT_SIZES[state.format]||PRINT_SIZES.A4;
+  state.width=s.px[0];state.height=s.px[1];state.printWidthMm=s.mm[0];state.printHeightMm=s.mm[1];
+ }
  const p=$("preview");if(p){p.style.aspectRatio=state.width+"/"+state.height;p.style.height="auto";p.style.width="min(420px,65%)"}
  const fields=$("customSizeFields");if(fields)fields.hidden=state.format!=="Prilagođeno";
- if($("customWidth"))$("customWidth").value=state.width;
- if($("customHeight"))$("customHeight").value=state.height;
+ if($("customWidth")){
+  const unit=state.customUnit||"mm";$("customUnit").value=unit;
+  const factor=unit==="cm"?10:unit==="in"?25.4:1;
+  $("customWidth").value=state.format==="Prilagođeno"?Number((state.printWidthMm/factor).toFixed(2)):state.printWidthMm/factor;
+  $("customHeight").value=state.format==="Prilagođeno"?Number((state.printHeightMm/factor).toFixed(2)):state.printHeightMm/factor;
+ }
 }
 function exportJSON(){
  const blob=new Blob([JSON.stringify({...state,history:[],historyIndex:-1},null,2)],{type:"application/json"});
@@ -175,7 +198,7 @@ function exportSVG(){
  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([svg],{type:"image/svg+xml"}));a.download=(state.name||"strana")+"-strana-"+state.active+".svg";a.click();
 }
 function render(){
- state.name=$("projectName").value;state.format=$("format").value;state.pages=Math.max(1,Math.min(30,Number($("pageCount").value)||10));updateCanvasDimensions();
+ state.name=$("projectName").value;state.format=$("format").value;state.pages=Math.max(1,Math.min(200,Number($("pageCount").value)||10));updateCanvasDimensions();
  if(state.active>state.pages)state.active=state.pages;ensurePage();
  $("stageTitle").textContent=state.name;
  const strip=$("pagesStrip"),list=$("pageList");strip.innerHTML="";list.innerHTML="";
@@ -479,7 +502,7 @@ function initNewProjectModal(){
  createBtn.onclick=()=>{
   const name=$("newProjectName").value.trim()||"Novi projekat";
   const format=$("newProjectFormat").value;
-  const pages=Math.max(1,Math.min(30,Number($("newProjectPages").value)||10));
+  const pages=Math.max(1,Math.min(200,Number($("newProjectPages").value)||10));
   pushHistory();state.name=name;state.format=format;state.pages=pages;state.pageNames=Array.from({length:pages},(_,i)=>pageNames[i]||"Strana "+(i+1));state.active=1;state.projectId="p_"+Date.now();state.elements={};
   $("projectName").value=name;$("format").value=format;$("pageCount").value=pages;ensurePage();
   if(startType==="planner"){state.elements=templateElements("planner",pages,name)}
@@ -514,7 +537,7 @@ function init(){
  $("send").onclick=send;$("prompt").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send()}});
  document.querySelectorAll("[data-prompt]").forEach(b=>b.onclick=()=>{$("prompt").value=b.dataset.prompt;send()});
  $("pageCount").addEventListener("change",()=>{const p=currentPlan();if(!DEV_MODE&&Number($("pageCount").value)>p.pages){$("pageCount").value=p.pages;state.pages=p.pages;limitMessage("pages");render()}});
- $("projectName").oninput=render;$("format").onchange=()=>{updateCanvasDimensions();render()};if($("customWidth"))$("customWidth").oninput=e=>{state.width=Number(e.target.value)||794;render()};if($("customHeight"))$("customHeight").oninput=e=>{state.height=Number(e.target.value)||1123;render()};$("pageCount").oninput=render;$("headingFont").onchange=e=>{state.headingFont=e.target.value;render()};$("bodyFont").onchange=e=>{state.bodyFont=e.target.value;render()};
+ $("projectName").oninput=render;$("format").onchange=()=>{updateCanvasDimensions();render()};if($("customUnit"))$("customUnit").onchange=e=>{state.customUnit=e.target.value;updateCanvasDimensions();render()};if($("customWidth"))$("customWidth").oninput=e=>{state.printWidthMm=unitToMm(e.target.value,state.customUnit||"mm");state.width=mmToPx(state.printWidthMm);render()};if($("customHeight"))$("customHeight").oninput=e=>{state.printHeightMm=unitToMm(e.target.value,state.customUnit||"mm");state.height=mmToPx(state.printHeightMm);render()};$("pageCount").oninput=render;$("headingFont").onchange=e=>{state.headingFont=e.target.value;render()};$("bodyFont").onchange=e=>{state.bodyFont=e.target.value;render()};
  $("save").onclick=saveProject;$("undoBtn").onclick=undo;$("redoBtn").onclick=redo;$("addPage").onclick=addPage;$("duplicatePage").onclick=duplicatePage;
  $("previewMode").onclick=()=>{state.previewMode=!state.previewMode;$("previewMode").textContent=state.previewMode?"Uredi":"Pregled";render()};
 
@@ -526,9 +549,9 @@ window.importProductFactory=function(payload){
     const p=payload||JSON.parse(localStorage.getItem("marijanaDesignStudioProductImport")||"{}");
     if(!p||!p.name)return false;
     state.name=p.name;
-    const allowed=["A5","A4","US Letter","Instagram 1080 × 1350","Prilagođeno"];
+    const allowed=["A5","A4","A6","B5","US Letter","Half Letter","6 × 9 in","7 × 10 in","8 × 10 in","8 × 8 in","Instagram 1080 × 1350","Prilagođeno"];
     state.format=allowed.includes(p.format)?p.format:"A5";
-    state.pages=Math.max(1,Math.min(30,Number(p.pages)||10));
+    state.pages=Math.max(1,Math.min(200,Number(p.pages)||10));
     state.pageNames=Array.from({length:state.pages},(_,i)=>p.pageMap?.[i]?.title||"Strana "+(i+1));
     state.active=1;
     state.projectId="p_"+Date.now();
