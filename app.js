@@ -817,15 +817,50 @@ function initShortcuts(){
  });
 }
 function init(){
- loadProject();initBrandStorage();initPricing();initInsert();initElementInspector();initStudioEffects();initColors();initLibraries();initBrand();initToolPanels();initNewProjectModal();initShortcuts();updateCanvasDimensions();
- $("send").onclick=send;$("prompt").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send()}});
- document.querySelectorAll("[data-prompt]").forEach(b=>b.onclick=()=>{$("prompt").value=b.dataset.prompt;send()});
- $("pageCount").addEventListener("change",()=>{const p=currentPlan();if(!DEV_MODE&&Number($("pageCount").value)>p.pages){$("pageCount").value=p.pages;state.pages=p.pages;limitMessage("pages");render()}});
- $("projectName").oninput=render;$("format").onchange=()=>{updateCanvasDimensions();render()};if($("customUnit"))$("customUnit").onchange=e=>{state.customUnit=e.target.value;updateCanvasDimensions();render()};if($("customWidth"))$("customWidth").oninput=e=>{state.printWidthMm=unitToMm(e.target.value,state.customUnit||"mm");state.width=mmToPx(state.printWidthMm);render()};if($("customHeight"))$("customHeight").oninput=e=>{state.printHeightMm=unitToMm(e.target.value,state.customUnit||"mm");state.height=mmToPx(state.printHeightMm);render()};$("pageCount").oninput=render;$("headingFont").onchange=e=>{state.headingFont=e.target.value;render()};$("bodyFont").onchange=e=>{state.bodyFont=e.target.value;render()};
- $("save").onclick=saveProject;$("undoBtn").onclick=undo;$("redoBtn").onclick=redo;$("addPage").onclick=addPage;$("duplicatePage").onclick=duplicatePage;
- $("previewMode").onclick=()=>{state.previewMode=!state.previewMode;$("previewMode").textContent=state.previewMode?"Uredi":"Pregled";render()};
-
- ensurePage();pushHistory();render();renderSavedColors();setInterval(()=>saveProject(true),5000);
+ loadProject();
+ // Učitaj projekat i odmah osveži platno. Ako neka pomoćna inicijalizacija kasnije zakaže,
+ // novi projekat ipak mora da bude vidljiv na platnu.
+ try{render()}catch(e){console.error("Početni render nije uspeo:",e)}
+ const safeInit=(fn,name)=>{try{fn()}catch(e){console.error("Greška u "+name+":",e)}};
+ safeInit(initBrandStorage,"brend memorija");
+ safeInit(initPricing,"planovi");
+ safeInit(initInsert,"dodavanje");
+ safeInit(initElementInspector,"inspektor");
+ safeInit(initStudioEffects,"efekti");
+ safeInit(initColors,"boje");
+ safeInit(initLibraries,"biblioteke");
+ safeInit(initBrand,"brend");
+ safeInit(initToolPanels,"paneli");
+ safeInit(initNewProjectModal,"novi projekat");
+ safeInit(initShortcuts,"prečice");
+ safeInit(()=>{
+  updateCanvasDimensions();
+  $("send").onclick=send;
+  $("prompt").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send()}});
+  document.querySelectorAll("[data-prompt]").forEach(b=>b.onclick=()=>{$("prompt").value=b.dataset.prompt;send()});
+  $("pageCount").addEventListener("change",()=>{const p=currentPlan();if(!DEV_MODE&&Number($("pageCount").value)>p.pages){$("pageCount").value=p.pages;state.pages=p.pages;limitMessage("pages");render()}});
+  $("projectName").oninput=render;
+  $("format").onchange=()=>{updateCanvasDimensions();render()};
+  if($("customUnit"))$("customUnit").onchange=e=>{state.customUnit=e.target.value;updateCanvasDimensions();render()};
+  if($("customWidth"))$("customWidth").oninput=e=>{state.printWidthMm=unitToMm(e.target.value,state.customUnit||"mm");state.width=mmToPx(state.printWidthMm);render()};
+  if($("customHeight"))$("customHeight").oninput=e=>{state.printHeightMm=unitToMm(e.target.value,state.customUnit||"mm");state.height=mmToPx(state.printHeightMm);render()};
+  $("pageCount").oninput=render;
+  $("headingFont").onchange=e=>{state.headingFont=e.target.value;render()};
+  $("bodyFont").onchange=e=>{state.bodyFont=e.target.value;render()};
+  $("save").onclick=saveProject;
+  $("undoBtn").onclick=undo;
+  $("redoBtn").onclick=redo;
+  $("addPage").onclick=addPage;
+  $("duplicatePage").onclick=duplicatePage;
+  $("previewMode").onclick=()=>{state.previewMode=!state.previewMode;$("previewMode").textContent=state.previewMode?"Uredi":"Pregled";render()};
+ },"glavna podešavanja");
+ try{
+  ensurePage();
+  pushHistory();
+  render();
+  renderSavedColors();
+  setInterval(()=>saveProject(true),5000);
+ }catch(e){console.error("Završni render/inicijalizacija nije uspela:",e)}
 }
 // Expose this handler before init() so the New Project button still works even if a later init step fails.
 window.createNewProjectFromModal=createNewProjectFromModal;
