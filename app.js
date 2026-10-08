@@ -12,7 +12,7 @@ const FEATURE_COPY={
   pages:"stranica po projektu",ai:"AI akcija mesečno",brands:"Brand profila",aiImages:"AI slika mesečno"
 };
 
-const pageNames=["Naslovna strana","Godišnji pregled","Mesečni planer","Mesečni planer","Nedeljni planer","Nedeljni planer","Nedeljni planer","Nedeljni planer","Habit tracker","Notes"];
+const pageNames=["Naslovna strana","Godišnji pregled","Mesečni planer","Mesečni planer","Nedeljni planer","Nedeljni planer","Nedeljni planer","Nedeljni planer","Praćenje navika","Beleške"];
 const fonts=["Cormorant Garamond","DM Sans","Playfair Display","Montserrat","Libre Baskerville","Manrope","Inter","Lora","Raleway"];
 const brandProfiles=Array.from({length:20},(_,i)=>({id:i+1,name:"Brend "+(i+1),data:{name:"",description:"",color:"#8EA386",tone:"Elegantno",heading:"Cormorant Garamond",body:"DM Sans"}}));
 const palettes=[
@@ -34,11 +34,11 @@ const styles=[
 {name:"Kreativni",desc:"izražajan, savremen, drugačiji",palette:5,heading:"Raleway",body:"Manrope",radius:16,shadow:"0 20px 50px rgba(0,0,0,.14)"},
 {name:"Wealth",desc:"bogato, stabilno, sofisticirano",palette:6,heading:"Playfair Display",body:"DM Sans",radius:10,shadow:"0 22px 55px rgba(0,0,0,.16)"}];
 const TEMPLATES={
- planner:{name:"Premium Planner",desc:"10 strana · A5 · planer za preduzetnice",pages:10,names:["Naslovna strana","Godišnji pregled","Mesečni planer","Mesečni planer","Nedeljni planer","Nedeljni planer","Nedeljni planer","Nedeljni planer","Habit tracker","Notes"],style:"Wellness"},
- workbook:{name:"Workbook",desc:"8 strana · vođeni radni materijal",pages:8,names:["Naslovna","Kako koristiti workbook","Ciljevi","Vežba 1","Vežba 2","Akcioni plan","Praćenje napretka","Notes"],style:"Minimalistički"},
- ebook:{name:"Ebook",desc:"12 strana · editorial struktura",pages:12,names:["Naslovna","Sadržaj","Uvod","Poglavlje 1","Poglavlje 2","Poglavlje 3","Poglavlje 4","Poglavlje 5","Zaključak","Akcioni koraci","Resursi","Notes"],style:"Editorial"},
- journal:{name:"Journal",desc:"12 strana · refleksija i beleške",pages:12,names:["Naslovna","Kako se osećam","Jutarnja refleksija","Dnevni zapis","Dnevni zapis","Dnevni zapis","Dnevni zapis","Nedeljna refleksija","Zahvalnost","Lekcije","Plan za sutra","Notes"],style:"Ženstveni"},
- social:{name:"Social Media Pack",desc:"10 strana · sadržaj za društvene mreže",pages:10,names:["Naslovna","Content pillars","30 ideja","Reels","Carousel","Stories","Hooks","CTA biblioteka","Hashtag prostor","Notes"],style:"Kreativni"}
+ planner:{name:"Premium planer",desc:"10 strana · A5 · planer za preduzetnice",pages:10,names:["Naslovna strana","Godišnji pregled","Mesečni planer","Mesečni planer","Nedeljni planer","Nedeljni planer","Nedeljni planer","Nedeljni planer","Praćenje navika","Beleške"],style:"Wellness"},
+ workbook:{name:"Radna sveska",desc:"8 strana · vođeni radni materijal",pages:8,names:["Naslovna","Kako koristiti radnu svesku","Ciljevi","Vežba 1","Vežba 2","Akcioni plan","Praćenje napretka","Beleške"],style:"Minimalistički"},
+ ebook:{name:"E-knjiga",desc:"12 strana · editorial struktura",pages:12,names:["Naslovna","Sadržaj","Uvod","Poglavlje 1","Poglavlje 2","Poglavlje 3","Poglavlje 4","Poglavlje 5","Zaključak","Akcioni koraci","Resursi","Beleške"],style:"Editorial"},
+ journal:{name:"Dnevnik",desc:"12 strana · refleksija i beleške",pages:12,names:["Naslovna","Kako se osećam","Jutarnja refleksija","Dnevni zapis","Dnevni zapis","Dnevni zapis","Dnevni zapis","Nedeljna refleksija","Zahvalnost","Lekcije","Plan za sutra","Beleške"],style:"Ženstveni"},
+ social:{name:"Paket za društvene mreže",desc:"10 strana · sadržaj za društvene mreže",pages:10,names:["Naslovna","Stubovi sadržaja","30 ideja","Kratki video zapisi","Karusel","Priče","Udice","Biblioteka poziva na akciju","Hashtag prostor","Beleške"],style:"Kreativni"}
 };
 function templateElements(key,pages,name){
  const t=TEMPLATES[key]||TEMPLATES.planner;const out={};
@@ -314,11 +314,11 @@ function parseDesignCommand(value){
  const v=value.toLowerCase();
  const pageMatch=v.match(/(?:stran(?:a|i)|page)\\s*(\\d+)/i);
  if(pageMatch){const n=Math.max(1,Math.min(state.pages,Number(pageMatch[1])));state.active=n}
- if(/(?:premium planner|napravi planner)/.test(v)){applyTemplate("planner");return "Napravila sam početnu strukturu Premium Plannera."}
- if(/(?:napravi workbook|workbook)/.test(v)){applyTemplate("workbook");return "Napravila sam početnu strukturu Workbooka."}
- if(/(?:napravi ebook|ebook)/.test(v)){applyTemplate("ebook");return "Napravila sam početnu strukturu Ebooka."}
- if(/(?:napravi journal|journal)/.test(v)){applyTemplate("journal");return "Napravila sam početnu strukturu Journala."}
- if(/(?:social media|društven.*mrež)/.test(v)){applyTemplate("social");return "Napravila sam početnu strukturu Social Media paketa."}
+ if(/(?:premium planner|napravi planner)/.test(v)){applyTemplate("planner");return "Napravila sam početnu strukturu Premium planera."}
+ if(/(?:napravi workbook|workbook)/.test(v)){applyTemplate("workbook");return "Napravila sam početnu strukturu radne sveske."}
+ if(/(?:napravi ebook|ebook)/.test(v)){applyTemplate("ebook");return "Napravila sam početnu strukturu e-knjige."}
+ if(/(?:napravi journal|journal)/.test(v)){applyTemplate("journal");return "Napravila sam početnu strukturu dnevnika."}
+ if(/(?:social media|društven.*mrež)/.test(v)){applyTemplate("social");return "Napravila sam početnu strukturu paketa za društvene mreže."}
  if(/(?:dodaj|ubaci).*(?:slik|fotograf)/.test(v)){insertElement("image",{src:mockupSvg("planner"),alt:value,w:70,h:40,radius:10,shadow:true,aiPrompt:value});return "Dodala sam vizuelni blok na aktivnu stranu. Možeš ga pomerati i menjati u Element panelu."}
  if(/(?:mockup|makap)/.test(v)){const kind=/telefon|phone/.test(v)?"phone":/tablet/.test(v)?"tablet":/laptop/.test(v)?"laptop":/planner/.test(v)?"planner":"book";insertElement("mockup",{mockup:kind,src:mockupSvg(kind),w:55,h:45});return "Dodala sam "+kind+" mockup na aktivnu stranu."}
  if(/(?:dodaj|ubaci).*(?:tekst|naslov)/.test(v)){insertElement("text",{text:value.replace(/.*?(?:tekst|naslov)[:\\s]*/i,"")||"Novi tekst",w:76,h:15,font:state.bodyFont,fontSize:14,color:"#171717",align:"left"});return "Dodala sam tekstualni element."}
