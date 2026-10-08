@@ -119,3 +119,12 @@ body{min-height:100vh}
 /* Move the main working page slightly upward without changing its size */
 .preview-wrap{align-items:start;padding-top:18px}
 @media(max-width:720px){.preview-wrap{padding-top:14px}}
+
+
+/* Compact brand accordion */
+.brand-chevron{font-size:18px;line-height:1;transition:transform .2s ease;color:var(--gold)}
+#brandButton[aria-expanded="true"] .brand-chevron{transform:rotate(180deg)}
+.brand-more{display:none}
+.brand-more.open{display:block}
+.brand-more-toggle{width:100%;margin-top:10px;border:1px solid rgba(217,182,111,.18);background:rgba(255,255,255,.03);color:#e8d9f4;border-radius:7px;padding:8px 10px;font:600 10px "DM Sans";cursor:pointer}
+.brand-more-toggle:hover{border-color:var(--gold);background:rgba(255,255,255,.05)}
