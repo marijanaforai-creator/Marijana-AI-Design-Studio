@@ -162,18 +162,63 @@ function masterWorkbookElements(name){
    wbText(String(i).padStart(2,"0"),86,93,5,4,7,"#A79D8D","right",{font:"DM Sans"})
   ];
  }
- WORKBOOK_SHEETS.forEach((s,idx)=>{
-  const p=49+idx,els=[
-   wbText(s.title,8,7,84,8,16,"#171717","left",{font:state.headingFont}),
-   wbText(s.intro,8,17,84,7,9.5,"#8EA386","left")
-  ];
-  const fields=s.fields;
-  const step=Math.min(7.2,58/Math.max(fields.length,1));
-  fields.forEach((f,j)=>wbField(els,f,28+j*step));
-  if(s.example)wbExample(els,s.example);
-  els.push(wbText("Master Workbook · radna strana "+(idx+1),8,94,84,4,7,"#A79D8D","left",{font:"DM Sans"}));
-  out[String(p)]=els;
+ function wbChecklist(els,labels,startY){
+ labels.forEach((label,i)=>{
+  const y=startY+i*8;
+  els.push(wbBox("",8,y,84,6.5,"#FBF8F2","#E1D9CC",8,{radius:6}));
+  els.push(wbText("☐ "+label,11,y+1,78,4.5,8.5,"#3D3832","left",{font:"DM Sans"}));
  });
+}
+function wbTimeline(els,labels,startY){
+ labels.forEach((label,i)=>{
+  const y=startY+i*8;
+  els.push(wbText(String(i+1).padStart(2,"0"),8,y,7,5,8,"#8EA386","center",{font:"DM Sans"}));
+  els.push(wbLine(17,y+5,73));
+  els.push(wbText(label,17,y,70,5,8.5,"#3D3832","left",{font:"DM Sans"}));
+ });
+}
+function wbKpi(els,labels,startY){
+ const gap=3,cw=(84-gap*2)/3;
+ labels.slice(0,9).forEach((label,i)=>{
+  const x=8+(i%3)*(cw+gap),y=startY+Math.floor(i/3)*15;
+  els.push(wbBox("",x,y,cw,11,"#F4EFE6","#D8D0C2",8,{radius:8}));
+  els.push(wbText(label,x+2,y+2,cw-4,4,7.5,"#514A42","center",{font:"DM Sans"}));
+  els.push(wbLine(x+4,y+8,cw-8));
+ });
+}
+WORKBOOK_SHEETS.forEach((s,idx)=>{
+ const p=49+idx,els=[
+  wbText(s.title,8,7,84,8,16,"#171717","left",{font:state.headingFont}),
+  wbText(s.intro,8,17,84,7,9.5,"#8EA386","left")
+ ];
+ if([0,1,2,3,4,5,8,17,18,19,20,21,22].includes(idx)){
+  const cut=Math.ceil(s.fields.length/2);
+  s.fields.slice(0,cut).forEach((f,j)=>wbField(els,f,29+j*10,false));
+  s.fields.slice(cut).forEach((f,j)=>wbField(els,f,29+j*10,true));
+  if(s.example)wbExample(els,s.example);
+ }else if([6,7,13,15,16,23,24,25,26].includes(idx)){
+  wbChecklist(els,s.fields,29);
+  if(s.example)els.push(wbBox("PRIMER\n"+s.example,8,79,84,12,"#F4EFE6","#4C463E",8,{radius:9}));
+ }else if([27,28,29].includes(idx)){
+  wbTimeline(els,s.fields,29);
+  if(s.example)els.push(wbBox("PRIMER · "+s.example,8,79,84,12,"#F4EFE6","#4C463E",8,{radius:9}));
+ }else if(idx===30){
+  wbKpi(els,s.fields,29);
+  els.push(wbText("Zapažanje / odluka na osnovu brojeva",8,78,84,5,9,"#3A352F","left",{font:"DM Sans"}));
+  els.push(wbLine(8,87,84));
+  els.push(wbText("Sledeći korak",8,90,28,4,8,"#8EA386","left",{font:"DM Sans"}));
+  els.push(wbLine(37,94,55));
+ }else if(idx===31){
+  ["Dani 1–30","Dani 31–60","Dani 61–90"].forEach((label,j)=>{
+   const x=8+j*28;
+   els.push(wbBox(label+"\n\nGlavni fokus:\n\nMetrika:\n\nAkcija:",x,29,25,48,"#F4EFE6","#4C463E",8,{radius:9}));
+  });
+  els.push(wbText("Jedna najvažnija odluka za narednih 90 dana",8,82,84,5,9,"#3A352F","left",{font:"DM Sans"}));
+  els.push(wbLine(8,91,84));
+ }
+ els.push(wbText("Master Workbook · radna strana "+(idx+1),8,96,84,3.5,7,"#A79D8D","left",{font:"DM Sans"}));
+ out[String(p)]=els;
+});
  const endPages=[
   {title:"ZAVRŠNE BELEŠKE",intro:"Prostor da zapišeš ono što želiš da sačuvaš nakon rada kroz Master Workbook.",fields:["Najvažnija odluka","Šta sam završila","Šta želim da poboljšam","Sledeći konkretan korak"]},
   {title:"AUTORSKA PRAVA I KORIŠĆENJE",intro:"© 2026 Marijana Forai · Digital Soul. Sva prava zadržana.",fields:["Autor / vlasnik","Godina izdanja","Verzija dokumenta","Kontakt za pitanja"]},
