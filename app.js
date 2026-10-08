@@ -37,14 +37,166 @@ const TEMPLATES={
  planner:{name:"Premium planer",desc:"10 strana · A5 · planer za preduzetnice",pages:10,names:["Naslovna strana","Godišnji pregled","Mesečni planer","Mesečni planer","Nedeljni planer","Nedeljni planer","Nedeljni planer","Nedeljni planer","Praćenje navika","Beleške"],style:"Dobrobit"},
  workbook:{name:"Radna sveska",desc:"8 strana · vođena radna sveska",pages:8,names:["Naslovna","Kako koristiti radnu svesku","Ciljevi","Vežba 1","Vežba 2","Akcioni plan","Praćenje napretka","Beleške"],style:"Minimalistički"},
  ebook:{name:"E-knjiga",desc:"12 strana · urednička struktura",pages:12,names:["Naslovna","Sadržaj","Uvod","Poglavlje 1","Poglavlje 2","Poglavlje 3","Poglavlje 4","Poglavlje 5","Zaključak","Akcioni koraci","Resursi","Beleške"],style:"Urednički"},
- master80:{name:"Moj prvi digitalni proizvod — Master Workbook",desc:"80 strana · od ideje do prvog proizvoda",pages:80,names:[
-"Naslovna — Moj prvi digitalni proizvod","Sadržaj","Segment 1 — Od ideje do Product Card-a","Idea Validation Worksheet + Moj prvi Product Card","Finalna provera ideje","Segment 2 — Kreiranje digitalnog proizvoda","AI radni proces i kreiranje strukture","Od sadržaja do stranica","Page-by-page production workflow","Sistem kontrole kvaliteta","Finalna kontrola digitalnog proizvoda","Master Content Document","Od jednog proizvoda do više sadržaja","Content repurposing i Content → Freebie → Proizvod","Segment 3 — Besplatan sadržaj","10 vrsta besplatnog sadržaja","AI generator besplatnog sadržaja","Filter za besplatan sadržaj","Blueprint besplatnog sadržaja","AI prompt — Kreiraj sadržaj besplatnog sadržaja","AI prompt — Kreiraj jednu stranicu","Kompletan primer — Od ideje do besplatnog sadržaja","Kompletan primer — Kako izgleda sadržaj","AI prompt — Kreiraj praktične delove","Naslov i obećanje besplatnog sadržaja","Finalizacija besplatnog sadržaja","Završna poruka i nastavak Master Workbook-a","Dopuna Master Workbook-a — Besplatan sadržaj → Email lista","Segment 4 — Email lista i email marketing","Segment 5 — Prodajni sistem","Moj prvi Sales Page","Problem → Želja → Rešenje → Rezultat","Segment 5 — Završna mapa","Pre-launch checklist + potvrda kupovine","Terminološko ujednačavanje","Segment 6 — Lansiranje i prva prodaja","Pre-launch — priprema pre prodaje","Launch email sekvenca + lansiranje ponude","Prva prodaja + analiza prvog lansiranja","Šta ako nema prodaja? + Product Ladder","Repurposing + ponovljiv sistem lansiranja","Finalna checklist-a — Segment 6","Segment 7 — Od prve prodaje do skalabilnog sistema","Cross-sell, upsell, paket + KPI dashboard + CEO pregled","Sistem za proizvodnju sadržaja i proizvoda + 30-dnevni plan","Mapa kompletnog digitalnog sistema","Master checklist i narednih 90 dana","Završna Master formula","Radna stranica 1 — Product Card","Radna stranica 2 — Product Blueprint","Radna stranica 3 — Content Map","Radna stranica 4 — Kontrola kvaliteta","Radna stranica 5 — Master Content","Radna stranica 6 — Ideja za besplatan sadržaj","Radna stranica 7 — Filter za besplatan sadržaj","Radna stranica 8 — Blueprint besplatnog sadržaja","Radna stranica 9 — Opt-in stranica","Radna stranica 10 — Email funnel","Radna stranica 11 — Welcome email","Radna stranica 12 — Delivery email","Radna stranica 13 — Value email","Radna stranica 14 — Email sekvenca","Radna stranica 15 — Newsletter","Radna stranica 16 — Subject line","Radna stranica 17 — CTA","Radna stranica 18 — Ponuda","Radna stranica 19 — Cena i vrednost","Radna stranica 20 — Problem → Želja → Rešenje","Radna stranica 21 — Social proof","Radna stranica 22 — FAQ","Radna stranica 23 — Checkout","Radna stranica 24 — Sales Page","Radna stranica 25 — Plan lansiranja","Radna stranica 26 — Sadržaj za lansiranje","Radna stranica 27 — Emaili za lansiranje","Radna stranica 28 — Prva prodaja i isporuka","Radna stranica 29 — Analiza lansiranja","Radna stranica 30 — Product Ladder","Radna stranica 31 — KPI Dashboard","Radna stranica 32 — 90-dnevni Master plan"
+ master80:{name:"Moj prvi digitalni proizvod — Master Workbook",desc:"80 radnih strana + 4 završne strane",pages:84,names:[
+"Naslovna — Moj prvi digitalni proizvod","Sadržaj","Segment 1 — Od ideje do Product Card-a","Idea Validation Worksheet + Moj prvi Product Card","Finalna provera ideje","Segment 2 — Kreiranje digitalnog proizvoda","AI radni proces i kreiranje strukture","Od sadržaja do stranica","Page-by-page production workflow","Sistem kontrole kvaliteta","Finalna kontrola digitalnog proizvoda","Master Content Document","Od jednog proizvoda do više sadržaja","Content repurposing i Content → Freebie → Proizvod","Segment 3 — Besplatan sadržaj","10 vrsta besplatnog sadržaja","AI generator besplatnog sadržaja","Filter za besplatan sadržaj","Blueprint besplatnog sadržaja","AI prompt — Kreiraj sadržaj besplatnog sadržaja","AI prompt — Kreiraj jednu stranicu","Kompletan primer — Od ideje do besplatnog sadržaja","Kompletan primer — Kako izgleda sadržaj","AI prompt — Kreiraj praktične delove","Naslov i obećanje besplatnog sadržaja","Finalizacija besplatnog sadržaja","Završna poruka i nastavak Master Workbook-a","Dopuna Master Workbook-a — Besplatan sadržaj → Email lista","Segment 4 — Email lista i email marketing","Segment 5 — Prodajni sistem","Moj prvi Sales Page","Problem → Želja → Rešenje → Rezultat","Segment 5 — Završna mapa","Pre-launch checklist + potvrda kupovine","Terminološko ujednačavanje","Segment 6 — Lansiranje i prva prodaja","Pre-launch — priprema pre prodaje","Launch email sekvenca + lansiranje ponude","Prva prodaja + analiza prvog lansiranja","Šta ako nema prodaja? + Product Ladder","Repurposing + ponovljiv sistem lansiranja","Finalna checklist-a — Segment 6","Segment 7 — Od prve prodaje do skalabilnog sistema","Cross-sell, upsell, paket + KPI dashboard + CEO pregled","Sistem za proizvodnju sadržaja i proizvoda + 30-dnevni plan","Mapa kompletnog digitalnog sistema","Master checklist i narednih 90 dana","Završna Master formula","Radna stranica 1 — Product Card","Radna stranica 2 — Product Blueprint","Radna stranica 3 — Content Map","Radna stranica 4 — Kontrola kvaliteta","Radna stranica 5 — Master Content","Radna stranica 6 — Ideja za besplatan sadržaj","Radna stranica 7 — Filter za besplatan sadržaj","Radna stranica 8 — Blueprint besplatnog sadržaja","Radna stranica 9 — Opt-in stranica","Radna stranica 10 — Email funnel","Radna stranica 11 — Welcome email","Radna stranica 12 — Delivery email","Radna stranica 13 — Value email","Radna stranica 14 — Email sekvenca","Radna stranica 15 — Newsletter","Radna stranica 16 — Subject line","Radna stranica 17 — CTA","Radna stranica 18 — Ponuda","Radna stranica 19 — Cena i vrednost","Radna stranica 20 — Problem → Želja → Rešenje","Radna stranica 21 — Social proof","Radna stranica 22 — FAQ","Radna stranica 23 — Checkout","Radna stranica 24 — Sales Page","Radna stranica 25 — Plan lansiranja","Radna stranica 26 — Sadržaj za lansiranje","Radna stranica 27 — Emaili za lansiranje","Radna stranica 28 — Prva prodaja i isporuka","Radna stranica 29 — Analiza lansiranja","Radna stranica 30 — Product Ladder","Radna stranica 31 — KPI Dashboard","Radna stranica 32 — 90-dnevni Master plan","Završne beleške","Autorska prava i korišćenje","Resursi i linkovi","Hvala · Sledeći korak"
 ],style:"Minimalistički"},
  journal:{name:"Dnevnik",desc:"12 strana · refleksija i beleške",pages:12,names:["Naslovna","Kako se osećam","Jutarnja refleksija","Dnevni zapis","Dnevni zapis","Dnevni zapis","Dnevni zapis","Nedeljna refleksija","Zahvalnost","Lekcije","Plan za sutra","Beleške"],style:"Ženstveni"},
  social:{name:"Paket za društvene mreže",desc:"10 strana · sadržaj za društvene mreže",pages:10,names:["Naslovna","Stubovi sadržaja","30 ideja","Kratki video zapisi","Karusel","Priče","Udice","Biblioteka poziva na akciju","Prostor za ključne oznake","Beleške"],style:"Kreativni"}
 };
+function wbText(text,x,y,w,h,fontSize=11,color="#171717",align="left",extra={}){
+ return {id:uid(),type:"text",text,x,y,w,h,font:extra.font||state.bodyFont,fontSize,color,align,rotate:0,opacity:extra.opacity??100,locked:false,...extra};
+}
+function wbLine(x,y,w=60,color="#D8D0C2"){
+ return {id:uid(),type:"divider",text:"",x,y,w,h:1.2,font:state.bodyFont,fontSize:1,color,align:"left",rotate:0,opacity:100,locked:false};
+}
+function wbBox(text,x,y,w,h,fill="#F4EFE6",color="#4C463E",fontSize=9,extra={}){
+ return {id:uid(),type:"shape",text:text||"",x,y,w,h,font:state.bodyFont,fontSize,color,align:"left",rotate:0,opacity:100,locked:false,radius:10,fill,...extra};
+}
+function wbCheck(label,x,y,w=56){
+ const els=[wbText("☐ "+label,x,y,w,5.5,9,"#292621","left")];
+ return els;
+}
+function wbField(els,label,y,wide=true){
+ els.push(wbText(label,9,y,wide?59:48,5.5,9.5,"#3A352F","left",{font:"DM Sans"}));
+ els.push(wbLine(9,y+5.5,wide?59:48));
+}
+function wbExample(els,text){
+ els.push(wbBox("",71,29,20,58,"#F7F2E9","#171717",9,{radius:10,opacity:100}));
+ els.push(wbText("PRIMER",73,32,16,5,8,"#8EA386","left",{font:"DM Sans"}));
+ els.push(wbText(text,73,39,16,42,8.5,"#4C463E","left",{font:"DM Sans"}));
+}
+const WORKBOOK_SHEETS=[
+ {title:"RADNA STRANICA 1 — PRODUCT CARD",intro:"Popuni nakon definisanja problema i ciljne publike.",fields:["Naziv proizvoda","Kome je namenjen","Glavni problem","Glavno rešenje","Format","Šta kupac dobija","Glavni rezultat","Zašto je koristan"],example:"Primer: PDF radna sveska za početnike koji žele da od jedne ideje naprave prvi digitalni proizvod."},
+ {title:"RADNA STRANICA 2 — PRODUCT BLUEPRINT",intro:"Mapa proizvoda pre pisanja sadržaja.",fields:["Cilj proizvoda","Moduli","Lekcije","Praktični delovi","Primeri","Završni rezultat"],example:"Primer: 3 modula → 7 lekcija → 4 radne strane → jedan konkretan završni rezultat."},
+ {title:"RADNA STRANICA 3 — CONTENT MAP",intro:"Pretvori blueprint u konkretan sadržaj.",fields:["Celina 1","Celina 2","Celina 3","Praktični deo","Provera","Sledeći korak"],example:"Primer: Celina 1 objašnjava problem, Celina 2 daje proces, a praktični deo vodi do primene."},
+ {title:"RADNA STRANICA 4 — KONTROLA KVALITETA",intro:"Proveri proizvod kao početnik koji ga prvi put koristi.",fields:["Šta je jasno?","Gde postoji konfuzija?","Gde se pojavljuje pitanje „Šta sada?“","Šta treba pojednostaviti?","Šta treba dopuniti?"],example:"Primer: Ako korisnik ne zna šta da uradi nakon lekcije, dodaj jedan jasan akcioni korak."},
+ {title:"RADNA STRANICA 5 — MASTER CONTENT",intro:"Jedan izvor istine za kompletan proizvod.",fields:["Naslov","Uvod","Glavne lekcije","Radne sveske","Checkliste","Promptovi","Akcioni zadaci","Završetak"],example:"Primer: sve finalne verzije teksta, promptova i zadataka drži na jednom mestu pre dizajna."},
+ {title:"RADNA STRANICA 6 — IDEJA ZA BESPLATAN SADRŽAJ",intro:"Mali problem + brzo rešenje + jasan sledeći korak.",fields:["Za koga je besplatan sadržaj?","Mali problem","Mali rezultat","Format","Povezani glavni proizvod","Sledeći korak"],example:"Primer: mini checklist-a koja rešava jedan mali problem i vodi ka glavnom proizvodu."},
+ {title:"RADNA STRANICA 7 — FILTER ZA BESPLATAN SADRŽAJ",intro:"Oceni ideju pre izrade.",fields:["Jasan","Koristan","Jednostavan","Povezan sa proizvodom","Brzo primenljiv","Rezultat","Ukupna ocena"],example:"Primer: ocenjuj svaku stavku od 1 do 5 i zadrži ideju koja ima jasan rezultat."},
+ {title:"RADNA STRANICA 8 — BLUEPRINT BESPLATNOG SADRŽAJA",intro:"Plan pre pisanja.",fields:["Naslov","Uvod","Celina 1","Celina 2","Praktični deo","Rezultat","Sledeći korak"],example:"Primer: naslov → kratko objašnjenje → dve korisne celine → vežba → rezultat → CTA."},
+ {title:"RADNA STRANICA 9 — OPT-IN STRANICA",intro:"Struktura stranice koja vodi do prijave.",fields:["Naslov","Podnaslov","Problem","Šta osoba dobija","Rezultat","CTA","Napomena o isporuci"],example:"Primer CTA: „Preuzmi radnu svesku i napravi prvi korak danas.“"},
+ {title:"RADNA STRANICA 10 — EMAIL FUNNEL",intro:"Poveži besplatan sadržaj i prodajni sistem.",fields:["Ulazni sadržaj","Besplatan sadržaj","Opt-in","Welcome","Value email","Offer email","Glavni proizvod"],example:"Primer: sadržaj → besplatan resurs → prijava → vrednost → ponuda → glavni proizvod."},
+ {title:"RADNA STRANICA 11 — WELCOME EMAIL",intro:"Prvi kontakt nakon prijave.",fields:["Subject line","Pozdrav","Hvala","Isporuka","Prvi mali korak","Sledeći korak"],example:"Primer: prvo isporuči obećano, zatim dodaj jedan mali koristan korak."},
+ {title:"RADNA STRANICA 12 — DELIVERY EMAIL",intro:"Ispravno isporuči obećano.",fields:["Šta osoba dobija","Link","Instrukcije","Prvi korak","Kontakt za podršku"],example:"Primer: jasno napiši šta je poslato, gde se nalazi i šta korisnik radi prvo."},
+ {title:"RADNA STRANICA 13 — VALUE EMAIL",intro:"Jedna ideja → jedna korisna lekcija → jedan mali korak.",fields:["Hook","Problem","Uvid","Rešenje","Primer","Mali zadatak","CTA"],example:"Primer: jedna konkretna lekcija + jedan mali zadatak koji se može završiti odmah."},
+ {title:"RADNA STRANICA 14 — EMAIL SEKVENCA",intro:"Planiraj 5 povezanih emailova.",fields:["Email 1 — Najava","Email 2 — Problem","Email 3 — Vrednost/Rešenje","Email 4 — Ponuda","Email 5 — Podsetnik"],example:"Primer: svaki email ima svoju svrhu i prirodno vodi ka sledećem koraku."},
+ {title:"RADNA STRANICA 15 — NEWSLETTER",intro:"Redovna komunikacija sa jasnom svrhom.",fields:["Tema","Hook","Jedna ideja","Primer","Mali korak","CTA"],example:"Primer: newsletter ne mora da prodaje; može da donese jednu korisnu ideju i mali rezultat."},
+ {title:"RADNA STRANICA 16 — SUBJECT LINE",intro:"Napiši više verzija bez clickbait-a.",fields:["Benefit","Problem","Pitanje","Broj","Greška","Quick Win","Direktna poruka"],example:"Primer: napiši 5–7 verzija iste poruke, pa izaberi onu koja je najjasnija."},
+ {title:"RADNA STRANICA 17 — CTA",intro:"Jasan sledeći korak.",fields:["Glavna akcija","Glavni CTA","CTA nakon sadržaja","CTA kod ponude","Finalni CTA"],example:"Primer: jedna poruka, jedna radnja — „Preuzmi“, „Kupi“, „Prijavi se“ ili „Saznaj više“."},
+ {title:"RADNA STRANICA 18 — PONUDA",intro:"Pretvori proizvod u jasnu ponudu.",fields:["Kome","Problem","Proizvod","Rezultat","Glavni elementi","Cena","CTA"],example:"Primer: osoba + problem + konkretno rešenje + rezultat + cena + jasan sledeći korak."},
+ {title:"RADNA STRANICA 19 — CENA I VREDNOST",intro:"Odredi cenu na osnovu vrednosti ponude.",fields:["Problem","Korisnost","Dubina","Obim","Pozicioniranje","Redovna cena","Uvodna cena ako postoji"],example:"Primer: ne posmatraj samo broj strana; posmatraj problem koji proizvod pomaže da se reši."},
+ {title:"RADNA STRANICA 20 — PROBLEM → ŽELJA → REŠENJE",intro:"Osnova prodajne komunikacije.",fields:["Gde je osoba sada?","Šta želi?","Kako proizvod pomaže?","Koji rezultat podržava?","Kratka prodajna poruka"],example:"Primer: „Trenutno imaš ideju, ali nemaš strukturu → želiš gotov proizvod → workbook vodi kroz proces.“"},
+ {title:"RADNA STRANICA 21 — SOCIAL PROOF",intro:"Plan dokaza i iskustava bez izmišljanja.",fields:["Šta trenutno imam","Šta mogu da pokažem bez testimoniala","Kako tražim feedback","Koje dozvole su potrebne","Koji rezultat je stvaran i proverljiv"],example:"Primer: pokaži stvaran proces, sadržaj, demo ili proverljiv rezultat — ne izmišljaj testimonial."},
+ {title:"RADNA STRANICA 22 — FAQ",intro:"Pitanja koja osoba postavlja pre kupovine.",fields:["Za koga je","Šta dobijam","Format","Pristup","Tehnički zahtevi","Nakon kupovine"],example:"Primer: odgovori na pitanja koja bi kupac postavio pre nego što klikne na kupovinu."},
+ {title:"RADNA STRANICA 23 — CHECKOUT",intro:"Testiraj poslednji korak pre kupovine.",fields:["Proizvod","Cena","Plaćanje","Potvrda","Isporuka","Prvi korak","Sledeća poruka"],example:"Primer: testiraj ceo put kao kupac — od klika do potvrde i prve isporuke."},
+ {title:"RADNA STRANICA 24 — SALES PAGE",intro:"Od ponude do gotove prodajne stranice.",fields:["Hook","Naslov","Podnaslov","Problem","Želja","Rešenje","Offer Stack","Koristi","Cena","FAQ","CTA"],example:"Primer strukture: Hook → problem → želja → rešenje → šta dobijaš → cena → FAQ → CTA."},
+ {title:"RADNA STRANICA 25 — PLAN LANSIRANJA",intro:"Organizuj pripremu i dane prodaje.",fields:["Početak","Dan 1","Dan 2","Dan 3","Dan 4","Dan 5","Dan 6","Dan 7","Završetak"],example:"Primer: za svaki dan odredi jednu glavnu poruku, jedan sadržaj i jedan CTA."},
+ {title:"RADNA STRANICA 26 — SADRŽAJ ZA LANSIRANJE",intro:"Jedna tema → više funkcionalnih sadržaja.",fields:["Problem sadržaj","Edukativni sadržaj","Demonstracija","Priča/Povezivanje","Prodajni sadržaj","Glavni CTA"],example:"Primer: ista glavna tema može imati edukativni, demonstracioni i prodajni ugao."},
+ {title:"RADNA STRANICA 27 — EMAILI ZA LANSIRANJE",intro:"Pripremi svih 5 emailova.",fields:["Email 1 — Najava","Email 2 — Problem","Email 3 — Vrednost","Email 4 — Ponuda","Email 5 — Podsetnik"],example:"Primer: unapred definiši cilj svakog emaila i trenutak slanja."},
+ {title:"RADNA STRANICA 28 — PRVA PRODAJA I ISPORUKA",intro:"Isplaniraj customer journey nakon kupovine.",fields:["Potvrda","Isporuka","Onboarding","Prvi korak","Feedback","Sledeći proizvod"],example:"Primer: kupac ne treba da se pita šta sada — potvrda, pristup, prvi korak i podrška treba da budu jasni."},
+ {title:"RADNA STRANICA 29 — ANALIZA LANSIRANJA",intro:"Pronađi usko grlo.",fields:["Reach","Klikovi","Opt-in","Sales Page","Checkout","Kupovine","Prihod","Feedback"],example:"Primer: ako ima pregleda, ali nema klikova, problem nije isti kao kada ima klikova, ali nema kupovina."},
+ {title:"RADNA STRANICA 30 — PRODUCT LADDER",intro:"Poveži postojeće proizvode u logičan put.",fields:["Besplatan sadržaj","Ulazni proizvod","Glavni proizvod","Paket","Veći sistem","Sledeći problem"],example:"Primer: besplatan sadržaj → mali proizvod → glavni proizvod → paket → veći sistem."},
+ {title:"RADNA STRANICA 31 — KPI DASHBOARD",intro:"Jednom nedeljno meri najvažnije brojeve.",fields:["Reach","Klikovi","Novi email kontakti","Sales Page posete","Checkout posete","Prodaje","Prihod","Open rate","Click rate"],example:"Primer: beleži iste metrike iz nedelje u nedelju da bi videla trend, ne samo pojedinačan broj."},
+ {title:"RADNA STRANICA 32 — 90-DNEVNI MASTER PLAN",intro:"Prevedi sistem u konkretne prioritete.",fields:["Dani 1–30 — temelji","Dani 31–60 — optimizacija","Dani 61–90 — proširenje","Glavni cilj","Najvažnija metrika","Sledeći proizvod"],example:"Primer: prvo postavi temelje, zatim meri i optimizuj, pa tek onda širi ono što radi."}
+];
+function masterWorkbookElements(name){
+ const out={};
+ const introPages=[
+  ["Naslovna — Moj prvi digitalni proizvod","Od ideje do prvog proizvoda","Master Workbook · praktičan sistem za planiranje, izradu, lansiranje i rast"],
+  ["Sadržaj","8 celina + 32 radne stranice","Koristi ovu radnu svesku kao glavni radni prostor za razvoj proizvoda."],
+  ["Segment 1 — Od ideje do Product Card-a","Ideja → problem → ciljna grupa → proizvod","Cilj: početnu ideju pretvoriti u jasnu i konkretnu osnovu proizvoda."],
+  ["Idea Validation Worksheet + Moj prvi Product Card","Proveri ideju pre izrade","Problem · osoba · rezultat · format · vrednost"],
+  ["Finalna provera ideje","Jasna · korisna · izvodljiva · namenjena konkretnoj osobi","Ako nešto nije jasno, vrati se korak nazad pre nego što nastaviš."],
+  ["Segment 2 — Kreiranje digitalnog proizvoda","Struktura → sadržaj → praktična primena → stranice","Jedna stranica treba da ima jednu jasnu svrhu."],
+  ["AI radni proces i kreiranje strukture","IDEJA → STRUKTURA → SADRŽAJ → PROVERA → DIZAJN","Sadržaj prvo. Dizajn drugo."],
+  ["Od sadržaja do stranica","PLAN → SADRŽAJ → PROVERA → STRANICA → FINALNA PROVERA","Ako je stranica pretrpana, podeli je."],
+  ["Page-by-page production workflow","Jedna stranica → jedna svrha → jedan korak napred","Odredi svrhu, tip stranice, naslov, sadržaj, praktičnu primenu i status."],
+  ["Sistem kontrole kvaliteta","JASAN → LOGIČAN → KORISTAN → PRIMENLJIV","Proveri cilj, strukturu, ponavljanje, prelaze i korisničko iskustvo."],
+  ["Finalna kontrola digitalnog proizvoda","Prođi proizvod kao početnik","Proveri jasnoću, logiku, korisnost, format, linkove i završni rezultat."],
+  ["Master Content Document","Jedan izvor istine","Sve finalne verzije teksta, lekcija, radnih strana, checklista i promptova drži na jednom mestu."],
+  ["Od jednog proizvoda do više sadržaja","Jedan proizvod = content source","PDF → besplatan sadržaj → blog → newsletter → carousel → Reel → Story → checklist-a → mini worksheet."],
+  ["Content repurposing i Content → Freebie → Proizvod","Jedna poruka, više formata","Ne kopiraj isti tekst; prilagodi osnovnu poruku formatu i platformi."],
+  ["Segment 3 — Besplatan sadržaj","Mali problem → brzo rešenje → sledeći korak","Besplatan sadržaj treba da bude koristan i povezan sa glavnim proizvodom."],
+  ["10 vrsta besplatnog sadržaja","Checklist-a · mini vodič · worksheet · template · prompt pack · tracker","Izaberi format koji najbrže vodi do malog rezultata."],
+  ["AI generator besplatnog sadržaja","Problem → mali rezultat → format → sledeći korak","AI koristi kao pomoć u strukturi, ne kao zamenu za tvoje znanje."],
+  ["Filter za besplatan sadržaj","Jasan · koristan · jednostavan · povezan · brzo primenljiv","Pre izrade proveri da li ideja zaista daje vrednost."],
+  ["Blueprint besplatnog sadržaja","Naslov → uvod → celine → praktični deo → rezultat → sledeći korak","Prvo napravi mapu, zatim piši."],
+  ["AI prompt — Kreiraj sadržaj besplatnog sadržaja","CONTENT FIRST → DESIGN SECOND","Prvo definiši sadržaj i praktičnu vrednost, pa tek onda izgled."],
+  ["AI prompt — Kreiraj jednu stranicu","Jedna stranica → jedna svrha","Stranica može biti uvod, objašnjenje, koraci, primer, worksheet, checklist-a ili zadatak."],
+  ["Kompletan primer — Od ideje do besplatnog sadržaja","Ideja → filter → blueprint → page map → finalizacija","Ovde posmatraj logiku procesa, ne samo konačan dizajn."],
+  ["Kompletan primer — Kako izgleda sadržaj","Primer sadržaja za praktične stranice","Dobar primer pokazuje kako se objašnjenje pretvara u konkretan zadatak."],
+  ["AI prompt — Kreiraj praktične delove","Vežbe · pitanja · checklist-e · akcioni koraci","Praktični deo treba da vodi korisnika ka konkretnom rezultatu."],
+  ["Naslov i obećanje besplatnog sadržaja","Jasan naslov + realno obećanje","Ne obećavaj više nego što sadržaj zaista isporučuje."],
+  ["Finalizacija besplatnog sadržaja","Proveri PDF kao korisnik","Proveri redosled, čitljivost, praktične delove, linkove i završni CTA."],
+  ["Završna poruka i nastavak Master Workbook-a","Od besplatnog sadržaja ka sistemu","Sledeći korak je povezivanje sa email listom i prodajnim sistemom."],
+  ["Dopuna Master Workbook-a — Besplatan sadržaj → Email lista","Besplatan sadržaj → prijava → email komunikacija","Ovde počinje sistem koji povezuje sadržaj sa odnosom sa publikom."],
+  ["Segment 4 — Email lista i email marketing","Welcome · delivery · value · sekvenca · newsletter","Jedna ideja → jedna korisna lekcija → jedan mali korak."],
+  ["Segment 5 — Prodajni sistem","Ponuda → Sales Page → Checkout → kupovina","Jasna prodajna komunikacija vodi osobu kroz odluku."],
+  ["Moj prvi Sales Page","Hook → problem → želja → rešenje → ponuda → cena → CTA","Prodajna stranica treba da odgovori na najvažnija pitanja pre kupovine."],
+  ["Problem → Želja → Rešenje → Rezultat","Osnova prodajne poruke","Prikaži gde je osoba sada, šta želi i kako proizvod podržava željeni rezultat."],
+  ["Segment 5 — Završna mapa","Besplatan sadržaj → email → ponuda → checkout","Proveri da li svaki korak ima jasan sledeći korak."],
+  ["Pre-launch checklist + potvrda kupovine","Priprema pre prodaje + iskustvo nakon kupovine","Ne završava se sistem na dugmetu Kupi."],
+  ["Terminološko ujednačavanje","BESPLATAN SADRŽAJ · LANSIRANJE · RADNA SVESKA · VAŽNO","Koristi dosledne srpske termine kroz ceo proizvod."],
+  ["Segment 6 — Lansiranje i prva prodaja","Pre-launch → launch → prva prodaja → analiza","Pokreni, izmeri, nauči i poboljšaj."],
+  ["Pre-launch — priprema pre prodaje","Ponuda · sadržaj · emaili · checkout · isporuka","Pre lansiranja proveri da je ceo put spreman."],
+  ["Launch email sekvenca + lansiranje ponude","Najava → problem → vrednost → ponuda → podsetnik","Svaki email ima svoju ulogu."],
+  ["Prva prodaja + analiza prvog lansiranja","Prodaja nije kraj procesa","Zabeleži šta se desilo i šta treba poboljšati."],
+  ["Šta ako nema prodaja? + Product Ladder","Pronađi usko grlo, ne paniči","Analiziraj reach, klikove, opt-in, sales page, checkout i ponudu."],
+  ["Repurposing + ponovljiv sistem lansiranja","Jedan sistem koji možeš ponavljati","Posle prvog ciklusa sačuvaj ono što radi."],
+  ["Finalna checklist-a — Segment 6","Pre lansiranja · tokom lansiranja · posle lansiranja","Označi šta je završeno i šta treba optimizovati."],
+  ["Segment 7 — Od prve prodaje do skalabilnog sistema","Cross-sell · upsell · paket · KPI · CEO pregled","Sada proizvod postaje deo šireg sistema."],
+  ["Cross-sell, upsell, paket + KPI dashboard + CEO pregled","Poveži proizvode i prati brojeve","Ne meri samo prihod; prati ceo put korisnika."],
+  ["Sistem za proizvodnju sadržaja i proizvoda + 30-dnevni plan","Planiraj proizvodnju umesto improvizacije","Jedan sistem treba da olakša sledeći proizvod."],
+  ["Mapa kompletnog digitalnog sistema","IDEJA → PROIZVOD → BESPLATAN SADRŽAJ → EMAIL → PRODAJA → ISPORUKA → FEEDBACK → OPTIMIZACIJA","Ovo je tvoj operativni sistem."],
+  ["Master checklist i narednih 90 dana","Šta radiš sada, šta kasnije","Pretvori sistem u konkretne prioritete."],
+  ["Završna Master formula","NAPRAVI → POKRENI → IZMERI → NAUČI → POBOLJŠAJ → PONOVI","Tvoj biznis nije jedan proizvod. Tvoj biznis je sistem."]
+ ];
+ for(let i=1;i<=48;i++){
+  const d= i===1 ? {title:introPages[0][0],intro:introPages[0][1],body:introPages[0][2]} : {title:introPages[i-1]?.[0]||("Strana "+i),intro:introPages[i-1]?.[1]||"Radni prostor za ovu celinu.",body:introPages[i-1]?.[2]||"Dodaj, prilagodi i proveri sadržaj ove strane."};
+  out[String(i)]=[
+   wbText(d.title,9,8,82,9,i===1?27:18,i===1?"#E7D2A7":"#171717","left",{font:state.headingFont}),
+   wbText(d.intro,9,19,82,7,10,i===1?"#E7D2A7":"#8EA386","left"),
+   wbBox(d.body,9,30,82,23,i===1?"#2B2925":"#F4EFE6","#4C463E",10,{radius:12}),
+   wbText("BELEŠKE / PRAKTIČNA PRIMENA",9,58,82,6,9,"#3A352F","left",{font:"DM Sans"}),
+   ...Array.from({length:5},(_,j)=>wbLine(9,66+j*5.2,82)),
+   wbText(String(i).padStart(2,"0"),86,93,5,4,7,"#A79D8D","right",{font:"DM Sans"})
+  ];
+ }
+ WORKBOOK_SHEETS.forEach((s,idx)=>{
+  const p=49+idx,els=[
+   wbText(s.title,8,7,84,8,16,"#171717","left",{font:state.headingFont}),
+   wbText(s.intro,8,17,84,7,9.5,"#8EA386","left")
+  ];
+  const fields=s.fields;
+  const step=Math.min(7.2,58/Math.max(fields.length,1));
+  fields.forEach((f,j)=>wbField(els,f,28+j*step));
+  if(s.example)wbExample(els,s.example);
+  els.push(wbText("Master Workbook · radna strana "+(idx+1),8,94,84,4,7,"#A79D8D","left",{font:"DM Sans"}));
+  out[String(p)]=els;
+ });
+ const endPages=[
+  {title:"ZAVRŠNE BELEŠKE",intro:"Prostor da zapišeš ono što želiš da sačuvaš nakon rada kroz Master Workbook.",fields:["Najvažnija odluka","Šta sam završila","Šta želim da poboljšam","Sledeći konkretan korak"]},
+  {title:"AUTORSKA PRAVA I KORIŠĆENJE",intro:"© 2026 Marijana Forai · Digital Soul. Sva prava zadržana.",fields:["Autor / vlasnik","Godina izdanja","Verzija dokumenta","Kontakt za pitanja"]},
+  {title:"RESURSI I LINKOVI",intro:"Dodaj svoje zvanične linkove na jednom mestu.",fields:["Web sajt","Prodavnica / proizvodi","Instagram","Email","Ostali resursi"]},
+  {title:"HVALA · SLEDEĆI KORAK",intro:"Ovaj workbook je napravljen da se koristi, dopunjava i ponavlja.",fields:["Šta sada radim","Koji proizvod razvijam","Kada proveravam napredak"]},
+ ];
+ endPages.forEach((s,j)=>{
+  const p=81+j,els=[wbText(s.title,10,12,80,10,22,"#171717","center",{font:state.headingFont}),wbText(s.intro,12,25,76,9,10,"#5A544C","center")];
+  if(p===82){
+    els.push(wbBox("© 2026 Marijana Forai · Digital Soul\nSadržaj ovog materijala je namenjen ličnoj upotrebi kupca i nije dozvoljeno neovlašćeno kopiranje, preprodavanje, distribuiranje ili javno objavljivanje celog ili delova materijala bez dozvole vlasnika autorskih prava.",12,38,76,30,"#F4EFE6","#3A352F",9,{radius:12}));
+    els.push(wbText("Za pravne/licencne uslove prilagodi ovu stranicu svojoj konkretnoj prodajnoj ponudi.",14,72,72,10,8,"#8A8175","center"));
+  }else{
+    s.fields.forEach((f,j)=>wbField(els,f,39+j*10,true));
+  }
+  els.push(wbText("Digital Soul · Master Workbook",10,94,80,4,7,"#A79D8D","center",{font:"DM Sans"}));
+  out[String(p)]=els;
+ });
+ return out;
+}
 function templateElements(key,pages,name){
- const t=TEMPLATES[key]||TEMPLATES.planner;const out={};
+ const t=TEMPLATES[key]||TEMPLATES.planner;
+ if(key==="master80") return masterWorkbookElements(name);
+ const out={};
  for(let i=1;i<=pages;i++){
   const title=t.names[i-1]||("Strana "+i);
   out[String(i)]=[
@@ -518,13 +670,14 @@ function initNewProjectModal(){
  createBtn.onclick=()=>{
   const name=$("newProjectName").value.trim()||"Novi projekat";
   const format=$("newProjectFormat").value;
-  const pages=Math.max(1,Math.min(200,Number($("newProjectPages").value)||10));
-  pushHistory();state.name=name;state.format=format;state.pages=pages;state.pageNames=Array.from({length:pages},(_,i)=>pageNames[i]||"Strana "+(i+1));state.active=1;state.projectId="p_"+Date.now();state.elements={};
-  $("projectName").value=name;$("format").value=format;$("pageCount").value=pages;ensurePage();
+  const pages=startType==="master80"?84:Math.max(1,Math.min(200,Number($("newProjectPages").value)||10));
+  const projectFormat=startType==="master80"?"A4":format;
+  pushHistory();state.name=name;state.format=projectFormat;state.pages=pages;state.pageNames=Array.from({length:pages},(_,i)=>pageNames[i]||"Strana "+(i+1));state.active=1;state.projectId="p_"+Date.now();state.elements={};
+  $("projectName").value=name;$("format").value=projectFormat;$("pageCount").value=pages;ensurePage();
   if(startType==="planner"){state.elements=templateElements("planner",pages,name)}
   if(startType==="workbook"){state.elements=templateElements("workbook",pages,name)}
   if(startType==="ebook"){state.elements=templateElements("ebook",pages,name)}
-  if(startType==="master80"){state.elements=templateElements("master80",pages,name)}
+  if(startType==="master80"){state.elements=templateElements("master80",84,name)}
   modal.hidden=true;render();saveProject(true);addMessage("Projekat „"+name+"“ je kreiran. Sada možemo da ga gradimo kroz AI razgovor.");
  };
 }
