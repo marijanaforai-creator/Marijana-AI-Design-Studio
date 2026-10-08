@@ -514,3 +514,30 @@ function init(){
  ensurePage();pushHistory();render();renderSavedColors();setInterval(()=>saveProject(true),5000);
 }
 init();
+window.importProductFactory=function(payload){
+  try{
+    const p=payload||JSON.parse(localStorage.getItem("marijanaDesignStudioProductImport")||"{}");
+    if(!p||!p.name)return false;
+    state.name=p.name;
+    const allowed=["A5","A4","US Letter","Instagram 1080 × 1350","Prilagođeno"];
+    state.format=allowed.includes(p.format)?p.format:"A5";
+    state.pages=Math.max(1,Math.min(30,Number(p.pages)||10));
+    state.pageNames=Array.from({length:state.pages},(_,i)=>p.pageMap?.[i]?.title||"Strana "+(i+1));
+    state.active=1;
+    state.projectId="p_"+Date.now();
+    state.elements={};
+    for(let i=1;i<=state.pages;i++){
+      const title=state.pageNames[i-1]||"Strana "+i;
+      const body=i===1?"Sadržaj i struktura proizvoda pripremljeni kroz Product Factory.":"Dodaj finalni sadržaj ove strane kroz Master Content i AI Design Agent.";
+      state.elements[String(i)]=[
+        {id:uid(),type:"text",text:title,x:11,y:i===1?20:12,w:78,h:15,font:state.headingFont,fontSize:i===1?30:24,color:i===1?"#E7D2A7":"#171717",align:"center",rotate:0,opacity:100,locked:false},
+        {id:uid(),type:"text",text:body,x:14,y:i===1?42:30,w:72,h:18,font:state.bodyFont,fontSize:10,color:i===1?"#E7D2A7":"#555555",align:"center",rotate:0,opacity:75,locked:false}
+      ];
+    }
+    $("projectName").value=state.name;$("format").value=state.format;$("pageCount").value=state.pages;
+    render();saveProject(true);addMessage("Product Factory je prebačen u Design Studio. Page Map je postavljen kao struktura stranica.");
+    localStorage.removeItem("marijanaDesignStudioProductImport");
+    return true;
+  }catch(e){addMessage("Prebacivanje Product Factory projekta nije uspelo: "+e.message,"user");return false}
+};
+
