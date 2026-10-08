@@ -230,12 +230,9 @@ function masterWorkbookElements(name){
    els.push(wbBox("32 RADNE STRANICE\nza konkretan rad kroz sistem",8,74,84,14,"#F8F3EA","#3D3832",9,{radius:9}));
   }else if(segmentPages.has(i)){
    sectionCover(els,i,d[0],d[1],d[2]);
-   const map=processMap[i+1]||processMap[i];
-   if(map)processPage(els,map,"Prvo razumevanje procesa, zatim konkretna primena.");
-   else{
-    els.push(wbText("ŠTA ŽELIM DA POSTIGNEM?",9,79,40,5,8.5,"#8EA386","left",{font:"DM Sans"}));
-    els.push(wbLine(9,88,82));
-   }
+   els.push(wbText("SLEDEĆE",9,79,18,5,8,"#8EA386","left",{font:"DM Sans"}));
+   els.push(wbText("Razumi celinu → popuni radne strane → proveri → pređi na sledeći korak.",28,79,63,7,8.5,"#4C463E","left"));
+   els.push(wbLine(9,89,82));
   }else if(processMap[i]){
    els.push(wbText(d[0],8,8,84,9,17,"#171717","left",{font:state.headingFont}));
    els.push(wbText(d[1],8,19,84,7,9.5,"#8EA386","left"));
