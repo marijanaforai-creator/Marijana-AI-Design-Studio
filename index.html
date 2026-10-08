@@ -139,14 +139,23 @@
 <script>
 window.createProjectFallback=function(){
   try{
-    if(typeof window.createNewProjectFromModal==="function"){
-      window.createNewProjectFromModal();
-      return;
-    }
-    throw new Error("Studio funkcija za novi projekat nije učitana.");
-  }catch(e){
-    alert("Ne mogu da kreiram projekat: "+(e?.message||e));
-  }
+    const name=(document.getElementById("newProjectName")?.value||"Novi projekat").trim()||"Novi projekat";
+    const format=document.getElementById("newProjectFormat")?.value||"A5";
+    const pages=Math.max(1,Math.min(200,Number(document.getElementById("newProjectPages")?.value)||1));
+    const activeStart=document.querySelector("[data-start].active");
+    const startType=activeStart?.dataset.start||"blank";
+    const projectFormat=startType==="master80"?"A4":format;
+    const now=Date.now();
+    const sizes={"A4":[794,1123,210,297],"A5":[559,794,148,210],"A6":[397,559,105,148],"B5":[665,945,176,250],"US Letter":[816,1056,215.9,279.4],"Half Letter":[528,816,139.7,215.9],"6 × 9 in":[576,864,152.4,228.6],"7 × 10 in":[672,960,177.8,254],"8 × 10 in":[768,960,203.2,254],"8 × 8 in":[768,768,203.2,203.2],"Instagram 1080 × 1350":[1080,1350,285.75,356.25]};
+    const s=sizes[projectFormat]||sizes.A5;
+    const totalPages=startType==="master80"?84:pages;
+    const project={name,format:projectFormat,pages:totalPages,active:1,width:s[0],height:s[1],printWidthMm:s[2],printHeightMm:s[3],customUnit:"mm",projectId:"p_"+now,pageNames:Array.from({length:totalPages},(_,i)=>"Strana "+(i+1)),assets:[],headingFont:"Cormorant Garamond",bodyFont:"DM Sans",color:"#8EA386",opacity:100,gradientStart:"#171717",gradientEnd:"#C8A66A",gradientAngle:135,savedColors:[],palette:"sage",style:"wellness",brandProfile:1,plan:"pro",aiUsed:0,selectedElement:null,previewMode:false,history:[],historyIndex:-1,elements:{"1":[]},updatedAt:new Date().toISOString()};
+    localStorage.setItem("marijanaDesignStudioProject",JSON.stringify(project));
+    const all=JSON.parse(localStorage.getItem("marijanaDesignStudioProjects")||"{}");
+    all[project.projectId]=project;
+    localStorage.setItem("marijanaDesignStudioProjects",JSON.stringify(all));
+    window.location.reload();
+  }catch(e){alert("Ne mogu da kreiram projekat: "+(e?.message||e));}
 }
 </script></body>
 </html>
