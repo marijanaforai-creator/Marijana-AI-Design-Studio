@@ -34,11 +34,11 @@ const styles=[
 {name:"Kreativni",desc:"izražajan, savremen, drugačiji",palette:5,heading:"Raleway",body:"Manrope",radius:16,shadow:"0 20px 50px rgba(0,0,0,.14)"},
 {name:"Wealth",desc:"bogato, stabilno, sofisticirano",palette:6,heading:"Playfair Display",body:"DM Sans",radius:10,shadow:"0 22px 55px rgba(0,0,0,.16)"}];
 const TEMPLATES={
- planner:{name:"Premium planer",desc:"10 strana · A5 · planer za preduzetnice",pages:10,names:["Naslovna strana","Godišnji pregled","Mesečni planer","Mesečni planer","Nedeljni planer","Nedeljni planer","Nedeljni planer","Nedeljni planer","Praćenje navika","Beleške"],style:"Wellness"},
- workbook:{name:"Radna sveska",desc:"8 strana · vođeni radni materijal",pages:8,names:["Naslovna","Kako koristiti radnu svesku","Ciljevi","Vežba 1","Vežba 2","Akcioni plan","Praćenje napretka","Beleške"],style:"Minimalistički"},
- ebook:{name:"E-knjiga",desc:"12 strana · editorial struktura",pages:12,names:["Naslovna","Sadržaj","Uvod","Poglavlje 1","Poglavlje 2","Poglavlje 3","Poglavlje 4","Poglavlje 5","Zaključak","Akcioni koraci","Resursi","Beleške"],style:"Editorial"},
+ planner:{name:"Premium planer",desc:"10 strana · A5 · planer za preduzetnice",pages:10,names:["Naslovna strana","Godišnji pregled","Mesečni planer","Mesečni planer","Nedeljni planer","Nedeljni planer","Nedeljni planer","Nedeljni planer","Praćenje navika","Beleške"],style:"Dobrobit"},
+ workbook:{name:"Radna sveska",desc:"8 strana · vođena radna sveska",pages:8,names:["Naslovna","Kako koristiti radnu svesku","Ciljevi","Vežba 1","Vežba 2","Akcioni plan","Praćenje napretka","Beleške"],style:"Minimalistički"},
+ ebook:{name:"E-knjiga",desc:"12 strana · urednička struktura",pages:12,names:["Naslovna","Sadržaj","Uvod","Poglavlje 1","Poglavlje 2","Poglavlje 3","Poglavlje 4","Poglavlje 5","Zaključak","Akcioni koraci","Resursi","Beleške"],style:"Urednički"},
  journal:{name:"Dnevnik",desc:"12 strana · refleksija i beleške",pages:12,names:["Naslovna","Kako se osećam","Jutarnja refleksija","Dnevni zapis","Dnevni zapis","Dnevni zapis","Dnevni zapis","Nedeljna refleksija","Zahvalnost","Lekcije","Plan za sutra","Beleške"],style:"Ženstveni"},
- social:{name:"Paket za društvene mreže",desc:"10 strana · sadržaj za društvene mreže",pages:10,names:["Naslovna","Stubovi sadržaja","30 ideja","Kratki video zapisi","Karusel","Priče","Udice","Biblioteka poziva na akciju","Hashtag prostor","Beleške"],style:"Kreativni"}
+ social:{name:"Paket za društvene mreže",desc:"10 strana · sadržaj za društvene mreže",pages:10,names:["Naslovna","Stubovi sadržaja","30 ideja","Kratki video zapisi","Karusel","Priče","Udice","Biblioteka poziva na akciju","Prostor za ključne oznake","Beleške"],style:"Kreativni"}
 };
 function templateElements(key,pages,name){
  const t=TEMPLATES[key]||TEMPLATES.planner;const out={};
@@ -268,7 +268,7 @@ function insertElement(type,extra={}){
  const el={id:uid(),type,x:12,y:18,w:76,h:20,opacity:100,rotate:0,locked:false,blur:0,brightness:100,contrast:100,saturation:100,radius:0,shadow:false,animation:"none",...extra};state.elements[pageKey()].push(el);state.selectedElement=el.id;render();closeInsertPanel();addMessage("Element je dodat na aktivnu stranu.");
 }
 function mockupSvg(kind){
- const labels={book:"BOOK MOCKUP",tablet:"TABLET",phone:"PHONE",laptop:"LAPTOP",planner:"PLANNER"};
+ const labels={book:"KNJIGA",tablet:"TABLET",phone:"TELEFON",laptop:"LAPTOP",planner:"PLANER"};
  const label=labels[kind]||"MOCKUP";return"data:image/svg+xml;charset=UTF-8,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="600" height="800"><rect width="100%" height="100%" fill="#f6f1e8"/><rect x="45" y="45" width="510" height="710" rx="24" fill="#171717"/><rect x="75" y="75" width="450" height="650" rx="10" fill="#8ea386"/><text x="300" y="410" text-anchor="middle" font-family="Georgia" font-size="42" fill="#fff">'+label+'</text></svg>')}
 function insertBy(kind){
  if(kind==="upload"){$("imageUpload").click();return}
