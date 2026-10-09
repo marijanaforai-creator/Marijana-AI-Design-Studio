@@ -588,9 +588,28 @@ function duplicatePage(recordHistory=true){
 function deleteElement(recordHistory=true){if(!selected())return false;if(recordHistory)pushHistory();state.elements[pageKey()]=state.elements[pageKey()].filter(x=>x.id!==state.selectedElement);state.selectedElement=null;render();return true}
 function saveProject(silent=false){
  const clean={...state,history:[],historyIndex:-1,updatedAt:new Date().toISOString()};
- localStorage.setItem("marijanaDesignStudioProject",JSON.stringify(clean));
- try{const all=JSON.parse(localStorage.getItem("marijanaDesignStudioProjects")||"{}");all[state.projectId]={...clean};localStorage.setItem("marijanaDesignStudioProjects",JSON.stringify(all))}catch(e){}
- if(!silent)addMessage("Projekat je sačuvan lokalno u ovom pregledaču.");
+ try{
+  const projects=JSON.parse(localStorage.getItem("marijanaDesignStudioProjects")||"{}");
+  projects[state.projectId]={...clean};
+  localStorage.setItem("marijanaDesignStudioProject",JSON.stringify(clean));
+  localStorage.setItem("marijanaDesignStudioProjects",JSON.stringify(projects));
+  if(!silent){
+   addMessage("Projekat je sačuvan lokalno u ovom pregledaču.");
+   const button=$("save");
+   if(button){
+    const label=button.dataset.idleLabel||button.textContent;
+    button.dataset.idleLabel=label;
+    button.textContent="Sačuvano ✓";
+    clearTimeout(button._saveFeedbackTimer);
+    button._saveFeedbackTimer=setTimeout(()=>{button.textContent=label},1400);
+   }
+  }
+  return true;
+ }catch(error){
+  console.error("Čuvanje projekta nije uspelo:",error);
+  if(!silent)addMessage("Čuvanje nije uspelo. Proveri slobodan prostor za ovaj sajt u pregledaču.");
+  return false;
+ }
 }
 function loadProject(){
  try{
@@ -752,6 +771,10 @@ function renderProjects(){
 function loadProjectById(id){
  let all={};try{all=JSON.parse(localStorage.getItem("marijanaDesignStudioProjects")||"{}")}catch(e){}
  const p=all[id];if(!p)return;
+ if(!saveProject(true)){
+  addMessage("Nisam otvorila drugi projekat da se tvoje trenutne izmene ne bi izgubile.");
+  return;
+ }
  Object.assign(state,p);state.history=[];state.historyIndex=-1;
  $("projectName").value=state.name;$("format").value=state.format;$("pageCount").value=state.pages;
  $("projectsPanel").hidden=true;render();addMessage("Projekat „"+state.name+"“ je otvoren.");
@@ -763,7 +786,7 @@ function deleteProject(id){
 function initToolPanels(){
  $("templatesButton").onclick=()=>{$("templatesPanel").hidden=false;renderTemplates()};
  $("closeTemplates").onclick=()=>{$("templatesPanel").hidden=true};
- $("projectsButton").onclick=()=>{$("projectsPanel").hidden=false;renderProjects()};
+ $("projectsButton").onclick=()=>{const saved=saveProject(true);$("projectsPanel").hidden=false;renderProjects();if(!saved)addMessage("Poslednje izmene nisu sačuvane u biblioteci. Proveri slobodan prostor u pregledaču.")};
  $("closeProjects").onclick=()=>{$("projectsPanel").hidden=true};
  $("exportButton").onclick=()=>{$("exportPanel").hidden=false};
  $("closeExport").onclick=()=>{$("exportPanel").hidden=true};
