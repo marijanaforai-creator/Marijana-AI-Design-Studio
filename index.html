@@ -38,7 +38,7 @@
           </div>
           <div class="prompt-row">
             <textarea id="prompt" placeholder="Npr. Napravi luksuzni A5 planer za preduzetnike i preduzetnice..."></textarea>
-            <button type="button" id="send" aria-label="Pošalji" onclick="if(window.sendPrompt)window.sendPrompt()">↑</button>
+            <button type="button" id="send" aria-label="Pošalji" onclick="if(typeof window.sendPrompt===\u0027function\u0027){window.sendPrompt()}else{alert(\u0027AI Design Agent skripta nije učitana. Osveži stranicu nakon što se nova verzija objavi.\u0027)}">↑</button>
           </div>
           <div class="chips"><button data-prompt="Napravi premium planer">Premium planer</button><button data-prompt="Napravi radnu svesku">Radna sveska</button><button data-prompt="Napravi e-knjigu">E-knjiga</button></div>
         </div>
