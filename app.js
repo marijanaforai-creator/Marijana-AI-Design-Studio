@@ -510,7 +510,12 @@ function selected(){return state.elements[pageKey()]?.find(x=>x.id===state.selec
 function renderStudioEffects(){
  const hint=$("effectsNoSelection"),box=$("effectsControls"),el=selected();
  if(!hint||!box)return;
- hint.hidden=!!el;box.hidden=!el;if(!el)return;
+ // Prikaži kontrolu „Prikaži više“ i kada još nije izabran element.
+ // Podesiva polja ostaju neaktivna dok korisnik ne izabere element.
+ hint.hidden=!!el;
+ box.hidden=false;
+ box.querySelectorAll("input,select").forEach(control=>control.disabled=!el);
+ if(!el)return;
  const vals={studioBlur:el.blur||0,studioBrightness:el.brightness??100,studioContrast:el.contrast??100,studioSaturation:el.saturation??100,studioOpacity:el.opacity??100,studioRadius:el.radius||0};
  Object.entries(vals).forEach(([id,v])=>{if($(id))$(id).value=v});
  if($("studioBlurValue"))$("studioBlurValue").textContent=(el.blur||0)+"px";
