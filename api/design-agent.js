@@ -19,7 +19,7 @@ Trenutni projekat:
 ${JSON.stringify({name:project.name,format:project.format,pages:project.pages,active:project.active,style:project.style,headingFont:project.headingFont,bodyFont:project.bodyFont,color:project.color})}`;
     const r2=await fetch("https://api.openai.com/v1/responses",{
       method:"POST",
-      headers:{"Content-Type":"application/json","Authorization:"Bearer "+process.env.OPENAI_API_KEY},
+      headers:{"Content-Type":"application/json","Authorization":"Bearer "+process.env.OPENAI_API_KEY},
       body:JSON.stringify({model:process.env.OPENAI_MODEL||"gpt-6-luna",instructions:system,input:userMessage})
     });
     const data=await r2.json();
