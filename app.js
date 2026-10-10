@@ -444,11 +444,43 @@ function exportPDF(){
  w.document.close();setTimeout(()=>w.print(),500);
 }
 function exportSVG(){
- const p=$("preview"),bg=state.active===1?"#171717":"#F6F1E8";
- let els="";
- (state.elements[pageKey()]||[]).forEach(el=>{if(el.type==="text"||el.type==="link"){els+='<text x="'+(el.x/100*state.width)+'" y="'+((el.y+el.fontSize/100*1.2)/100*state.height)+'" font-family="'+esc(el.font||state.bodyFont)+'" font-size="'+el.fontSize+'" fill="'+(el.color||"#171717")+'" text-anchor="'+(el.align==="center"?"middle":el.align==="right"?"end":"start")+'">'+esc(el.text||"")+"</text>"}});
- const svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+state.width+'" height="'+state.height+'" viewBox="0 0 '+state.width+" "+state.height+'"><rect width="100%" height="100%" fill="'+bg+'"/>'+els+"</svg>";
- const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([svg],{type:"image/svg+xml"}));a.download=(state.name||"strana")+"-strana-"+state.active+".svg";a.click();
+ try{
+  const width=state.width,height=state.height;
+  const escAttr=value=>esc(String(value??"")).replace(/&#39;/g,"&apos;");
+  const px=(value,total)=>Number(value||0)/100*total;
+  const elements=state.elements[pageKey()]||[];
+  const background=state.active===1?"#171717":"#F6F1E8";
+  const body=elements.map(el=>{
+   const x=px(el.x,width),y=px(el.y,height),w=px(el.w,width),h=px(el.h,height);
+   const transform=el.rotate?' transform="rotate('+Number(el.rotate)+' '+(x+w/2)+' '+(y+h/2)+')"':"";
+   const opacity=Math.max(0,Math.min(100,Number(el.opacity??100)))/100;
+   if(el.type==="text"||el.type==="link"||el.type==="icon"){
+    const anchor=el.align==="center"?"middle":el.align==="right"?"end":"start";
+    const tx=anchor==="middle"?x+w/2:anchor==="end"?x+w:x;
+    const ty=y+Number(el.fontSize||12)*1.2;
+    return '<text x="'+tx+'" y="'+ty+'" font-family="'+escAttr(el.font||state.bodyFont)+'" font-size="'+Number(el.fontSize||12)+'" fill="'+escAttr(el.color||"#171717")+'" text-anchor="'+anchor+'" opacity="'+opacity+'"'+transform+'>'+esc(el.text||(el.type==="icon"?"✦":""))+'</text>';
+   }
+   if(el.type==="image"||el.type==="mockup"){
+    const src=el.src||(el.type==="mockup"?mockupSvg(el.mockup||"book"):"");
+    if(!src)return "";
+    return '<image x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" href="'+escAttr(src)+'" preserveAspectRatio="xMidYMid meet" opacity="'+opacity+'"'+transform+'/>';
+   }
+   if(el.type==="divider"){
+    return '<line x1="'+x+'" y1="'+(y+h/2)+'" x2="'+(x+w)+'" y2="'+(y+h/2)+'" stroke="'+escAttr(el.color||"#C8A66A")+'" stroke-width="'+Math.max(1,h)+'" opacity="'+opacity+'"'+transform+'/>';
+   }
+   const fill=el.type==="shape"?(el.color||"#C8A66A"):"#F6F1E8";
+   const label={video:"Video",table:"Tabela",chart:"Grafikon"}[el.type];
+   return '<g opacity="'+opacity+'"'+transform+'><rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="'+Number(el.radius||8)+'" fill="'+escAttr(fill)+'" stroke="#C8A66A"/>'+(label?'<text x="'+(x+8)+'" y="'+(y+18)+'" font-family="'+escAttr(state.bodyFont)+'" font-size="12" fill="#171717">'+label+'</text>':"")+'</g>';
+  }).join("");
+  const svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+width+'" height="'+height+'" viewBox="0 0 '+width+" "+height+'"><rect width="100%" height="100%" fill="'+background+'"/>'+body+"</svg>";
+  const url=URL.createObjectURL(new Blob([svg],{type:"image/svg+xml"}));
+  const a=document.createElement("a");a.href=url;a.download=(state.name||"strana")+"-strana-"+state.active+".svg";a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+  addMessage("SVG fajl je preuzet. Proveri fasciklu Preuzimanja.");
+ }catch(error){
+  console.error("SVG izvoz nije uspeo:",error);
+  addMessage("SVG izvoz nije uspeo. Pokušaj ponovo ili izaberi JSON izvoz.");
+ }
 }
 function render(){
  state.name=$("projectName").value;state.format=$("format").value;state.pages=Math.max(1,Math.min(200,Number($("pageCount").value)||10));updateCanvasDimensions();
