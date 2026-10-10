@@ -186,7 +186,8 @@ function masterWorkbookElements(name,pageCount=84){
   els.push(wbLine(40,90,52));
  }
 
- const contentPageCount=Math.max(0,pageCount-Math.min(4,pageCount));
+ const endingCount=pageCount>4?4:0;
+ const contentPageCount=pageCount-endingCount;
  const segmentPages=new Set([3,6,15,29,30,36,43]);
  const processMap={
   7:["IDEJA","STRUKTURA","SADRŽAJ","PROVERA","DIZAJN"],
@@ -272,8 +273,7 @@ function masterWorkbookElements(name,pageCount=84){
   {title:"RESURSI I LINKOVI",intro:"Dodaj svoje zvanične linkove na jednom mestu.",fields:["Web sajt","Prodavnica / proizvodi","Instagram","Email","Ostali resursi"]},
   {title:"HVALA · SLEDEĆI KORAK",intro:"Ovaj workbook je napravljen da se koristi, dopunjava i ponavlja.",fields:["Šta sada radim","Koji proizvod razvijam","Kada proveravam napredak"]}
  ];
- const endingCount=Math.min(4,pageCount);
- endPages.slice(4-endingCount).forEach((s,j)=>{
+ if(endingCount)endPages.slice(4-endingCount).forEach((s,j)=>{
   const p=pageCount-endingCount+j+1,els=[wbText(s.title,10,12,80,10,22,"#171717","center",{font:state.headingFont}),wbText(s.intro,12,25,76,9,10,"#5A544C","center")];
   if(s.title==="AUTORSKA PRAVA I KORIŠĆENJE"){
    els.push(wbBox("© 2026 Marijana Forai · Digital Soul\nSadržaj ovog materijala je namenjen ličnoj upotrebi kupca i nije dozvoljeno neovlašćeno kopiranje, preprodavanje, distribuiranje ili javno objavljivanje celog ili delova materijala bez dozvole vlasnika autorskih prava.",12,38,76,30,"#F4EFE6","#3A352F",9,{radius:12}));
@@ -304,8 +304,8 @@ function applyTemplate(key,pages){
  const count=Math.max(1,Math.min(200,Number(pages)||t.pages));
  pushHistory();state.pages=count;
  if(key==="master80"){
-  const endings=Math.min(4,count),contentCount=count-endings;
-  state.pageNames=Array.from({length:contentCount},(_,i)=>t.names[i]||"Radna stranica "+(i+1)).concat(t.names.slice(-endings));
+  const endings=count>4?4:0,contentCount=count-endings;
+  state.pageNames=Array.from({length:contentCount},(_,i)=>t.names[i]||"Radna stranica "+(i+1)).concat(endings?t.names.slice(-4):[]);
  }else{
   state.pageNames=Array.from({length:count},(_,i)=>t.names[i]||"Strana "+(i+1));
  }
