@@ -99,7 +99,7 @@ const WORKBOOK_SHEETS=[
  {title:"RADNA STRANICA 31 — KPI DASHBOARD",intro:"Jednom nedeljno meri najvažnije brojeve.",fields:["Reach","Klikovi","Novi email kontakti","Sales Page posete","Checkout posete","Prodaje","Prihod","Open rate","Click rate"],example:"Primer: beleži iste metrike iz nedelje u nedelju da bi videla trend, ne samo pojedinačan broj."},
  {title:"RADNA STRANICA 32 — 90-DNEVNI MASTER PLAN",intro:"Prevedi sistem u konkretne prioritete.",fields:["Dani 1–30 — temelji","Dani 31–60 — optimizacija","Dani 61–90 — proširenje","Glavni cilj","Najvažnija metrika","Sledeći proizvod"],example:"Primer: prvo postavi temelje, zatim meri i optimizuj, pa tek onda širi ono što radi."}
 ];
-function masterWorkbookElements(name){
+function masterWorkbookElements(name,pageCount=84){
  const out={};
  const introPages=[
   ["Naslovna — Moj prvi digitalni proizvod","Od ideje do prvog proizvoda","Master Workbook · praktičan sistem za planiranje, izradu, lansiranje i rast"],
@@ -186,6 +186,7 @@ function masterWorkbookElements(name){
   els.push(wbLine(40,90,52));
  }
 
+ const contentPageCount=Math.max(0,pageCount-Math.min(4,pageCount));
  const segmentPages=new Set([3,6,15,29,30,36,43]);
  const processMap={
   7:["IDEJA","STRUKTURA","SADRŽAJ","PROVERA","DIZAJN"],
@@ -207,7 +208,7 @@ function masterWorkbookElements(name){
   48:["NAPRAVI","POKRENI","IZMERI","NAUČI","POBOLJŠAJ","PONOVI"]
  };
 
- for(let i=1;i<=48;i++){
+ for(let i=1;i<=Math.min(48,contentPageCount);i++){
   const d=introPages[i-1]||["Strana "+i,"Radni prostor","Dodaj, prilagodi i proveri sadržaj ove strane."];
   const els=[];
   if(i===1){
@@ -258,6 +259,12 @@ function masterWorkbookElements(name){
   addFooter(els,i);
   out[String(i)]=els;
  }
+ for(let i=49;i<=contentPageCount;i++){
+  const els=[wbText("Radna stranica "+(i-48),8,8,84,10,17,"#171717","left",{font:state.headingFont}),wbText("Dodaj sadržaj, primer i sledeći akcioni korak.",8,20,84,7,9.5,"#8EA386","left")];
+  ["Ključna ideja","Primer iz prakse","Moj sledeći korak"].forEach((label,j)=>wbField(els,label,37+j*16,true));
+  addFooter(els,i);
+  out[String(i)]=els;
+ }
 
  const endPages=[
   {title:"ZAVRŠNE BELEŠKE",intro:"Prostor da zapišeš ono što želiš da sačuvaš nakon rada kroz Master Workbook.",fields:["Najvažnija odluka","Šta sam završila","Šta želim da poboljšam","Sledeći konkretan korak"]},
@@ -265,9 +272,10 @@ function masterWorkbookElements(name){
   {title:"RESURSI I LINKOVI",intro:"Dodaj svoje zvanične linkove na jednom mestu.",fields:["Web sajt","Prodavnica / proizvodi","Instagram","Email","Ostali resursi"]},
   {title:"HVALA · SLEDEĆI KORAK",intro:"Ovaj workbook je napravljen da se koristi, dopunjava i ponavlja.",fields:["Šta sada radim","Koji proizvod razvijam","Kada proveravam napredak"]}
  ];
- endPages.forEach((s,j)=>{
-  const p=81+j,els=[wbText(s.title,10,12,80,10,22,"#171717","center",{font:state.headingFont}),wbText(s.intro,12,25,76,9,10,"#5A544C","center")];
-  if(p===82){
+ const endingCount=Math.min(4,pageCount);
+ endPages.slice(4-endingCount).forEach((s,j)=>{
+  const p=pageCount-endingCount+j+1,els=[wbText(s.title,10,12,80,10,22,"#171717","center",{font:state.headingFont}),wbText(s.intro,12,25,76,9,10,"#5A544C","center")];
+  if(s.title==="AUTORSKA PRAVA I KORIŠĆENJE"){
    els.push(wbBox("© 2026 Marijana Forai · Digital Soul\nSadržaj ovog materijala je namenjen ličnoj upotrebi kupca i nije dozvoljeno neovlašćeno kopiranje, preprodavanje, distribuiranje ili javno objavljivanje celog ili delova materijala bez dozvole vlasnika autorskih prava.",12,38,76,30,"#F4EFE6","#3A352F",9,{radius:12}));
    els.push(wbText("Za pravne/licencne uslove prilagodi ovu stranicu svojoj konkretnoj prodajnoj ponudi.",14,72,72,10,8,"#8A8175","center"));
   }else{
@@ -280,7 +288,7 @@ function masterWorkbookElements(name){
 }
 function templateElements(key,pages,name){
  const t=TEMPLATES[key]||TEMPLATES.planner;
- if(key==="master80") return masterWorkbookElements(name);
+ if(key==="master80") return masterWorkbookElements(name,pages);
  const out={};
  for(let i=1;i<=pages;i++){
   const title=t.names[i-1]||("Strana "+i);
@@ -291,10 +299,18 @@ function templateElements(key,pages,name){
  }
  return out;
 }
-function applyTemplate(key){
+function applyTemplate(key,pages){
  const t=TEMPLATES[key];if(!t)return;
- pushHistory();state.pages=t.pages;state.pageNames=[...t.names];state.active=1;state.elements=templateElements(key,t.pages,state.name);
- $("pageCount").value=t.pages;
+ const count=Math.max(1,Math.min(200,Number(pages)||t.pages));
+ pushHistory();state.pages=count;
+ if(key==="master80"){
+  const endings=Math.min(4,count),contentCount=count-endings;
+  state.pageNames=Array.from({length:contentCount},(_,i)=>t.names[i]||"Radna stranica "+(i+1)).concat(t.names.slice(4-endings));
+ }else{
+  state.pageNames=Array.from({length:count},(_,i)=>t.names[i]||"Strana "+(i+1));
+ }
+ state.active=1;state.elements=templateElements(key,count,state.name);
+ $("pageCount").value=count;
  if(t.style){const i=styles.findIndex(x=>x.name===t.style);if(i>=0)applyStyle(i)}
  render();addMessage("Šablon „"+t.name+"“ je primenjen. Sada ga možemo prilagoditi kroz AI.");
  saveProject(true);
@@ -788,9 +804,26 @@ function initBrand(){
 }
 function initBrandStorage(){try{const x=JSON.parse(localStorage.getItem("marijanaBrandProfiles"));if(Array.isArray(x))x.forEach((p,i)=>{if(brandProfiles[i])brandProfiles[i]=p})}catch(e){}}
 function renderTemplates(){
- const g=$("templateGrid");if(!g)return;
- g.innerHTML=Object.entries(TEMPLATES).map(([k,t])=>'<button class="template-card" data-template="'+k+'"><span class="template-icon">Aa</span><strong>'+t.name+'</strong><small>'+t.desc+'</small><b>Primeni →</b></button>').join("");
- g.querySelectorAll("[data-template]").forEach(b=>b.onclick=()=>{applyTemplate(b.dataset.template);$("templatesPanel").hidden=true});
+ const g=$("templateGrid"),countInput=$("templatePageCount"),applyButton=$("applySelectedTemplate");if(!g||!countInput||!applyButton)return;
+ let selectedTemplate=Object.keys(TEMPLATES)[0];
+ const selectTemplate=key=>{
+  selectedTemplate=key;
+  const t=TEMPLATES[key];if(t)countInput.value=t.pages;
+  g.querySelectorAll("[data-template]").forEach(card=>card.classList.toggle("selected",card.dataset.template===key));
+ };
+ g.innerHTML=Object.entries(TEMPLATES).map(([k,t])=>'<button type="button" class="template-card" data-template="'+k+'"><span class="template-icon">Aa</span><strong>'+esc(t.name)+'</strong><small>'+esc(t.desc)+'</small><b>Izaberi →</b></button>').join("");
+ g.querySelectorAll("[data-template]").forEach(card=>card.onclick=()=>selectTemplate(card.dataset.template));
+ selectTemplate(selectedTemplate);
+ applyButton.onclick=()=>{
+  const count=Number(countInput.value);
+  if(!Number.isInteger(count)||count<1||count>200){
+   addMessage("Unesi broj strana od 1 do 200.");
+   countInput.focus();
+   return;
+  }
+  applyTemplate(selectedTemplate,count);
+  $("templatesPanel").hidden=true;
+ };
 }
 function renderProjects(){
  const box=$("projectLibrary");if(!box)return;
