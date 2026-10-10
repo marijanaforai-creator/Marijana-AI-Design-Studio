@@ -199,3 +199,11 @@ body{min-height:100vh}
  .workspace{grid-template-columns:minmax(260px,320px) minmax(0,1fr);}
  .inspector{display:none}
 }
+
+.template-card.selected{border-color:var(--gold);box-shadow:0 0 0 2px rgba(217,182,111,.2),0 12px 28px rgba(0,0,0,.14)}
+.template-config{display:grid;grid-template-columns:minmax(180px,1fr) auto;align-items:center;gap:10px 14px;margin-top:16px;padding:14px 16px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.035)}
+.template-config label{font-size:12px;font-weight:600}
+.template-config input{width:110px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);font:inherit}
+.template-config small{grid-column:1/-1;color:var(--muted);font-size:10px}
+.template-config button{grid-column:1/-1;justify-self:end}
+@media(max-width:600px){.template-config{grid-template-columns:1fr}.template-config input{width:100%}.template-config button{justify-self:stretch}}
