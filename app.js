@@ -186,7 +186,7 @@ function masterWorkbookElements(name){
   els.push(wbLine(40,90,52));
  }
 
- const segmentPages={3,6,15,29,30,36,43};
+ const segmentPages=new Set([3,6,15,29,30,36,43]);
  const processMap={
   7:["IDEJA","STRUKTURA","SADRŽAJ","PROVERA","DIZAJN"],
   8:["PLAN","SADRŽAJ","PROVERA","STRANICA","FINALNA PROVERA"],
