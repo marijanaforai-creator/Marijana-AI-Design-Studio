@@ -305,7 +305,7 @@ function applyTemplate(key,pages){
  pushHistory();state.pages=count;
  if(key==="master80"){
   const endings=Math.min(4,count),contentCount=count-endings;
-  state.pageNames=Array.from({length:contentCount},(_,i)=>t.names[i]||"Radna stranica "+(i+1)).concat(t.names.slice(4-endings));
+  state.pageNames=Array.from({length:contentCount},(_,i)=>t.names[i]||"Radna stranica "+(i+1)).concat(t.names.slice(-endings));
  }else{
   state.pageNames=Array.from({length:count},(_,i)=>t.names[i]||"Strana "+(i+1));
  }
