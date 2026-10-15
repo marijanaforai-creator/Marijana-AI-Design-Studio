@@ -853,27 +853,48 @@ function deleteProject(id){
   if(!file)return;
   if(!window.pdfjsLib){addMessage("PDF uvoz nije dostupan jer biblioteka za čitanje PDF-a nije učitana. Osveži stranicu i pokušaj ponovo.");return}
   if(file.type!=="application/pdf"&&!file.name.toLowerCase().endsWith(".pdf")){addMessage("Izaberi PDF fajl.");return}
-  const button=$("importPdfButton");if(button){button.disabled=true;button.textContent="Učitavam PDF…"}
+  const button=$("importPdfButton");
+  if(button){button.disabled=true;button.textContent="Učitavam PDF…"}
   try{
    pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
    const data=await file.arrayBuffer();
    const pdf=await pdfjsLib.getDocument({data}).promise;
-   if(pdf.numPages>200){throw new Error("PDF ima "+pdf.numPages+" strana. Aplikacija trenutno podržava najviše 200 strana po projektu.")}
-   const ok=confirm("PDF ima "+pdf.numPages+" strana. Uvoz će zameniti trenutni sadržaj projekta. Originalni tekst i elementi biće sačuvani kao slike stranica, pa neće moći da se uređuju pojedinačno. Nastavi?");
+   if(pdf.numPages>200)throw new Error("PDF ima "+pdf.numPages+" strana. Aplikacija trenutno podržava najviše 200 strana po projektu.");
+   const mode=prompt("PDF ima "+pdf.numPages+" strana. Izaberi način uvoza:\n\n1 = TEKST ZA UREĐIVANJE (tekst se uvozi kao pojedinačni elementi; slike, ukrasni elementi i precizan prelom se ne prenose)\n\n2 = STRANE KAO SLIKE (izgled se čuva bolje, ali tekst nije pojedinačno izmenljiv)\n\nUnesi 1 ili 2. Za odustajanje izaberi Otkaži.","1");
+   if(mode!=="1"&&mode!=="2")return;
+   const ok=confirm("Uvoz će zameniti sadržaj trenutno otvorenog projekta. Pre nastavka proveri da je projekat sačuvan u „Moji projekti“. Nastaviti?");
    if(!ok)return;
    const imported={};const names=[];
    for(let i=1;i<=pdf.numPages;i++){
     const page=await pdf.getPage(i);
-    const viewport=page.getViewport({scale:0.78});
-    const canvas=document.createElement("canvas");
-    canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);
-    const ctx=canvas.getContext("2d",{alpha:false});
-    ctx.fillStyle="#ffffff";ctx.fillRect(0,0,canvas.width,canvas.height);
-    await page.render({canvasContext:ctx,viewport}).promise;
-    const src=canvas.toDataURL("image/jpeg",0.56);
-    imported[String(i)]=[{id:uid(),type:"image",x:0,y:0,w:100,h:100,src,alt:"Uvezena PDF strana "+i,locked:true,opacity:100,rotate:0,radius:0,shadow:false}];
-    names.push("PDF strana "+i);
-    canvas.width=canvas.height=1;
+    const viewport=page.getViewport({scale:1});
+    if(mode==="2"){
+     const scale=Math.min(1,1400/Math.max(viewport.width,viewport.height));
+     const imageViewport=page.getViewport({scale});
+     const canvas=document.createElement("canvas");
+     canvas.width=Math.ceil(imageViewport.width);canvas.height=Math.ceil(imageViewport.height);
+     const ctx=canvas.getContext("2d",{alpha:false});
+     ctx.fillStyle="#ffffff";ctx.fillRect(0,0,canvas.width,canvas.height);
+     await page.render({canvasContext:ctx,viewport:imageViewport}).promise;
+     const src=canvas.toDataURL("image/jpeg",0.65);
+     imported[String(i)]=[{id:uid(),type:"image",x:0,y:0,w:100,h:100,src,alt:"Uvezena PDF strana "+i,locked:true,opacity:100,rotate:0,radius:0,shadow:false}];
+     canvas.width=canvas.height=1;
+    }else{
+     const content=await page.getTextContent();
+     const items=content.items.filter(it=>it.str&&it.str.trim()&&it.transform);
+     const pageElements=[];
+     for(const item of items){
+      const point=viewport.convertToViewportPoint(item.transform[4],item.transform[5]);
+      const fontSize=Math.max(5,Math.min(32,Math.hypot(item.transform[2],item.transform[3])));
+      const x=Math.max(0,Math.min(99,point[0]/viewport.width*100));
+      const y=Math.max(0,Math.min(98,(point[1]-fontSize*1.05)/viewport.height*100));
+      const w=Math.max(1,Math.min(100-x,(Math.max(item.width||fontSize,item.str.length*fontSize*0.35)+4)/viewport.width*100));
+      const h=Math.max(1.2,Math.min(8,fontSize*1.5/viewport.height*100));
+      pageElements.push({id:uid(),type:"text",text:item.str,x,y,w,h,font:state.bodyFont||"DM Sans",fontSize:Math.round(fontSize*0.75*10)/10,color:"#222222",align:"left",rotate:0,opacity:100,locked:false});
+     }
+     imported[String(i)]=pageElements;
+    }
+    names.push("Strana "+i);
     if(button)button.textContent="Učitavam "+i+" / "+pdf.numPages+"…";
    }
    pushHistory();
@@ -883,8 +904,8 @@ function deleteProject(id){
    $("projectName").value=state.name;$("format").value="A4";$("pageCount").value=state.pages;
    render();
    const saved=saveProject(true);
-   addMessage("PDF je uvezen: "+pdf.numPages+" strana. Originalni raspored je sačuvan kao pozadinska slika svake strane. "+(saved?"Projekat je sačuvan u ovom pregledaču.":"Projekat je trenutno učitan, ali čuvanje može premašiti prostor pregledača. Izvezi PDF ili JSON pre zatvaranja stranice."));
-   if(!saved)addMessage("Važno: slike stranica mogu zauzeti mnogo prostora. Ne zatvaraj ovu karticu dok ne izvezeš ili sačuvaš kopiju.");
+   addMessage(mode==="1"?"PDF je uvezen kao tekstualni elementi. Možeš da izabereš i menjaš tekst. Slike, boje, tabele i originalni raspored možda se neće preneti tačno.":"PDF je uvezen kao slike stranica. Izgled je sačuvan, ali tekst nije pojedinačno izmenljiv.");
+   addMessage(saved?"Projekat je sačuvan u biblioteci ovog pregledača.":"Projekat je učitan, ali automatsko čuvanje nije uspelo. Odmah izvezi kopiju kao PDF ili JSON.");
   }catch(error){console.error("PDF uvoz nije uspeo:",error);addMessage("PDF nije uvezen: "+(error.message||"nepoznata greška"))}
   finally{if(button){button.disabled=false;button.textContent="Uvezi PDF"}$("pdfUpload").value=""}
  }
