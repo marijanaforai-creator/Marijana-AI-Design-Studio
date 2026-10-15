@@ -848,12 +848,54 @@ function deleteProject(id){
  let all={};try{all=JSON.parse(localStorage.getItem("marijanaDesignStudioProjects")||"{}")}catch(e){}
  delete all[id];localStorage.setItem("marijanaDesignStudioProjects",JSON.stringify(all));
 }
-function initToolPanels(){
+
+ async function importPdfFile(file){
+  if(!file)return;
+  if(!window.pdfjsLib){addMessage("PDF uvoz nije dostupan jer biblioteka za čitanje PDF-a nije učitana. Osveži stranicu i pokušaj ponovo.");return}
+  if(file.type!=="application/pdf"&&!file.name.toLowerCase().endsWith(".pdf")){addMessage("Izaberi PDF fajl.");return}
+  const button=$("importPdfButton");if(button){button.disabled=true;button.textContent="Učitavam PDF…"}
+  try{
+   pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+   const data=await file.arrayBuffer();
+   const pdf=await pdfjsLib.getDocument({data}).promise;
+   if(pdf.numPages>200){throw new Error("PDF ima "+pdf.numPages+" strana. Aplikacija trenutno podržava najviše 200 strana po projektu.")}
+   const ok=confirm("PDF ima "+pdf.numPages+" strana. Uvoz će zameniti trenutni sadržaj projekta. Originalni tekst i elementi biće sačuvani kao slike stranica, pa neće moći da se uređuju pojedinačno. Nastavi?");
+   if(!ok)return;
+   const imported={};const names=[];
+   for(let i=1;i<=pdf.numPages;i++){
+    const page=await pdf.getPage(i);
+    const viewport=page.getViewport({scale:0.78});
+    const canvas=document.createElement("canvas");
+    canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);
+    const ctx=canvas.getContext("2d",{alpha:false});
+    ctx.fillStyle="#ffffff";ctx.fillRect(0,0,canvas.width,canvas.height);
+    await page.render({canvasContext:ctx,viewport}).promise;
+    const src=canvas.toDataURL("image/jpeg",0.56);
+    imported[String(i)]=[{id:uid(),type:"image",x:0,y:0,w:100,h:100,src,alt:"Uvezena PDF strana "+i,locked:true,opacity:100,rotate:0,radius:0,shadow:false}];
+    names.push("PDF strana "+i);
+    canvas.width=canvas.height=1;
+    if(button)button.textContent="Učitavam "+i+" / "+pdf.numPages+"…";
+   }
+   pushHistory();
+   state.name=(file.name||"Uvezeni PDF").replace(/\.pdf$/i,"");
+   state.format="A4";state.width=794;state.height=1123;state.printWidthMm=210;state.printHeightMm=297;
+   state.pages=pdf.numPages;state.active=1;state.pageNames=names;state.elements=imported;state.selectedElement=null;
+   $("projectName").value=state.name;$("format").value="A4";$("pageCount").value=state.pages;
+   render();
+   const saved=saveProject(true);
+   addMessage("PDF je uvezen: "+pdf.numPages+" strana. Originalni raspored je sačuvan kao pozadinska slika svake strane. "+(saved?"Projekat je sačuvan u ovom pregledaču.":"Projekat je trenutno učitan, ali čuvanje može premašiti prostor pregledača. Izvezi PDF ili JSON pre zatvaranja stranice."));
+   if(!saved)addMessage("Važno: slike stranica mogu zauzeti mnogo prostora. Ne zatvaraj ovu karticu dok ne izvezeš ili sačuvaš kopiju.");
+  }catch(error){console.error("PDF uvoz nije uspeo:",error);addMessage("PDF nije uvezen: "+(error.message||"nepoznata greška"))}
+  finally{if(button){button.disabled=false;button.textContent="Uvezi PDF"}$("pdfUpload").value=""}
+ }
+
+ function initToolPanels(){
  $("templatesButton").onclick=()=>{$("templatesPanel").hidden=false;renderTemplates()};
  $("closeTemplates").onclick=()=>{$("templatesPanel").hidden=true};
  $("projectsButton").onclick=()=>{const saved=saveProject(true);$("projectsPanel").hidden=false;renderProjects();if(!saved)addMessage("Poslednje izmene nisu sačuvane u biblioteci. Proveri slobodan prostor u pregledaču.")};
  $("closeProjects").onclick=()=>{$("projectsPanel").hidden=true};
  $("exportButton").onclick=()=>{$("exportPanel").hidden=false};
+  if($("importPdfButton")&&$("pdfUpload")){$("importPdfButton").onclick=()=>$("pdfUpload").click();$("pdfUpload").onchange=e=>importPdfFile(e.target.files&&e.target.files[0]);}
  $("closeExport").onclick=()=>{$("exportPanel").hidden=true};
  ["templatesPanel","projectsPanel","exportPanel"].forEach(id=>$(id).addEventListener("click",e=>{if(e.target.id===id)$(id).hidden=true}));
  $("exportJson").onclick=exportJSON;$("exportPdf").onclick=exportPDF;$("exportSvg").onclick=exportSVG;
