@@ -207,3 +207,11 @@ body{min-height:100vh}
 .template-config small{grid-column:1/-1;color:var(--muted);font-size:10px}
 .template-config button{grid-column:1/-1;justify-self:end}
 @media(max-width:600px){.template-config{grid-template-columns:1fr}.template-config input{width:100%}.template-config button{justify-self:stretch}}
+
+
+/* Make the brand-apply action clearly visible and accessible */
+#applyBrand.ghost-btn{background:var(--sage);color:#172016;border:2px solid var(--gold);font-weight:700;box-shadow:0 4px 14px rgba(142,163,134,.28);min-height:44px;padding:11px 12px;line-height:1.35;opacity:1;text-align:center;}
+#applyBrand.ghost-btn:hover{background:#a7b79f;border-color:#c8a66a;box-shadow:0 6px 18px rgba(142,163,134,.38);transform:translateY(-1px);}
+#applyBrand.ghost-btn:focus-visible{outline:3px solid #c8a66a;outline-offset:3px;}
+#applyBrand.ghost-btn:disabled{background:#e7e3da;color:#716e65;border-color:#d0c6b4;box-shadow:none;opacity:1;cursor:not-allowed;}
+@media(max-width:420px){.brand-row{grid-template-columns:1fr}#applyBrand.ghost-btn{min-height:46px;}}
