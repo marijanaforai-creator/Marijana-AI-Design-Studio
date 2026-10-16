@@ -35,7 +35,7 @@ const styles=[
 {name:"Wealth",desc:"bogato, stabilno, sofisticirano",palette:6,heading:"Playfair Display",body:"DM Sans",radius:10,shadow:"0 22px 55px rgba(0,0,0,.16)"}];
 const TEMPLATES={
  planner:{name:"Premium planer",desc:"10 strana · A5 · planer za preduzetnike i preduzetnice",pages:10,names:["Naslovna strana","Godišnji pregled","Mesečni planer","Mesečni planer","Nedeljni planer","Nedeljni planer","Nedeljni planer","Nedeljni planer","Praćenje navika","Beleške"],style:"Dobrobit"},
- workbook:{name:"Radna sveska",desc:"8 strana · vođena radna sveska",pages:8,names:["Naslovna","Kako koristiti radnu svesku","Ciljevi","Vežba 1","Vežba 2","Akcioni plan","Praćenje napretka","Beleške"],style:"Minimalistički"},
+ workbook:{name:"Radna sveska",desc:"9 strana · vođena radna sveska sa kontakt stranicom",pages:9,names:["Naslovna","Kako koristiti radnu svesku","Ciljevi","Vežba 1","Vežba 2","Akcioni plan","Praćenje napretka","Beleške","Pronađi me online"],style:"Minimalistički"},
  ebook:{name:"E-knjiga",desc:"12 strana · urednička struktura",pages:12,names:["Naslovna","Sadržaj","Uvod","Poglavlje 1","Poglavlje 2","Poglavlje 3","Poglavlje 4","Poglavlje 5","Zaključak","Akcioni koraci","Resursi","Beleške"],style:"Urednički"},
  master80:{name:"Moj prvi digitalni proizvod — Master Workbook",desc:"80 radnih strana + 4 završne strane",pages:84,names:[
 "Naslovna — Moj prvi digitalni proizvod","Sadržaj","Segment 1 — Od ideje do Product Card-a","Idea Validation Worksheet + Moj prvi Product Card","Finalna provera ideje","Segment 2 — Kreiranje digitalnog proizvoda","AI radni proces i kreiranje strukture","Od sadržaja do stranica","Page-by-page production workflow","Sistem kontrole kvaliteta","Finalna kontrola digitalnog proizvoda","Master Content Document","Od jednog proizvoda do više sadržaja","Content repurposing i Content → Freebie → Proizvod","Segment 3 — Besplatan sadržaj","10 vrsta besplatnog sadržaja","AI generator besplatnog sadržaja","Filter za besplatan sadržaj","Blueprint besplatnog sadržaja","AI prompt — Kreiraj sadržaj besplatnog sadržaja","AI prompt — Kreiraj jednu stranicu","Kompletan primer — Od ideje do besplatnog sadržaja","Kompletan primer — Kako izgleda sadržaj","AI prompt — Kreiraj praktične delove","Naslov i obećanje besplatnog sadržaja","Finalizacija besplatnog sadržaja","Završna poruka i nastavak Master Workbook-a","Dopuna Master Workbook-a — Besplatan sadržaj → Email lista","Segment 4 — Email lista i email marketing","Segment 5 — Prodajni sistem","Moj prvi Sales Page","Problem → Želja → Rešenje → Rezultat","Segment 5 — Završna mapa","Pre-launch checklist + potvrda kupovine","Terminološko ujednačavanje","Segment 6 — Lansiranje i prva prodaja","Pre-launch — priprema pre prodaje","Launch email sekvenca + lansiranje ponude","Prva prodaja + analiza prvog lansiranja","Šta ako nema prodaja? + Product Ladder","Repurposing + ponovljiv sistem lansiranja","Finalna checklist-a — Segment 6","Segment 7 — Od prve prodaje do skalabilnog sistema","Cross-sell, upsell, paket + KPI dashboard + CEO pregled","Sistem za proizvodnju sadržaja i proizvoda + 30-dnevni plan","Mapa kompletnog digitalnog sistema","Master checklist i narednih 90 dana","Završna Master formula","Radna stranica 1 — Product Card","Radna stranica 2 — Product Blueprint","Radna stranica 3 — Content Map","Radna stranica 4 — Kontrola kvaliteta","Radna stranica 5 — Master Content","Radna stranica 6 — Ideja za besplatan sadržaj","Radna stranica 7 — Filter za besplatan sadržaj","Radna stranica 8 — Blueprint besplatnog sadržaja","Radna stranica 9 — Opt-in stranica","Radna stranica 10 — Email funnel","Radna stranica 11 — Welcome email","Radna stranica 12 — Delivery email","Radna stranica 13 — Value email","Radna stranica 14 — Email sekvenca","Radna stranica 15 — Newsletter","Radna stranica 16 — Subject line","Radna stranica 17 — CTA","Radna stranica 18 — Ponuda","Radna stranica 19 — Cena i vrednost","Radna stranica 20 — Problem → Želja → Rešenje","Radna stranica 21 — Social proof","Radna stranica 22 — FAQ","Radna stranica 23 — Checkout","Radna stranica 24 — Sales Page","Radna stranica 25 — Plan lansiranja","Radna stranica 26 — Sadržaj za lansiranje","Radna stranica 27 — Emaili za lansiranje","Radna stranica 28 — Prva prodaja i isporuka","Radna stranica 29 — Analiza lansiranja","Radna stranica 30 — Product Ladder","Radna stranica 31 — KPI Dashboard","Radna stranica 32 — 90-dnevni Master plan","Završne beleške","Autorska prava i korišćenje","Resursi i linkovi","Hvala · Sledeći korak"
@@ -292,10 +292,22 @@ function templateElements(key,pages,name){
  const out={};
  for(let i=1;i<=pages;i++){
   const title=t.names[i-1]||("Strana "+i);
-  out[String(i)]=[
-   {id:uid(),type:"text",text:i===1?name:title,x:11,y:i===1?20:12,w:78,h:15,font:state.headingFont,fontSize:i===1?30:24,color:i===1?"#E7D2A7":"#171717",align:"center",rotate:0,opacity:100,locked:false},
-   {id:uid(),type:"text",text:i===1?"Opiši · Dizajniraj · Ostvari":"Dodaj sadržaj ove strane kroz AI razgovor ili elemente.",x:14,y:i===1?42:30,w:72,h:18,font:state.bodyFont,fontSize:10,color:i===1?"#E7D2A7":"#555555",align:"center",rotate:0,opacity:75,locked:false}
-  ];
+  if(key==="workbook"&&i===9){
+   out[String(i)]=[
+    {id:uid(),type:"text",text:"Pronađi me online",x:10,y:8,w:80,h:12,font:state.headingFont,fontSize:25,color:"#8EA386",align:"center",rotate:0,opacity:100,locked:false},
+    {id:uid(),type:"text",text:"Povežimo se i nastavimo razgovor",x:12,y:22,w:76,h:7,font:state.bodyFont,fontSize:11,color:"#C8A66A",align:"center",rotate:0,opacity:100,locked:false},
+    {id:uid(),type:"text",text:"INSTAGRAM  ·  @tvojprofil",x:12,y:36,w:76,h:8,font:state.bodyFont,fontSize:14,color:"#343A33",align:"center",rotate:0,opacity:100,locked:false},
+    {id:uid(),type:"text",text:"FACEBOOK  ·  facebook.com/tvojprofil",x:12,y:48,w:76,h:8,font:state.bodyFont,fontSize:12,color:"#343A33",align:"center",rotate:0,opacity:100,locked:false},
+    {id:uid(),type:"text",text:"TIKTOK  ·  @tvojprofil",x:12,y:60,w:76,h:8,font:state.bodyFont,fontSize:14,color:"#343A33",align:"center",rotate:0,opacity:100,locked:false},
+    {id:uid(),type:"text",text:"MOJ SAJT  ·  www.tvojsajt.rs",x:12,y:72,w:76,h:8,font:state.bodyFont,fontSize:13,color:"#343A33",align:"center",rotate:0,opacity:100,locked:false},
+    {id:uid(),type:"text",text:"Zameni primer tekstovima svojim profilima i dodaj klikabilne linkove pre izvoza.",x:12,y:86,w:76,h:7,font:state.bodyFont,fontSize:8,color:"#77766D",align:"center",rotate:0,opacity:100,locked:false}
+   ];
+  }else{
+   out[String(i)]=[
+    {id:uid(),type:"text",text:i===1?name:title,x:11,y:i===1?20:12,w:78,h:15,font:state.headingFont,fontSize:i===1?30:24,color:i===1?"#E7D2A7":"#171717",align:"center",rotate:0,opacity:100,locked:false},
+    {id:uid(),type:"text",text:i===1?"Opiši · Dizajniraj · Ostvari":"Dodaj sadržaj ove strane kroz AI razgovor ili elemente.",x:14,y:i===1?42:30,w:72,h:18,font:state.bodyFont,fontSize:10,color:i===1?"#E7D2A7":"#555555",align:"center",rotate:0,opacity:75,locked:false}
+   ];
+  }
  }
  return out;
 }
@@ -1003,7 +1015,26 @@ function init(){
   updateCanvasDimensions();
   $("send").onclick=send;
   $("prompt").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send()}});
-  document.querySelectorAll("[data-prompt]").forEach(b=>b.onclick=()=>{const promptText=b.dataset.prompt||"";const lower=promptText.toLocaleLowerCase("sr");const key=lower.includes("radnu svesku")?"workbook":lower.includes("e-knjigu")?"ebook":lower.includes("planer")?"planner":null;if(key&&TEMPLATES[key]){applyTemplate(key,TEMPLATES[key].pages);return;}$("prompt").value=promptText;send()});
+  document.querySelectorAll("[data-prompt]").forEach(b=>b.onclick=()=>{
+   const promptText=b.dataset.prompt||"";
+   const lower=promptText.toLocaleLowerCase("sr");
+   if(lower.includes("pronađi me online")){
+    if(!addPage(true,"Pronađi me online"))return;
+    state.elements[pageKey()]=[
+     {id:uid(),type:"text",text:"Pronađi me online",x:10,y:8,w:80,h:12,font:state.headingFont,fontSize:25,color:"#8EA386",align:"center",rotate:0,opacity:100,locked:false},
+     {id:uid(),type:"text",text:"Povežimo se i nastavimo razgovor",x:12,y:22,w:76,h:7,font:state.bodyFont,fontSize:11,color:"#C8A66A",align:"center",rotate:0,opacity:100,locked:false},
+     {id:uid(),type:"text",text:"INSTAGRAM  ·  @tvojprofil",x:12,y:36,w:76,h:8,font:state.bodyFont,fontSize:14,color:"#343A33",align:"center",rotate:0,opacity:100,locked:false},
+     {id:uid(),type:"text",text:"FACEBOOK  ·  facebook.com/tvojprofil",x:12,y:48,w:76,h:8,font:state.bodyFont,fontSize:12,color:"#343A33",align:"center",rotate:0,opacity:100,locked:false},
+     {id:uid(),type:"text",text:"TIKTOK  ·  @tvojprofil",x:12,y:60,w:76,h:8,font:state.bodyFont,fontSize:14,color:"#343A33",align:"center",rotate:0,opacity:100,locked:false},
+     {id:uid(),type:"text",text:"MOJ SAJT  ·  www.tvojsajt.rs",x:12,y:72,w:76,h:8,font:state.bodyFont,fontSize:13,color:"#343A33",align:"center",rotate:0,opacity:100,locked:false},
+     {id:uid(),type:"text",text:"Zameni primer tekstovima svojim profilima i dodaj klikabilne linkove pre izvoza.",x:12,y:86,w:76,h:7,font:state.bodyFont,fontSize:8,color:"#77766D",align:"center",rotate:0,opacity:100,locked:false}
+    ];
+    render();saveProject(true);addMessage("Dodala sam stranu „Pronađi me online“. Zameni primere svojim profilima i sajtom.");return;
+   }
+   const key=lower.includes("radnu svesku")?"workbook":lower.includes("e-knjigu")?"ebook":lower.includes("planer")?"planner":null;
+   if(key&&TEMPLATES[key]){applyTemplate(key,TEMPLATES[key].pages);return;}
+   $("prompt").value=promptText;send()
+  });
   $("pageCount").addEventListener("change",()=>{const p=currentPlan();if(!DEV_MODE&&Number($("pageCount").value)>p.pages){$("pageCount").value=p.pages;state.pages=p.pages;limitMessage("pages");render()}});
   $("projectName").oninput=render;
   $("format").onchange=()=>{updateCanvasDimensions();render()};
