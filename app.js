@@ -645,9 +645,31 @@ function movePage(n,direction){
  const names=state.pageNames||[];const tmp=names[n-1];names[n-1]=names[target-1]||("Strana "+target);names[target-1]=tmp||("Strana "+n);
  state.active=target;render();
 }
+function onlineContactElements(){
+ const c=state.color||"#8EA386",gold="#C8A66A",ink="#343A33";
+ return [
+  {id:uid(),type:"text",text:"PRONAĐI ME ONLINE",x:8,y:8,w:84,h:10,font:state.headingFont,fontSize:24,color:c,align:"center",rotate:0,opacity:100,locked:false},
+  {id:uid(),type:"text",text:"Povežimo se i nastavimo razgovor",x:10,y:19,w:80,h:7,font:state.bodyFont,fontSize:11,color:gold,align:"center",rotate:0,opacity:100,locked:false},
+  {id:uid(),type:"shape",text:"",x:15,y:30,w:70,h:10,font:state.bodyFont,fontSize:12,color:"#FFFFFF",align:"center",rotate:0,opacity:100,locked:false,radius:10,fill:c},
+  {id:uid(),type:"text",text:"INSTAGRAM  ·  @tvojprofil",x:17,y:32,w:66,h:6,font:state.bodyFont,fontSize:12,color:"#FFFFFF",align:"center",rotate:0,opacity:100,locked:false},
+  {id:uid(),type:"shape",text:"",x:15,y:43,w:70,h:10,font:state.bodyFont,fontSize:12,color:"#FFFFFF",align:"center",rotate:0,opacity:100,locked:false,radius:10,fill:"#C8A66A"},
+  {id:uid(),type:"text",text:"FACEBOOK  ·  facebook.com/tvojprofil",x:17,y:45,w:66,h:6,font:state.bodyFont,fontSize:10,color:"#FFFFFF",align:"center",rotate:0,opacity:100,locked:false},
+  {id:uid(),type:"shape",text:"",x:15,y:56,w:70,h:10,font:state.bodyFont,fontSize:12,color:"#FFFFFF",align:"center",rotate:0,opacity:100,locked:false,radius:10,fill:"#343A33"},
+  {id:uid(),type:"text",text:"TIKTOK  ·  @tvojprofil",x:17,y:58,w:66,h:6,font:state.bodyFont,fontSize:12,color:"#FFFFFF",align:"center",rotate:0,opacity:100,locked:false},
+  {id:uid(),type:"shape",text:"",x:15,y:69,w:70,h:10,font:state.bodyFont,fontSize:12,color:"#FFFFFF",align:"center",rotate:0,opacity:100,locked:false,radius:10,fill:"#171717"},
+  {id:uid(),type:"text",text:"MOJ SAJT  ·  www.tvojsajt.rs",x:17,y:71,w:66,h:6,font:state.bodyFont,fontSize:11,color:"#FFFFFF",align:"center",rotate:0,opacity:100,locked:false},
+  {id:uid(),type:"text",text:"Zameni primer tekstovima svojim profilima i dodaj stvarne URL adrese pre izvoza.",x:12,y:85,w:76,h:8,font:state.bodyFont,fontSize:8,color:"#77766D",align:"center",rotate:0,opacity:100,locked:false}
+ ];
+}
 function addPage(recordHistory=true,name){
  if(!hasAccess("pages")){limitMessage("pages");return false}
- if(recordHistory)pushHistory();state.pages++;state.pageNames=state.pageNames||[];state.pageNames[state.pages-1]=name||("Strana "+state.pages);state.active=state.pages;ensurePage();$("pageCount").value=state.pages;render();if(recordHistory)addMessage("Nova strana je dodata.");return true
+ if(recordHistory)pushHistory();
+ state.pages++;state.pageNames=state.pageNames||[];
+ const pageName=name||("Strana "+state.pages);
+ state.pageNames[state.pages-1]=pageName;state.active=state.pages;
+ if(/pronađi me online|pronadji me online/i.test(pageName))state.elements[String(state.active)]=onlineContactElements();
+ else ensurePage();
+ $("pageCount").value=state.pages;render();if(recordHistory)addMessage("Nova strana je dodata.");return true
 }
 function duplicatePage(recordHistory=true){
  if(!hasAccess("pages")){limitMessage("pages");return false}
