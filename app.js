@@ -1003,7 +1003,7 @@ function init(){
   updateCanvasDimensions();
   $("send").onclick=send;
   $("prompt").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send()}});
-  document.querySelectorAll("[data-prompt]").forEach(b=>b.onclick=()=>{$("prompt").value=b.dataset.prompt;send()});
+  document.querySelectorAll("[data-prompt]").forEach(b=>b.onclick=()=>{const promptText=b.dataset.prompt||"";const lower=promptText.toLocaleLowerCase("sr");const key=lower.includes("radnu svesku")?"workbook":lower.includes("e-knjigu")?"ebook":lower.includes("planer")?"planner":null;if(key&&TEMPLATES[key]){applyTemplate(key,TEMPLATES[key].pages);return;}$("prompt").value=promptText;send()});
   $("pageCount").addEventListener("change",()=>{const p=currentPlan();if(!DEV_MODE&&Number($("pageCount").value)>p.pages){$("pageCount").value=p.pages;state.pages=p.pages;limitMessage("pages");render()}});
   $("projectName").oninput=render;
   $("format").onchange=()=>{updateCanvasDimensions();render()};
