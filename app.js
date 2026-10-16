@@ -854,7 +854,7 @@ function renderTemplates(){
   g.querySelectorAll("[data-template]").forEach(card=>card.classList.toggle("selected",card.dataset.template===key));
  };
  g.innerHTML=Object.entries(TEMPLATES).map(([k,t])=>'<button type="button" class="template-card" data-template="'+k+'"><span class="template-icon">Aa</span><strong>'+esc(t.name)+'</strong><small>'+esc(t.desc)+'</small><b>Izaberi →</b></button>').join("");
- g.querySelectorAll("[data-template]").forEach(card=>card.onclick=()=>selectTemplate(card.dataset.template));
+ g.querySelectorAll("[data-template]").forEach(card=>card.onclick=()=>{const key=card.dataset.template;selectTemplate(key);const t=TEMPLATES[key];if(!t)return;applyTemplate(key,t.pages);$("templatesPanel").hidden=true;});
  selectTemplate(selectedTemplate);
  applyButton.onclick=()=>{
   const count=Number(countInput.value);
