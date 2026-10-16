@@ -1052,6 +1052,7 @@ function init(){
  safeInit(initInsert,"dodavanje");
  safeInit(initElementInspector,"inspektor");
  safeInit(initStudioEffects,"efekti");
+ safeInit(initStructureToggle,"struktura stranica");
  safeInit(initColors,"boje");
  safeInit(initLibraries,"biblioteke");
  safeInit(initBrand,"brend");
