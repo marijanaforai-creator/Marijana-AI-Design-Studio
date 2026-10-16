@@ -541,7 +541,7 @@ function renderPreview(){
   if(el.type==="text"||el.type==="link")d.textContent=el.text||"Tekst";
   else if(el.type==="image"){const img=document.createElement("img");img.src=el.src;img.alt=el.alt||"";img.style.borderRadius=(el.radius||0)+"px";img.style.boxShadow=el.shadow?"0 10px 25px rgba(0,0,0,.16)":"none";img.style.filter="blur("+(el.blur||0)+"px) brightness("+(el.brightness??100)+"%) contrast("+(el.contrast??100)+"%) saturate("+(el.saturation??100)+"%)";d.appendChild(img)}
   else if(el.type==="mockup"){const img=document.createElement("img");img.src=el.src||mockupSvg(el.mockup||"book");img.style.objectFit="contain";img.style.padding="8%";d.appendChild(img)}
-  else if(el.type==="shape"){d.style.background="transparent";d.style.borderRadius="0";d.innerHTML=shapeSvg(el.shapeKind||"roundedRect",el.color||"#C8A66A");}
+  else if(el.type==="shape"){d.style.background=el.color||"#C8A66A";d.style.borderRadius=(el.radius||12)+"px"}
   else if(el.type==="icon"){d.textContent=el.text||"✦"}
   else if(el.type==="divider")d.innerHTML="";
   else if(el.type==="video")d.innerHTML="▶ Video<br><small>"+esc(el.url||"Dodaj video URL")+"</small>";
@@ -624,44 +624,12 @@ function insertElement(type,extra={}){
 function mockupSvg(kind){
  const labels={book:"KNJIGA",tablet:"TABLET",phone:"TELEFON",laptop:"LAPTOP",planner:"PLANER"};
  const label=labels[kind]||"MOCKUP";return"data:image/svg+xml;charset=UTF-8,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="600" height="800"><rect width="100%" height="100%" fill="#f6f1e8"/><rect x="45" y="45" width="510" height="710" rx="24" fill="#171717"/><rect x="75" y="75" width="450" height="650" rx="10" fill="#8ea386"/><text x="300" y="410" text-anchor="middle" font-family="Georgia" font-size="42" fill="#fff">'+label+'</text></svg>')}
-const SHAPE_OPTIONS=[
- ["roundedRect","Zaobljeni pravougaonik","▰","Osnovni"],["rect","Pravougaonik","□","Osnovni"],["square","Kvadrat","▢","Osnovni"],["circle","Krug","●","Osnovni"],["oval","Oval","⬭","Osnovni"],["triangle","Trougao","▲","Osnovni"],["diamond","Romb","◆","Osnovni"],["hexagon","Šestougao","⬡","Geometrijski"],["octagon","Osmougao","⯃","Geometrijski"],["pentagon","Petougao","⬠","Geometrijski"],["star","Zvezda","★","Dekorativni"],["heart","Srce","♥","Dekorativni"],["flower","Cvet","✿","Dekorativni"],["sparkle","Iskrice","✦","Dekorativni"],["cloud","Oblak","☁","Oblačići"],["speech","Oblak za poruku","▱","Oblačići"],["thought","Oblak misli","☁","Oblačići"],["caption","Oblačić sa repom","▰","Oblačići"],["arrowUp","Strelica gore","⬆","Strelice"],["arrowDown","Strelica dole","⬇","Strelice"],["arrowLeft","Strelica levo","⬅","Strelice"],["arrowRight","Strelica desno","➡","Strelice"],["arrowUpDown","Strelice gore–dole","↕","Strelice"],["arrowLeftRight","Strelice levo–desno","↔","Strelice"],["thickUp","Puna strelica gore","⬆","Pune strelice"],["thickDown","Puna strelica dole","⬇","Pune strelice"],["thickLeft","Puna strelica levo","⬅","Pune strelice"],["thickRight","Puna strelica desno","➡","Pune strelice"],["chevron","Ševron","❯","Strelice"],["doubleChevron","Dvostruki ševron","»","Strelice"],["line","Linija","━","Linije"],["dashedLine","Isprekidana linija","┄","Linije"],["bracket","Ugaoni okvir","⌜","Linije"],["burst","Eksplozija","✹","Dekorativni"],["plus","Plus","＋","Geometrijski"],["minus","Minus","－","Geometrijski"]
-];
-function shapeSvg(kind,color){
- const c=escAttr(color||"#C8A66A"),stroke=kind==="line"||kind==="dashedLine"?" stroke-width="8" stroke-linecap="round" fill="none"":"";
- const paths={
- roundedRect:'<rect x="8" y="12" width="84" height="76" rx="15"/>',rect:'<rect x="8" y="12" width="84" height="76"/>',square:'<rect x="15" y="8" width="70" height="84"/>',
- circle:'<circle cx="50" cy="50" r="40"/>',oval:'<ellipse cx="50" cy="50" rx="44" ry="30"/>',triangle:'<polygon points="50,7 95,90 5,90"/>',
- diamond:'<polygon points="50,4 96,50 50,96 4,50"/>',hexagon:'<polygon points="25,6 75,6 98,50 75,94 25,94 2,50"/>',octagon:'<polygon points="30,4 70,4 96,30 96,70 70,96 30,96 4,70 4,30"/>',pentagon:'<polygon points="50,4 96,38 78,94 22,94 4,38"/>',
- star:'<polygon points="50,3 61,35 95,36 68,57 78,91 50,71 22,91 32,57 5,36 39,35"/>',heart:'<path d="M50 90 C40 78 5 53 5 30 C5 5 35 0 50 22 C65 0 95 5 95 30 C95 53 60 78 50 90Z"/>',
- flower:'<g><circle cx="50" cy="25" r="18"/><circle cx="72" cy="42" r="18"/><circle cx="64" cy="67" r="18"/><circle cx="36" cy="67" r="18"/><circle cx="28" cy="42" r="18"/><circle cx="50" cy="48" r="13" fill="#F6F1E8"/></g>',
- sparkle:'<path d="M50 2 L61 38 L98 50 L61 62 L50 98 L39 62 L2 50 L39 38Z"/>',
- cloud:'<path d="M24 76 C8 76 5 54 20 46 C18 25 43 18 55 33 C72 21 92 35 88 52 C105 62 94 78 79 78Z"/>',
- speech:'<path d="M12 12 Q12 5 22 5 H78 Q90 5 90 18 V64 Q90 76 78 76 H42 L22 94 V76 Q12 75 12 64Z"/>',
- thought:'<path d="M20 62 C0 55 7 31 24 31 C24 8 53 7 62 24 C82 10 99 31 87 46 C102 62 82 77 65 69 C50 88 25 82 20 62Z"/><circle cx="24" cy="86" r="5"/><circle cx="13" cy="96" r="3"/>',
- caption:'<path d="M12 10 Q12 4 22 4 H78 Q90 4 90 16 V67 Q90 78 78 78 H38 L18 96 V78 Q12 75 12 67Z"/>',
- arrowUp:'<path d="M50 4 L92 46 H68 V96 H32 V46 H8Z"/>',arrowDown:'<path d="M32 4 H68 V54 H92 L50 96 L8 54 H32Z"/>',arrowLeft:'<path d="M4 50 L46 8 V32 H96 V68 H46 V92Z"/>',arrowRight:'<path d="M96 50 L54 8 V32 H4 V68 H54 V92Z"/>',
- arrowUpDown:'<path d="M50 2 L75 28 H60 V72 H75 L50 98 L25 72 H40 V28 H25Z"/>',arrowLeftRight:'<path d="M2 50 L28 25 V40 H72 V25 L98 50 L72 75 V60 H28 V75Z"/>',
- thickUp:'<path d="M50 2 L95 47 H70 V98 H30 V47 H5Z"/>',thickDown:'<path d="M30 2 H70 V53 H95 L50 98 L5 53 H30Z"/>',thickLeft:'<path d="M2 50 L47 5 V30 H98 V70 H47 V95Z"/>',thickRight:'<path d="M98 50 L53 5 V30 H2 V70 H53 V95Z"/>',
- chevron:'<path d="M18 5 L62 50 L18 95 L38 95 L82 50 L38 5Z"/>',doubleChevron:'<path d="M8 8 L45 50 L8 92 L25 92 L62 50 L25 8Z M43 8 L80 50 L43 92 L60 92 L97 50 L60 8Z"/>',
- line:'<path d="M8 50 H92"/>',dashedLine:'<path d="M8 50 H92" stroke-dasharray="10 8"/>',bracket:'<path d="M30 8 H8 V92 H30 M70 8 H92 V92 H70" stroke-width="7" fill="none"/>',
- burst:'<path d="M50 2 L60 28 L84 10 L77 38 L99 42 L79 57 L95 79 L67 73 L57 99 L43 75 L18 93 L25 65 L1 54 L26 42 L12 18 L39 29Z"/>',
- plus:'<path d="M40 5 H60 V40 H95 V60 H60 V95 H40 V60 H5 V40 H40Z"/>',minus:'<rect x="5" y="40" width="90" height="20" rx="4"/>'
- };
- return '<svg viewBox="0 0 100 100" width="100%" height="100%" aria-hidden="true"><g fill="'+c+'" stroke="'+c+'" stroke-linejoin="round"'+stroke+'>'+(paths[kind]||paths.roundedRect)+'</g></svg>';
-}
-function showShapeLibrary(){
- let modal=$("shapeLibraryModal");if(!modal){modal=document.createElement("div");modal.id="shapeLibraryModal";modal.className="shape-library-modal";modal.innerHTML='<div class="shape-library-window"><div class="shape-library-head"><div><span class="eyebrow">BIBLIOTEKA OBLIKA</span><h3>Oblici i strelice</h3><p>Izaberi oblik, oblačić za poruku ili strelicu.</p></div><button type="button" class="close-btn" id="closeShapeLibrary">×</button></div><div class="shape-library-search"><input id="shapeSearch" placeholder="Pretraži oblike…"><select id="shapeCategory"><option value="">Sve kategorije</option><option>Osnovni</option><option>Geometrijski</option><option>Dekorativni</option><option>Oblačići</option><option>Strelice</option><option>Pune strelice</option><option>Linije</option></select></div><div id="shapeLibraryGrid" class="shape-library-grid"></div></div>';document.body.appendChild(modal)}
- const grid=$("shapeLibraryGrid"),search=$("shapeSearch"),cat=$("shapeCategory");
- const draw=()=>{const q=(search.value||"").toLocaleLowerCase("sr");const items=SHAPE_OPTIONS.filter(x=>(!cat.value||x[3]===cat.value)&&(x[1].toLocaleLowerCase("sr").includes(q)||x[3].toLocaleLowerCase("sr").includes(q)));grid.innerHTML=items.map(x=>'<button type="button" class="shape-option" data-shape="'+x[0]+'"><span class="shape-option-art">'+shapeSvg(x[0],"#C8A66A")+'</span><strong>'+x[1]+'</strong><small>'+x[3]+'</small></button>').join("")||'<div class="empty-library">Nema rezultata.</div>';grid.querySelectorAll("[data-shape]").forEach(b=>b.onclick=()=>{const opt=SHAPE_OPTIONS.find(x=>x[0]===b.dataset.shape);insertElement("shape",{shapeKind:opt[0],text:opt[1],w:opt[0].includes("Line")||opt[0]==="line"?70:30,h:opt[0].includes("Line")||opt[0]==="line"?3:22,color:state.color||"#C8A66A",radius:0});modal.remove()})};
- search.oninput=draw;cat.onchange=draw;$("closeShapeLibrary").onclick=()=>modal.remove();draw();
-}
 function insertBy(kind){
  if(kind==="upload"){$("imageUpload").click();return}
  if(kind==="url"){const url=prompt("Nalepi URL slike:");if(url)insertElement("image",{src:url,alt:"Ubačena slika",w:76,h:42,radius:10,shadow:true});return}
  if(kind==="ai"){if(!hasAccess("aiImages")){limitMessage("aiImages","PRO+ AI");return} const q=prompt("Opiši kakvu sliku želiš:");if(q)insertElement("image",{src:mockupSvg("planner"),alt:q,w:76,h:42,radius:12,shadow:true,aiPrompt:q});return}
  if(kind==="mockup"){insertElement("mockup",{mockup:"book",src:mockupSvg("book"),w:58,h:48});return}
- if(kind==="shape"){showShapeLibrary();return}
+ if(kind==="shape"){insertElement("shape",{text:"",w:76,h:18,color:state.color,radius:12});return}
  if(kind==="icon"){insertElement("icon",{text:"✦",w:16,h:12,fontSize:34,color:state.color});return}
  if(kind==="link"){const url=prompt("Unesi URL za povezivanje:");if(url)insertElement("link",{text:"Otvori povezani sadržaj",url,w:65,h:9,font:state.bodyFont,fontSize:11,color:"#3D78A8",align:"center"});return}
  if(kind==="video"){const url=prompt("Unesi video URL:");if(url)insertElement("video",{url,w:76,h:24});return}
@@ -827,7 +795,7 @@ function renderAssetLibrary(){
 }
 function initInsert(){
  const open=()=>{$("insertPanel").hidden=false};$("insertButton").onclick=open;$("insertButtonSide").onclick=open;$("closeInsert").onclick=closeInsertPanel;
- document.querySelectorAll("[data-insert]").forEach(b=>{b.onclick=e=>{e.preventDefault();const kind=b.dataset.insert;if(kind==="shape"){showShapeLibrary();return}insertBy(kind)}});
+ document.querySelectorAll("[data-insert]").forEach(b=>b.onclick=()=>insertBy(b.dataset.insert));
  document.querySelectorAll("[data-mockup]").forEach(b=>b.onclick=()=>insertElement("mockup",{mockup:b.dataset.mockup,src:mockupSvg(b.dataset.mockup),w:b.dataset.mockup==="phone"?34:58,h:48}));
  $("imageUpload").onchange=e=>{Array.from(e.target.files||[]).forEach(file=>{const reader=new FileReader();reader.onload=ev=>{state.assets=state.assets||[];state.assets.unshift({id:uid(),name:file.name,src:ev.target.result});state.assets=state.assets.slice(0,30);insertElement("image",{src:ev.target.result,alt:file.name,w:76,h:42,radius:10,shadow:true});saveProject(true);renderAssetLibrary()};reader.readAsDataURL(file)});e.target.value=""};
 }
