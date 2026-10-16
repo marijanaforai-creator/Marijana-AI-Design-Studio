@@ -392,8 +392,16 @@ function pushHistory(){
 function restoreSnapshot(s){
  const x=JSON.parse(s);state.elements=x.elements||{};state.pages=x.pages||1;state.active=x.active||1;state.pageNames=x.pageNames||state.pageNames;state.width=x.width||state.width;state.height=x.height||state.height;state.name=x.name||state.name;state.format=x.format||state.format;state.headingFont=x.headingFont||state.headingFont;state.bodyFont=x.bodyFont||state.bodyFont;state.color=x.color||state.color;state.style=x.style||state.style;state.palette=x.palette||state.palette;state.selectedElement=null;$("projectName").value=state.name;$("format").value=state.format;$("pageCount").value=state.pages;render();
 }
-function undo(){if(state.historyIndex>0){state.historyIndex--;restoreSnapshot(state.history[state.historyIndex])}}
-function redo(){if(state.historyIndex<state.history.length-1){state.historyIndex++;restoreSnapshot(state.history[state.historyIndex])}}
+function undo(){
+ const current=snapshot();
+ if(state.historyIndex<0){pushHistory();return}
+ // Promene se uglavnom beleže pre izmene; dodaj trenutno stanje da Undo može da se vrati na prethodnu verziju.
+ if(state.history[state.historyIndex]!==current)pushHistory();
+ if(state.historyIndex>0){state.historyIndex--;restoreSnapshot(state.history[state.historyIndex]);saveProject(true)}
+}
+function redo(){
+ if(state.historyIndex<state.history.length-1){state.historyIndex++;restoreSnapshot(state.history[state.historyIndex]);saveProject(true)}
+}
 function applyPalette(index){
  const p=palettes[index]; if(!p)return;
  document.documentElement.style.setProperty("--ivory",p.colors[2]||"#F6F1E8");document.documentElement.style.setProperty("--paper",p.colors[4]||"#FFFDF8");
