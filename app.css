@@ -276,3 +276,11 @@ body{min-height:100vh}
 .shape-element{background:transparent!important;overflow:visible}
 .shape-element svg{display:block;width:100%;height:100%;overflow:visible;pointer-events:none}
 @media(max-width:640px){.shape-library-modal{padding:8px}.shape-library-window{padding:14px}.shape-library-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.shape-library-search{grid-template-columns:1fr}.shape-option{min-height:98px}}
+
+
+/* Ensure collapsed sections actually disappear even when inner lists define display:grid. */
+#structureBody[hidden],
+#styleLibraryBody[hidden],
+#typographyBody[hidden],
+#colorLibraryBody[hidden],
+#paletteLibraryBody[hidden]{display:none!important}
