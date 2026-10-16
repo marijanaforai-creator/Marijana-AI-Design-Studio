@@ -1030,6 +1030,13 @@ function initShortcuts(){
 }
 function init(){
  loadProject();
+ // Automatski sačuvaj poslednje stanje, kako osvežavanje ne bi vratilo stariju verziju projekta.
+ if(!window.__marijanaAutoSaveInstalled){
+  window.__marijanaAutoSaveInstalled=true;
+  window.setInterval(()=>{try{saveProject(true)}catch(e){console.error("Automatsko čuvanje nije uspelo:",e)}},15000);
+  window.addEventListener("beforeunload",()=>{try{saveProject(true)}catch(e){}});
+  document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden"){try{saveProject(true)}catch(e){}}});
+ }
  // Učitaj projekat i odmah osveži platno. Ako neka pomoćna inicijalizacija kasnije zakaže,
  // novi projekat ipak mora da bude vidljiv na platnu.
  try{render()}catch(e){console.error("Početni render nije uspeo:",e)}
