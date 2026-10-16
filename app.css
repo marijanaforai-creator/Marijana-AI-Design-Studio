@@ -215,3 +215,11 @@ body{min-height:100vh}
 #applyBrand.ghost-btn:focus-visible{outline:3px solid #c8a66a;outline-offset:3px;}
 #applyBrand.ghost-btn:disabled{background:#e7e3da;color:#716e65;border-color:#d0c6b4;box-shadow:none;opacity:1;cursor:not-allowed;}
 @media(max-width:420px){.brand-row{grid-template-columns:1fr}#applyBrand.ghost-btn{min-height:46px;}}
+
+
+/* Brand identity quick palette */
+.brand-palette{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:8px}
+.brand-swatch{display:flex;flex-direction:column;align-items:center;gap:5px;padding:7px 4px;border:1px solid var(--line);border-radius:8px;background:#fffdf8;color:var(--ink);min-width:0;transition:border-color .15s,transform .15s,box-shadow .15s}
+.brand-swatch span{display:block;width:100%;height:22px;border:1px solid rgba(0,0,0,.12);border-radius:5px}
+.brand-swatch small{font-size:9px;font-weight:700;color:var(--ink)}
+.brand-swatch:hover,.brand-swatch.active{border-color:var(--gold);box-shadow:0 0 0 2px rgba(200,169,107,.2);transform:translateY(-1px)}
