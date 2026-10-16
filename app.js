@@ -684,14 +684,17 @@ function saveProject(silent=false){
   localStorage.setItem("marijanaDesignStudioProject",JSON.stringify(clean));
   localStorage.setItem("marijanaDesignStudioProjects",JSON.stringify(projects));
   if(!silent){
-   addMessage("Projekat je sačuvan lokalno u ovom pregledaču.");
+   addMessage("✓ Projekat je uspešno sačuvan u ovom pregledaču. Možeš bezbedno da nastaviš rad.");
    const button=$("save");
    if(button){
-    const label=button.dataset.idleLabel||button.textContent;
+    const label=button.dataset.idleLabel||"Sačuvaj projekat";
     button.dataset.idleLabel=label;
     button.textContent="Sačuvano ✓";
+    button.setAttribute("aria-live","polite");
+    button.title="Projekat je sačuvan lokalno u ovom pregledaču";
+    button.classList.add("saved-confirmation");
     clearTimeout(button._saveFeedbackTimer);
-    button._saveFeedbackTimer=setTimeout(()=>{button.textContent=label},1400);
+    button._saveFeedbackTimer=setTimeout(()=>{button.textContent=label;button.classList.remove("saved-confirmation")},5000);
    }
   }
   return true;
