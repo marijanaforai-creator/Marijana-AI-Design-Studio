@@ -109,45 +109,62 @@ Ako je potrebna slika, napravi image element sa aiPrompt poljem i ne izmišljaj 
       return res.status(502).json({ error: "AI odgovor nema listu elemenata za dizajn." });
     }
 
-    // Final layout guard: nudge generated text boxes apart if the model overlaps them.
-    const placed = [];
-    for (const action of result.actions) {
-      const element = action?.element;
-      if (action?.type !== "add_element" || element?.type !== "text") continue;
-
-      let x = Number(element.x ?? 12);
+    // Final layout guard: account for both element-box height and actual text line height.
+    // The canvas renders font sizes in CSS pixels, while element coordinates are percentages.
+    const textActions = result.actions.filter((action) =>
+      action?.type === "add_element" && action?.element?.type === "text"
+    );
+    const textItems = textActions.map((action, index) => {
+      const element = action.element;
+      const text = String(element.text || "");
+      let fontSize = Number(element.fontSize || 14);
+      let x = Number(element.x ?? 10);
       let y = Number(element.y ?? 18);
-      let w = Number(element.w ?? 70);
-      let h = Number(element.h ?? 10);
+      let w = Number(element.w ?? 78);
+      let h = Number(element.h ?? 8);
 
-      w = Math.max(8, Math.min(86, w));
-      h = Math.max(4, Math.min(32, h));
+      w = Math.max(18, Math.min(86, w));
       x = Math.max(7, Math.min(93 - w, x));
-      y = Math.max(6, Math.min(94 - h, y));
+      fontSize = Math.max(9, Math.min(30, fontSize));
 
-      const overlaps = (a, b) =>
-        a.x < b.x + b.w - 1 &&
-        a.x + a.w > b.x + 1 &&
-        a.y < b.y + b.h + 1.5 &&
-        a.y + a.h + 1.5 > b.y;
+      // Approximate wrapping to ensure tall or long text cannot visually spill into the next item.
+      const approxCharsPerLine = Math.max(10, Math.floor((w * 3.15) / Math.max(6, fontSize * 0.53)));
+      const hardLines = Math.max(1, text.split("\\n").length);
+      const estimatedLines = Math.max(hardLines, Math.ceil(text.length / approxCharsPerLine));
+      const neededHeight = Math.max(4.5, (estimatedLines * fontSize * 1.35 / 5.8) + 1.2);
+      h = Math.max(h, neededHeight);
+      return { action, element, index, text, x, y, w, h, fontSize };
+    }).sort((a, b) => a.y - b.y || a.x - b.x || a.index - b.index);
 
-      let attempts = 0;
-      while (attempts++ < placed.length + 2) {
-        const collisions = placed.filter((other) => overlaps({ x, y, w, h }, other));
-        if (!collisions.length) break;
-        y = Math.max(...collisions.map((other) => other.y + other.h)) + 2;
-        if (y + h > 94) {
-          y = 6;
-          element.fontSize = Math.max(10, Number(element.fontSize || 14) - 2);
-          h = Math.min(h, 94 - y);
-        }
+    // Layout in reading order, maintaining a gap between every text element.
+    let cursor = 6.5;
+    const pageBottom = 94;
+    for (const item of textItems) {
+      let { element, x, y, w, h, fontSize } = item;
+      // Never allow duplicate large headings to fight for the same top area.
+      if (y < 23 && fontSize > 21 && cursor > 6.5) {
+        fontSize = Math.min(fontSize, 18);
+      }
+      y = Math.max(y, cursor);
+      h = Math.min(32, h);
+
+      // When a page has dense copy, shrink text before allowing overlap or overflow.
+      if (y + h > pageBottom) {
+        const available = Math.max(4.5, pageBottom - y);
+        const ratio = Math.min(1, available / h);
+        fontSize = Math.max(9, Math.floor(fontSize * ratio));
+        h = Math.max(4.5, Math.min(available, (Math.max(1, item.text.length / Math.max(12, Math.floor(w * 0.48))) * fontSize * 1.35 / 5.8) + 1.2));
+      }
+      if (y + h > pageBottom) {
+        y = Math.max(6.5, pageBottom - h);
       }
 
       element.x = Number(x.toFixed(2));
       element.y = Number(y.toFixed(2));
       element.w = Number(w.toFixed(2));
       element.h = Number(h.toFixed(2));
-      placed.push({ x, y, w, h });
+      element.fontSize = Number(fontSize.toFixed(1));
+      cursor = Math.min(pageBottom, element.y + element.h + 1.8);
     }
 
     return res.status(200).json(result);
