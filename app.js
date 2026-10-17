@@ -1087,7 +1087,6 @@ function initPdfDesign(){
   const allActions=[];
   for(let i=1;i<=total;i++){
    if(button)button.textContent="AI redizajn "+i+" / "+total+"…";
-   addMessage("AI obrađuje stranu "+i+" od "+total+".");
    const page=await pdf.getPage(i);
    const base=page.getViewport({scale:1});
    const scale=Math.min(1,1000/Math.max(base.width,base.height));
@@ -1123,13 +1122,45 @@ function initPdfDesign(){
    allActions.push(...pageActions);
    pageNames.push("Strana "+i);
   }
+  // Prebaci tekstualne blokove koji su završili na samom dnu na dodatne nastavne strane.
+  // To sprečava da tekst bude sabijen ili odsečen kada originalna strana ima previše sadržaja.
+  const outputActions=[];
+  const outputNames=[];
+  let outputPageCount=0;
+  for(let sourcePage=1;sourcePage<=total;sourcePage++){
+   const sourceActions=allActions.filter(action=>Number(action.page)===sourcePage);
+   const overflow=sourceActions.filter(action=>action.element?.type==="text"&&Number(action.element.y||0)>=91);
+   const main=sourceActions.filter(action=>!overflow.includes(action));
+   const mainPage=++outputPageCount;
+   outputNames.push("Strana "+sourcePage);
+   main.forEach(action=>outputActions.push({...action,page:mainPage}));
+   let continuationPage=0,continuationIndex=0,cursor=8;
+   for(const action of overflow){
+    const element=action.element;
+    const textValue=String(element.text||"");
+    const fontSize=Math.max(10,Number(element.fontSize)||12);
+    const estimatedLines=Math.max(1,Math.ceil(textValue.length/48));
+    const height=Math.min(22,Math.max(6,estimatedLines*fontSize*1.45/5.8+2));
+    if(!continuationPage||cursor+height>91){
+     continuationPage=++outputPageCount;
+     continuationIndex++;
+     outputNames.push("Strana "+sourcePage+" — nastavak "+continuationIndex);
+     cursor=8;
+    }
+    element.x=9;element.y=Number(cursor.toFixed(2));element.w=82;element.h=Number(height.toFixed(2));
+    element.fontSize=fontSize;element.align=element.align||"left";
+    outputActions.push({...action,page:continuationPage});
+    cursor+=height+2.5;
+   }
+  }
+  if(outputPageCount>200)throw new Error("Redizajn zahteva "+outputPageCount+" strana, a projekat trenutno podržava najviše 200. Originalni projekat nije zamenjen.");
   // Ne menjaj trenutni projekat dok se sve strane uspešno ne obrade.
   pushHistory();
   state.name=(file.name||"Redizajniran PDF").replace(/\.pdf$/i,"");
   state.format="A4";state.width=794;state.height=1123;state.printWidthMm=210;state.printHeightMm=297;
-  state.pages=total;state.active=1;state.pageNames=pageNames;state.elements={};state.selectedElement=null;
-  $("projectName").value=state.name;$("format").value="A4";$("pageCount").value=total;
-  applyAIActions(allActions);
+  state.pages=outputPageCount;state.active=1;state.pageNames=outputNames;state.elements={};state.selectedElement=null;
+  $("projectName").value=state.name;$("format").value="A4";$("pageCount").value=outputPageCount;
+  applyAIActions(outputActions);
   render();
   const saved=saveProject(true);
   addMessage("AI redizajn je završen za "+total+" strana. Proveri stranice i izvezi PDF tek nakon vizuelne kontrole.");
