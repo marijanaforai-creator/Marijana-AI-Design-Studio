@@ -982,12 +982,12 @@ async function runPdfDesign(){
    if(status)status.textContent="Pripremam vizuelni uzorak "+(idx+1)+" od "+pageNums.length+"…";
    const page=await pdf.getPage(pageNums[idx]);
    const base=page.getViewport({scale:1});
-   const scale=Math.min(1.15,1300/Math.max(base.width,base.height));
+   const scale=Math.min(1,1000/Math.max(base.width,base.height));
    const viewport=page.getViewport({scale});
    const canvas=document.createElement("canvas");
    canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);
    await page.render({canvasContext:canvas.getContext("2d",{alpha:false}),viewport}).promise;
-   images.push(canvas.toDataURL("image/jpeg",0.78));
+   images.push(canvas.toDataURL("image/jpeg",0.66));
    canvas.width=canvas.height=1;
   }
   let targetPage=state.active;
