@@ -162,7 +162,7 @@ Ako je potrebna slika, napravi image element sa aiPrompt poljem i ne izmišljaj 
 
     const pageTop = 6.5;
     const pageBottom = 94;
-    const gap = 1.4;
+    const gap = 2.1;
     const availableHeight = pageBottom - pageTop;
     let requiredHeight = textItems.reduce((sum, item) => sum + item.h, 0) + Math.max(0, textItems.length - 1) * gap;
 
@@ -196,6 +196,46 @@ Ako je potrebna slika, napravi image element sa aiPrompt poljem i ne izmišljaj 
       element.h = Number(h.toFixed(2));
       element.fontSize = Number(fontSize.toFixed(1));
       cursor = Math.min(pageBottom, cursor + h + gap);
+    }
+
+    // Keep long decorative rules outside text blocks; AI-generated dividers must never cut through titles.
+    const placedText = textItems.map((item) => ({
+      x: Number(item.element.x),
+      y: Number(item.element.y),
+      w: Number(item.element.w),
+      h: Number(item.element.h)
+    }));
+    const longRules = result.actions.filter((action) => {
+      const element = action?.element;
+      if (action?.type !== "add_element" || !element) return false;
+      const width = Number(element.w ?? 0);
+      const height = Number(element.h ?? 0);
+      return element.type === "divider" || (element.type === "shape" && width >= 35 && height <= 4);
+    });
+    for (const action of longRules) {
+      const element = action.element;
+      const x = Number(element.x ?? 10);
+      const width = Number(element.w ?? 60);
+      const height = Math.max(0.8, Number(element.h ?? 1.2));
+      const originalY = Number(element.y ?? 50);
+      const candidates = [originalY];
+      for (const item of placedText) {
+        if (x < item.x + item.w && x + width > item.x) {
+          candidates.push(item.y - height - 2.5);
+          candidates.push(item.y + item.h + 2.5);
+        }
+      }
+      candidates.sort((a, b) => Math.abs(a - originalY) - Math.abs(b - originalY));
+      const safeY = candidates.find((y) =>
+        y >= 6 && y + height <= 94 &&
+        !placedText.some((item) =>
+          x < item.x + item.w &&
+          x + width > item.x &&
+          y < item.y + item.h + 1.5 &&
+          y + height + 1.5 > item.y
+        )
+      );
+      if (safeY !== undefined) element.y = Number(safeY.toFixed(2));
     }
 
     return res.status(200).json(result);
