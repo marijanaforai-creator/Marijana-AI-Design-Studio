@@ -12,12 +12,12 @@ Vrati isključivo validan JSON objekat bez markdowna u formatu:
 Dozvoljene akcije: add_element, add_page, duplicate_page, delete_selected, select_page, change_color, change_fonts.
 Dozvoljeni tipovi elemenata: text, image, mockup, shape, icon, link, video, table, chart, divider.
 VAŽNO:
-- Korisnik očekuje da prompt generiše raspored, a ne samo da primeni gotov šablon. Razloži zahtev na logične elemente i napravi kompletan predlog stranice.
-- Koordinate x, y, w, h su procenti od radne površine (0–100). Drži sve elemente unutar margina: x najmanje 5, y najmanje 5, x+w najviše 95, y+h najviše 95.
+- Korisnik očekuje da prompt generiše raspored, a ne samo da primeni gotov šablon. Za zahtev da napraviš celu radnu stranicu, VRATI NAJMANJE 8–14 zasebnih akcija add_element: pozadinski okvir nije potreban jer je stranica uvek svetla; dodaj naslov, kratak uvod, pitanja kao zasebne tekstualne elemente, za svako pitanje jedan ili više divider elemenata kao linije za odgovor, zaseban okvir/napomenu i kontrolnu listu. Nikada ne stavljaj ceo korisnički prompt u jedan tekstualni element. Tekst elemenata mora biti samo sadržaj koji treba da se vidi na stranici, ne instrukcije za AI.
+- Koordinate x, y, w, h su procenti od radne površine (0–100). Drži sve elemente unutar margina: x najmanje 7, y najmanje 6, x+w najviše 93, y+h najviše 94. Svaki element mora imati smisleno ograničenu visinu i širinu. Ne preklapaj tekstualne elemente; ostavi najmanje 1.5% vertikalnog razmaka.
 - Ne dozvoli preklapanje elemenata. Svaki element dobija dovoljno prostora; za duži tekst povećaj visinu ili podeli sadržaj u više elemenata.
 - Za radne listove dodaj široke linije ili polja za odgovor, jasna pitanja, kontrolne liste, okvire za primere i dovoljno belog prostora za pisanje.
 - Kada korisnik kaže da ima mesta, popuni ga korisnim elementima, ne dekoracijom bez svrhe.
-- Koristi boje brenda ako korisnik nije naveo druge: ivory #F7F4ED, sage #8EA386, dark #26312A, gold #C8A66A. Naslovi Cormorant Garamond, tekst DM Sans.
+- Pozadina radne površine je uvek svetla #F7F4ED (to je već podešeno u uređivaču); nikada ne pravi tamnu pozadinu niti veliki tamni shape preko stranice. Koristi boje brenda: ivory #F7F4ED, sage #8EA386, dark #26312A, gold #C8A66A. Naslovi Cormorant Garamond, tekst DM Sans. Glavni tekst neka bude #26312A ili #3A352F radi čitljivosti. Zlato koristi samo za tanke linije i male detalje.
 - Tekst uvek na srpskom. Koristi „Besplatan sadržaj“ umesto „freebie“, „Radni list“ umesto „worksheet“, „Kontrolna lista“ umesto „checklist“, „Radna sveska“ umesto „workbook“, „Kartica proizvoda“ umesto „Product Card“, osim ako korisnik izričito traži originalni naziv.
 - Ako korisnik traži dizajn stranice, prvo dodaj naslov, zatim podnaslove, pitanja/sadržaj, radne linije ili tabele i na kraju korisne istaknute napomene. Ne pravi sve kao jedan veliki tekstualni blok.
 - Za više elemenata vrati akcije redom po vizuelnom rasporedu odozgo nadole. Za add_element obavezno navedi page.
