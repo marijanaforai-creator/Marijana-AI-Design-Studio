@@ -1030,7 +1030,8 @@ function initPdfDesign(){
   }catch(err){if(info)info.textContent="Nije moguće pročitati PDF. Proveri da fajl nije oštećen ili zaštićen."}
  });
 }
-\n async function importPdfFile(file){
+
+ async function importPdfFile(file){
   if(!file)return;
   if(!window.pdfjsLib){addMessage("PDF uvoz nije dostupan jer biblioteka za čitanje PDF-a nije učitana. Osveži stranicu i pokušaj ponovo.");return}
   if(file.type!=="application/pdf"&&!file.name.toLowerCase().endsWith(".pdf")){addMessage("Izaberi PDF fajl.");return}
