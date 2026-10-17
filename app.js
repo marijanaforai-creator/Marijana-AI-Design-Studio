@@ -763,11 +763,46 @@ async function send(){
   const response=await fetch("/api/design-agent",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:value,project:{name:state.name,format:state.format,pages:state.pages,active:state.active,style:state.style,headingFont:state.headingFont,bodyFont:state.bodyFont,color:state.color}})});
   const data=await response.json();if(!response.ok)throw new Error(data.error||"AI servis nije dostupan.");
   const raw=String(data.content||"").trim();let result=null;try{result=JSON.parse(raw)}catch(e){const m=raw.match(/\{[\\s\\S]*\}/);if(m)try{result=JSON.parse(m[0])}catch(e2){}}
-  if(result?.actions?.length) applyAIActions(result.actions);
-  addMessage(result?.message||raw||"AI nije vratio odgovor.");
+   if(result?.actions?.length) {
+    const actions=result.actions;
+    const looksLikePromptDump=actions.length<5 || actions.every(a=>a.type==="add_element" && /pozadina mora|dodaj naslov|ne koristi gotov|svaki deo napravi|ostavi sve unutar/i.test(String(a.element?.text||"")));
+    if(looksLikePromptDump && /radn|stranic|pitanj|linij|kontrolnu listu|moj plan/i.test(value)){
+      buildPromptWorksheet(value);
+      addMessage("Napravila sam početni raspored sa odvojenim elementima. Proveri stranicu i po potrebi uredi svaki element zasebno.");
+    } else {
+      applyAIActions(actions);
+      addMessage(result?.message||"Dizajn je dodat na stranicu.");
+    }
+   } else {
+    addMessage(result?.message||raw||"AI nije vratio elemente za dizajn.");
+   }
  }catch(e){const waiting=$("messages")?.querySelector(".msg.ai:last-child");if(waiting&&waiting.textContent==="AI dizajner radi…")waiting.remove();addMessage("Nismo uspeli da generišemo dizajn: "+(e?.message||"proveri API ključ i Vercel podešavanja.") );}
 }
 window.sendPrompt=send;
+ function buildPromptWorksheet(promptText){
+  pushHistory();
+  ensurePage(state.active);
+  const el=(type,text,x,y,w,h,opts={})=>({id:uid(),type,text:text||"",x,y,w,h,font:opts.font||state.bodyFont,fontSize:opts.fontSize||11,color:opts.color||"#26312A",align:opts.align||"left",rotate:0,opacity:100,locked:false,radius:opts.radius||0,fill:opts.fill,shadow:false});
+  const out=[];
+  out.push(el("text","MOJ PLAN",8,7,84,7,{font:state.headingFont,fontSize:25,color:"#52694C",align:"center"}));
+  out.push(el("text","Radni list za jasnoću, fokus i sledeće korake",10,15,80,5,{fontSize:10,color:"#6E756D",align:"center"}));
+  out.push(el("divider","",22,22,56,1,{color:"#C8A66A"}));
+  const qs=["1. Šta želim da postignem?","2. Zašto mi je ovaj cilj važan?","3. Koji je moj prvi sledeći korak?"];
+  let y=27;
+  for(const q of qs){
+   out.push(el("text",q,10,y,80,5,{fontSize:12,color:"#26312A"}));
+   out.push(el("text","________________________________________________________________",10,y+5,80,4,{fontSize:9,color:"#8A8A80"}));
+   out.push(el("text","________________________________________________________________",10,y+9,80,4,{fontSize:9,color:"#8A8A80"}));
+   y+=16;
+  }
+  out.push(el("shape","",10,77,80,9,{color:"#8EA386",fill:"#E9EEE6",radius:5}));
+  out.push(el("text","VAŽNA NAPOMENA",13,78,74,4,{fontSize:10,color:"#52694C"}));
+  out.push(el("text","________________________________________________",13,82,74,3,{fontSize:9,color:"#6E756D"}));
+  out.push(el("text","KONTROLNA LISTA",10,88,80,4,{fontSize:10,color:"#52694C"}));
+  out.push(el("text","□  Definisala sam cilj     □  Zapisala sam sledeći korak",10,92,80,3,{fontSize:8,color:"#26312A"}));
+  state.elements[String(state.active)]=out;
+  render();
+ }
 function applyAIActions(actions){
  const before=snapshot();
  pushHistory();
