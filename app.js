@@ -765,7 +765,7 @@ async function send(){
   const raw=String(data.content||"").trim();let result=null;try{result=JSON.parse(raw)}catch(e){const m=raw.match(/\{[\\s\\S]*\}/);if(m)try{result=JSON.parse(m[0])}catch(e2){}}
   if(result?.actions?.length) applyAIActions(result.actions);
   addMessage(result?.message||raw||"AI nije vratio odgovor.");
- }catch(e){addMessage("AI backend još nije povezan u ovom okruženju. Kada se aplikacija postavi na Vercel i doda OPENAI_API_KEY, razgovor će raditi direktno.");}
+ }catch(e){const waiting=$("messages")?.querySelector(".msg.ai:last-child");if(waiting&&waiting.textContent==="AI dizajner radi…")waiting.remove();addMessage("Nismo uspeli da generišemo dizajn: "+(e?.message||"proveri API ključ i Vercel podešavanja.") );}
 }
 window.sendPrompt=send;
 function applyAIActions(actions){
