@@ -757,7 +757,8 @@ async function send(){
  if(!hasAccess("ai")){limitMessage("ai","CREATOR PRO");return}
  if(!DEV_MODE){state.aiUsed++;localStorage.setItem("marijanaDesignStudioAIUsed",String(state.aiUsed))}
  addMessage(value,"user");$("prompt").value="";
- const direct=parseDesignCommand(value);if(direct){addMessage(direct);return}
+  const isFullPagePrompt=/(?:napravi|kreiraj|dizajniraj|osmisli).*(?:radn(?:u|a|i)|stranicu|a4|pitanj|linij|kontrolnu listu|moj plan)/i.test(value);
+  const direct=isFullPagePrompt?null:parseDesignCommand(value);if(direct){addMessage(direct);return}
  addMessage("AI dizajner radi…");
  try{
   const response=await fetch("/api/design-agent",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:value,project:{name:state.name,format:state.format,pages:state.pages,active:state.active,style:state.style,headingFont:state.headingFont,bodyFont:state.bodyFont,color:state.color}})});
