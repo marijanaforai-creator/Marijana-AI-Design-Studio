@@ -151,10 +151,10 @@ Ako je potrebna slika, napravi image element sa aiPrompt poljem i ne izmišljaj 
           String(text).split("\\n").length,
           Math.ceil(text.length / approximateCharsPerLine)
         );
-        let h = Math.max(4.5, lines * fontSize * 1.28 / 5.8 + 1.2);
+        let h = Math.max(4.8, lines * fontSize * 1.48 / 5.8 + 1.4);
         if (chosenTitle && item.action !== chosenTitle.action && originalY < 28 && fontSize >= 18) {
           fontSize = 14;
-          h = Math.max(5.5, Math.ceil(text.length / Math.max(20, Math.floor(w * 0.55))) * fontSize * 1.28 / 5.8 + 1.2);
+          h = Math.max(5.8, Math.ceil(text.length / Math.max(20, Math.floor(w * 0.55))) * fontSize * 1.48 / 5.8 + 1.4);
         }
         return { ...item, text, originalY, x, w, fontSize, h, lines };
       })
@@ -162,7 +162,7 @@ Ako je potrebna slika, napravi image element sa aiPrompt poljem i ne izmišljaj 
 
     const pageTop = 6.5;
     const pageBottom = 94;
-    const gap = 2.1;
+    const gap = 2.8;
     const availableHeight = pageBottom - pageTop;
     let requiredHeight = textItems.reduce((sum, item) => sum + item.h, 0) + Math.max(0, textItems.length - 1) * gap;
 
@@ -173,7 +173,7 @@ Ako je potrebna slika, napravi image element sa aiPrompt poljem i ne izmišljaj 
         item.fontSize = Math.max(9, item.fontSize * scale);
         const charsPerLine = Math.max(12, Math.floor((item.w * 3.15) / Math.max(6, item.fontSize * 0.53)));
         item.lines = Math.max(1, Math.ceil(item.text.length / charsPerLine));
-        item.h = Math.max(4.5, item.lines * item.fontSize * 1.28 / 5.8 + 1.2);
+        item.h = Math.max(4.8, item.lines * item.fontSize * 1.48 / 5.8 + 1.4);
       }
       requiredHeight = textItems.reduce((sum, item) => sum + item.h, 0) + Math.max(0, textItems.length - 1) * gap;
     }
