@@ -27,7 +27,7 @@ Vrati isključivo JSON objekat sa poljima "message" (kratko objašnjenje na srps
 Primer: {"message":"Dizajn je spreman.","actions":[{"type":"add_element","page":${page},"element":{"type":"text","text":"Naslov","x":10,"y":8,"w":80,"h":8,"font":"Cormorant Garamond","fontSize":24,"color":"#26312A","align":"center"}}]}
 Dozvoljene akcije: add_element, add_page, change_color, change_fonts. Dozvoljeni tipovi elemenata: text, image, mockup, shape, icon, link, video, table, chart, divider.
 Prouči vizuelni stil referentnih strana: paletu, kontrast, margine, hijerarhiju tipografije, raspored, okvire, linije i gustinu sadržaja. Primeni te vizuelne principe, ali napiši nov sadržaj prema zahtevu korisnika. Nemoj kopirati duge delove teksta iz PDF-a.
-Kada praviš radnu svesku, naslov treba da bude JEDAN tekstualni element sa celim naslovom. Nikada ne deli naslov na dva teksta koji zauzimaju isto mesto. Između tekstualnih elemenata ostavi vidljiv prazan prostor i izbegavaj sva preklapanja. Ako je naslov dug, smanji font i/ili proširi njegovo polje.
+Kada praviš radnu svesku, napravi samo JEDAN glavni naslov kao jedan tekstualni element. Ne pravi alternativne, engleske, ponovljene ili preklopljene naslove. Ako korisnik traži tri pitanja, prikaži tačno tri pitanja. Ograniči stranicu na oko 8–12 ukupnih elemenata i daj prednost čitljivosti nad dodatnim ukrasima. Između tekstualnih elemenata ostavi vidljiv prazan prostor i izbegavaj sva preklapanja. Ako je naslov dug, smanji font i/ili proširi njegovo polje.
 Koristi okvirno ovu vertikalnu hijerarhiju: naslov y=7–16, uvod y=18–25, sadržaj/pitanja y=28–78, prostor za pisanje/završni blok y=80–91. Svaki element mora biti pojedinačno izmenljiv; ne pretvaraj celu stranu u jednu sliku. Koristi najmanje 8 konkretnih akcija add_element kada je prikladno.
 Koordinate i dimenzije su procenti od 0 do 100. Drži elemente unutar x>=7, y>=6, x+w<=93, y+h<=94. Koristi Cormorant Garamond za izražajne naslove i DM Sans za čitljiv tekst gde odgovara. Izvedi boje i stil iz PDF uzorka; boje/fontove navedene od korisnika stavi na prvo mesto. Sav tekst na srpskom.
 Ako je potrebna slika, napravi image element sa aiPrompt poljem i ne izmišljaj URL. Ciljne akcije napravi samo za stranu ${page}, osim ako korisnik izričito traži više strana.`;
@@ -109,62 +109,93 @@ Ako je potrebna slika, napravi image element sa aiPrompt poljem i ne izmišljaj 
       return res.status(502).json({ error: "AI odgovor nema listu elemenata za dizajn." });
     }
 
-    // Final layout guard: account for both element-box height and actual text line height.
-    // The canvas renders font sizes in CSS pixels, while element coordinates are percentages.
-    const textActions = result.actions.filter((action) =>
-      action?.type === "add_element" && action?.element?.type === "text"
+    // Layout pass based on rendered font height, not only model-supplied boxes.
+    // Keep one primary heading and flow text blocks down the page with consistent spacing.
+    const originalTextItems = result.actions
+      .map((action, index) => ({ action, index, element: action?.element }))
+      .filter((item) => item.action?.type === "add_element" && item.element?.type === "text");
+
+    const titleCandidates = originalTextItems.filter((item) =>
+      Number(item.element.y ?? 50) < 28 &&
+      Number(item.element.fontSize ?? 14) >= 20 &&
+      String(item.element.text || "").trim().length > 8
     );
-    const textItems = textActions.map((action, index) => {
-      const element = action.element;
-      const text = String(element.text || "");
-      let fontSize = Number(element.fontSize || 14);
-      let x = Number(element.x ?? 10);
-      let y = Number(element.y ?? 18);
-      let w = Number(element.w ?? 78);
-      let h = Number(element.h ?? 8);
+    let chosenTitle = null;
+    if (titleCandidates.length > 1) {
+      chosenTitle = [...titleCandidates].sort((a, b) =>
+        String(b.element.text || "").trim().length - String(a.element.text || "").trim().length
+      )[0];
+      for (const candidate of titleCandidates) {
+        if (candidate !== chosenTitle) {
+          result.actions = result.actions.filter((action) => action !== candidate.action);
+        }
+      }
+    }
 
-      w = Math.max(18, Math.min(86, w));
-      x = Math.max(7, Math.min(93 - w, x));
-      fontSize = Math.max(9, Math.min(30, fontSize));
+    const textItems = result.actions
+      .map((action, index) => ({ action, index, element: action?.element }))
+      .filter((item) => item.action?.type === "add_element" && item.element?.type === "text")
+      .map((item) => {
+        const element = item.element;
+        const text = String(element.text || "").trim();
+        const originalY = Number(element.y ?? 18);
+        let fontSize = Math.max(9, Math.min(30, Number(element.fontSize || 14)));
+        let x = Number(element.x ?? 10);
+        let w = Number(element.w ?? 78);
+        x = Math.max(7, Math.min(93 - Math.max(18, Math.min(86, w)), x));
+        w = Math.max(18, Math.min(86, w));
 
-      // Approximate wrapping to ensure tall or long text cannot visually spill into the next item.
-      const approxCharsPerLine = Math.max(10, Math.floor((w * 3.15) / Math.max(6, fontSize * 0.53)));
-      const hardLines = Math.max(1, text.split("\\n").length);
-      const estimatedLines = Math.max(hardLines, Math.ceil(text.length / approxCharsPerLine));
-      const neededHeight = Math.max(4.5, (estimatedLines * fontSize * 1.35 / 5.8) + 1.2);
-      h = Math.max(h, neededHeight);
-      return { action, element, index, text, x, y, w, h, fontSize };
-    }).sort((a, b) => a.y - b.y || a.x - b.x || a.index - b.index);
+        const approximateCharsPerLine = Math.max(12, Math.floor((w * 3.15) / Math.max(6, fontSize * 0.53)));
+        const lines = Math.max(
+          1,
+          String(text).split("\\n").length,
+          Math.ceil(text.length / approximateCharsPerLine)
+        );
+        let h = Math.max(4.5, lines * fontSize * 1.28 / 5.8 + 1.2);
+        if (chosenTitle && item.action !== chosenTitle.action && originalY < 28 && fontSize >= 18) {
+          fontSize = 14;
+          h = Math.max(5.5, Math.ceil(text.length / Math.max(20, Math.floor(w * 0.55))) * fontSize * 1.28 / 5.8 + 1.2);
+        }
+        return { ...item, text, originalY, x, w, fontSize, h, lines };
+      })
+      .sort((a, b) => a.originalY - b.originalY || a.x - b.x || a.index - b.index);
 
-    // Layout in reading order, maintaining a gap between every text element.
-    let cursor = 6.5;
+    const pageTop = 6.5;
     const pageBottom = 94;
+    const gap = 1.4;
+    const availableHeight = pageBottom - pageTop;
+    let requiredHeight = textItems.reduce((sum, item) => sum + item.h, 0) + Math.max(0, textItems.length - 1) * gap;
+
+    // If the model supplied too much text, scale typography and heights uniformly before placing.
+    if (requiredHeight > availableHeight && textItems.length) {
+      const scale = Math.max(0.62, availableHeight / requiredHeight);
+      for (const item of textItems) {
+        item.fontSize = Math.max(9, item.fontSize * scale);
+        const charsPerLine = Math.max(12, Math.floor((item.w * 3.15) / Math.max(6, item.fontSize * 0.53)));
+        item.lines = Math.max(1, Math.ceil(item.text.length / charsPerLine));
+        item.h = Math.max(4.5, item.lines * item.fontSize * 1.28 / 5.8 + 1.2);
+      }
+      requiredHeight = textItems.reduce((sum, item) => sum + item.h, 0) + Math.max(0, textItems.length - 1) * gap;
+    }
+
+    // Absolute vertical flow prevents text boxes from occupying the same area.
+    let cursor = pageTop;
     for (const item of textItems) {
-      let { element, x, y, w, h, fontSize } = item;
-      // Never allow duplicate large headings to fight for the same top area.
-      if (y < 23 && fontSize > 21 && cursor > 6.5) {
-        fontSize = Math.min(fontSize, 18);
+      const { element, x, w } = item;
+      let h = Math.min(32, item.h);
+      let fontSize = item.fontSize;
+      if (cursor + h > pageBottom) {
+        const available = Math.max(4.5, pageBottom - cursor);
+        const factor = Math.min(1, available / h);
+        h = available;
+        fontSize = Math.max(9, fontSize * factor);
       }
-      y = Math.max(y, cursor);
-      h = Math.min(32, h);
-
-      // When a page has dense copy, shrink text before allowing overlap or overflow.
-      if (y + h > pageBottom) {
-        const available = Math.max(4.5, pageBottom - y);
-        const ratio = Math.min(1, available / h);
-        fontSize = Math.max(9, Math.floor(fontSize * ratio));
-        h = Math.max(4.5, Math.min(available, (Math.max(1, item.text.length / Math.max(12, Math.floor(w * 0.48))) * fontSize * 1.35 / 5.8) + 1.2));
-      }
-      if (y + h > pageBottom) {
-        y = Math.max(6.5, pageBottom - h);
-      }
-
       element.x = Number(x.toFixed(2));
-      element.y = Number(y.toFixed(2));
+      element.y = Number(cursor.toFixed(2));
       element.w = Number(w.toFixed(2));
       element.h = Number(h.toFixed(2));
       element.fontSize = Number(fontSize.toFixed(1));
-      cursor = Math.min(pageBottom, element.y + element.h + 1.8);
+      cursor = Math.min(pageBottom, cursor + h + gap);
     }
 
     return res.status(200).json(result);
