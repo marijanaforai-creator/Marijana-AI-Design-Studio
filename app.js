@@ -959,7 +959,78 @@ function deleteProject(id){
  delete all[id];localStorage.setItem("marijanaDesignStudioProjects",JSON.stringify(all));
 }
 
- async function importPdfFile(file){
+
+async function runPdfDesign(){
+ const file=$("pdfDesignFile")?.files?.[0];
+ const promptText=$("pdfDesignPrompt")?.value?.trim();
+ const status=$("pdfDesignStatus"), button=$("runPdfDesign");
+ if(!file){if(status)status.textContent="Prvo izaberi PDF dokument.";return}
+ if(!promptText){if(status)status.textContent="Napiši šta želiš da AI napravi.";return}
+ if(!window.pdfjsLib){if(status)status.textContent="PDF biblioteka nije učitana. Osveži stranicu i pokušaj ponovo.";return}
+ if(file.type!=="application/pdf"&&!file.name.toLowerCase().endsWith(".pdf")){if(status)status.textContent="Izaberi PDF fajl.";return}
+ const pagesText=$("pdfDesignPages").value.trim()||"1";
+ const pageNums=[...new Set(pagesText.split(",").map(x=>Number(x.trim())).filter(Number.isInteger))].slice(0,3);
+ if(!pageNums.length||pageNums.some(n=>n<1)){if(status)status.textContent="Unesi validne brojeve strana, na primer 1, 5, 12.";return}
+ if(button){button.disabled=true;button.textContent="Analiziram PDF…"}
+ try{
+  pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+  const pdf=await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise;
+  if(pdf.numPages>300)throw new Error("Ovaj modul podržava PDF dokumente do 300 strana.");
+  if(pageNums.some(n=>n>pdf.numPages))throw new Error("PDF ima "+pdf.numPages+" strana. Proveri brojeve koje si unela.");
+  const images=[];
+  for(let idx=0;idx<pageNums.length;idx++){
+   if(status)status.textContent="Pripremam vizuelni uzorak "+(idx+1)+" od "+pageNums.length+"…";
+   const page=await pdf.getPage(pageNums[idx]);
+   const base=page.getViewport({scale:1});
+   const scale=Math.min(1.15,1300/Math.max(base.width,base.height));
+   const viewport=page.getViewport({scale});
+   const canvas=document.createElement("canvas");
+   canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);
+   await page.render({canvasContext:canvas.getContext("2d",{alpha:false}),viewport}).promise;
+   images.push(canvas.toDataURL("image/jpeg",0.78));
+   canvas.width=canvas.height=1;
+  }
+  let targetPage=state.active;
+  if($("pdfDesignTarget").value==="new"){
+   if(!addPage(true,"PDF dizajn"))throw new Error("Nije moguće dodati novu stranu. Proveri ograničenje broja strana.");
+   targetPage=state.active;
+  }
+  if(status)status.textContent="AI analizira boje, tipografiju i raspored i pravi elemente…";
+  const extra=$("pdfDesignMode").value==="fresh"?" Osveži originalni stil modernijim rasporedom, ali zadrži njegov vizuelni karakter.":" Koristi vizuelni stil PDF-a kao referencu.";
+  const response=await fetch("/api/pdf-design-agent",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prompt:promptText+extra,page:targetPage,images})});
+  const data=await response.json();
+  if(!response.ok)throw new Error(data.error||"PDF dizajn servis nije dostupan.");
+  if(!Array.isArray(data.actions)||!data.actions.length)throw new Error(data.message||"AI nije vratio elemente za uređivanje. Pokušaj sa konkretnijim promptom.");
+  const actions=data.actions.map(a=>a.type==="add_element"?{...a,page:targetPage}:a);
+  applyAIActions(actions);
+  state.pageNames=state.pageNames||[];
+  if($("pdfDesignTarget").value==="new")state.pageNames[targetPage-1]="PDF dizajn";
+  render();
+  saveProject(true);
+  addMessage("PDF dizajn je napravljen na strani "+targetPage+". Elementi, boje i fontovi mogu se dalje menjati u editoru.");
+  if(status)status.textContent="Gotovo — dizajn je dodat na stranu "+targetPage+". Možeš da menjaš elemente u editoru.";
+  $("pdfDesignModal").hidden=true;
+ }catch(error){
+  console.error("PDF dizajn AI greška:",error);
+  if(status)status.textContent="Nismo uspeli da napravimo dizajn: "+(error.message||"nepoznata greška");
+ }finally{if(button){button.disabled=false;button.textContent="Analiziraj i napravi dizajn →"}}
+}
+function initPdfDesign(){
+ const modal=$("pdfDesignModal");
+ if(!modal)return;
+ $("pdfDesignButton").onclick=()=>{modal.hidden=false};
+ $("closePdfDesign").onclick=$("cancelPdfDesign").onclick=()=>{modal.hidden=true};
+ modal.addEventListener("click",e=>{if(e.target===modal)modal.hidden=true});
+ $("runPdfDesign").onclick=runPdfDesign;
+ $("pdfDesignFile").addEventListener("change",async e=>{
+  const file=e.target.files?.[0];if(!file)return;
+  const info=$("pdfDesignInfo");if(info)info.textContent="Izabran fajl: "+file.name+" · broj strana proverava se pri analizi.";
+  try{
+   if(window.pdfjsLib){pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";const doc=await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise;if(info)info.textContent=file.name+" · "+doc.numPages+" strana. Podržano do 300; izaberi do 3 strane kao vizuelni uzorak."}
+  }catch(err){if(info)info.textContent="Nije moguće pročitati PDF. Proveri da fajl nije oštećen ili zaštićen."}
+ });
+}
+\n async function importPdfFile(file){
   if(!file)return;
   if(!window.pdfjsLib){addMessage("PDF uvoz nije dostupan jer biblioteka za čitanje PDF-a nije učitana. Osveži stranicu i pokušaj ponovo.");return}
   if(file.type!=="application/pdf"&&!file.name.toLowerCase().endsWith(".pdf")){addMessage("Izaberi PDF fajl.");return}
@@ -1020,7 +1091,7 @@ function deleteProject(id){
   finally{if(button){button.disabled=false;button.textContent="Uvezi PDF"}$("pdfUpload").value=""}
  }
 
- function initToolPanels(){
+ function initToolPanels(){\n initPdfDesign();
  $("templatesButton").onclick=()=>{$("templatesPanel").hidden=false;renderTemplates()};
  $("closeTemplates").onclick=()=>{$("templatesPanel").hidden=true};
  $("projectsButton").onclick=()=>{const saved=saveProject(true);$("projectsPanel").hidden=false;renderProjects();if(!saved)addMessage("Poslednje izmene nisu sačuvane u biblioteci. Proveri slobodan prostor u pregledaču.")};
