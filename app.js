@@ -457,6 +457,34 @@ function updateCanvasDimensions(){
   $("customHeight").value=state.format==="Prilagođeno"?Number((state.printHeightMm/factor).toFixed(2)):state.printHeightMm/factor;
  }
 }
+async function importProjectJSONFile(file){
+ if(!file)return;
+ try{
+  const imported=JSON.parse(await file.text());
+  if(!imported||typeof imported!=="object"||!imported.elements||!Number.isFinite(Number(imported.pages))){
+   throw new Error("Ovaj JSON fajl ne sadrži prepoznatljiv projekat iz Studija.");
+  }
+  pushHistory();
+  Object.assign(state,imported);
+  state.pages=Math.max(1,Math.min(200,Number(imported.pages)||1));
+  state.active=Math.max(1,Math.min(state.pages,Number(imported.active)||1));
+  state.projectId=imported.projectId||("p_"+Date.now());
+  state.history=[];state.historyIndex=-1;state.selectedElement=null;
+  $("projectName").value=state.name||"Uvezeni projekat";
+  $("format").value=state.format||"A4";
+  $("pageCount").value=state.pages;
+  ensurePage(state.active);
+  render();
+  const saved=saveProject(true);
+  addMessage(saved?"JSON projekat je uvezen i sačuvan u biblioteci ovog pregledača.":"JSON projekat je uvezen, ali automatsko čuvanje nije uspelo. Sačuvaj i izvezi rezervnu kopiju.");
+  $("exportPanel").hidden=true;
+ }catch(error){
+  console.error("Uvoz JSON projekta nije uspeo:",error);
+  addMessage("JSON projekat nije uvezen: "+(error.message||"nepoznata greška"));
+ }finally{
+  const input=$("projectJsonUpload");if(input)input.value="";
+ }
+}
 function exportJSON(){
  const blob=new Blob([JSON.stringify({...state,history:[],historyIndex:-1},null,2)],{type:"application/json"});
  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=(state.name||"projekat")+".json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
@@ -1122,6 +1150,8 @@ function initPdfDesign(){
  $("closeExport").onclick=()=>{$("exportPanel").hidden=true};
  ["templatesPanel","projectsPanel","exportPanel"].forEach(id=>$(id).addEventListener("click",e=>{if(e.target.id===id)$(id).hidden=true}));
  $("exportJson").onclick=exportJSON;$("exportPdf").onclick=exportPDF;$("exportSvg").onclick=exportSVG;
+ $("importProjectJson").onclick=()=>$("projectJsonUpload").click();
+ $("projectJsonUpload").onchange=e=>importProjectJSONFile(e.target.files&&e.target.files[0]);
  renderTemplates();
 }
 function createNewProjectFromModal(){
