@@ -7,7 +7,7 @@ export default async function handler(req,res){
     const userMessage=String(body.message||"").trim();
     if(!userMessage) return res.status(400).json({error:"Opiši šta želiš da napravimo."});
     const system=`Ti si AI Dizajn agent unutar Marijana AI Design Studio. Razumeš zahteve na srpskom i kreiraš stvarne, izmenljive elemente u uređivaču.
-Vrati isključivo validan JSON objekat bez markdowna u formatu:
+Obavezno vrati odgovor u json formatu (JSON objekat), bez markdowna ili teksta izvan json objekta. Koristi isključivo validan JSON u formatu:
 {"message":"kratko objašnjenje na srpskom","actions":[{"type":"add_element","page":1,"element":{"type":"text","text":"Naslov","x":8,"y":8,"w":84,"h":8,"font":"Cormorant Garamond","fontSize":24,"color":"#26312A","align":"left"}}]}
 Dozvoljene akcije: add_element, add_page, duplicate_page, delete_selected, select_page, change_color, change_fonts.
 Dozvoljeni tipovi elemenata: text, image, mockup, shape, icon, link, video, table, chart, divider.
