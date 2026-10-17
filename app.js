@@ -767,20 +767,42 @@ async function send(){
    if(result?.actions?.length) {
     const actions=result.actions;
     const looksLikePromptDump=actions.length<5 || actions.every(a=>a.type==="add_element" && /pozadina mora|dodaj naslov|ne koristi gotov|svaki deo napravi|ostavi sve unutar/i.test(String(a.element?.text||"")));
-    if(looksLikePromptDump && /radn|stranic|pitanj|linij|kontrolnu listu|moj plan/i.test(value)){
-      buildPromptWorksheet(value);
-      addMessage("Napravila sam početni raspored sa odvojenim elementima. Proveri stranicu i po potrebi uredi svaki element zasebno.");
+    if(looksLikePromptDump && /radn|stranic|stran|naslovn|pitanj|linij|kontrolnu listu|moj plan|vodič/i.test(value)){
+      buildPromptFromPrompt(value);
+      addMessage("Napravila sam početni raspored sa zasebnim elementima. Proveri stranicu i po potrebi uredi svaki element pojedinačno.");
     } else {
       applyAIActions(actions);
       addMessage(result?.message||"Dizajn je dodat na stranicu.");
     }
+   } else if(/(?:napravi|kreiraj|dizajniraj|osmisli).*(?:stran|naslov|vodič|radn|a4|pitanj|linij|plan)/i.test(value)) {
+    buildPromptFromPrompt(value);
+    addMessage("AI nije vratio upotrebljive elemente, pa sam napravila uređiv početni raspored na osnovu tvog zahteva.");
    } else {
     addMessage(result?.message||raw||"AI nije vratio elemente za dizajn.");
    }
  }catch(e){const waiting=$("messages")?.querySelector(".msg.ai:last-child");if(waiting&&waiting.textContent==="AI dizajner radi…")waiting.remove();addMessage("Nismo uspeli da generišemo dizajn: "+(e?.message||"proveri API ključ i Vercel podešavanja.") );}
 }
 window.sendPrompt=send;
- function buildPromptWorksheet(promptText){
+ function buildPromptFromPrompt(promptText){
+  const v=String(promptText||"").toLowerCase();
+  const isCover=/(naslovn|naslovnu stranu|naslovna strana|koric|vodič|e-knjig|digitalnog vodiča)/i.test(v);
+  if(!isCover){buildPromptWorksheet(promptText);return;}
+  pushHistory();
+  ensurePage(state.active);
+  const el=(type,text,x,y,w,h,opts={})=>({id:uid(),type,text:text||"",x,y,w,h,font:opts.font||state.bodyFont,fontSize:opts.fontSize||11,color:opts.color||"#26312A",align:opts.align||"left",rotate:0,opacity:100,locked:false,radius:opts.radius||0,fill:opts.fill,shadow:!!opts.shadow});
+  const out=[];
+  out.push(el("text","VODIČ ZA LIČNI RAST",12,12,76,4,{fontSize:8,color:"#8A7651",align:"center"}));
+  out.push(el("divider","",35,20,30,1,{color:"#C8A66A"}));
+  out.push(el("text","MOJ NOVI POČETAK",10,28,80,12,{font:state.headingFont,fontSize:28,color:"#26312A",align:"center"}));
+  out.push(el("text","Mali koraci ka životu koji želim da stvaram",15,43,70,7,{fontSize:12,color:"#52694C",align:"center"}));
+  out.push(el("text","Praktičan vodič za jasnoću, nameru i svakodnevno delovanje",17,54,66,8,{fontSize:10,color:"#6E756D",align:"center"}));
+  out.push(el("shape","",43,69,14,1,{fill:"#8EA386",color:"#8EA386",radius:1}));
+  out.push(el("text","TVOJ PROSTOR ZA NOVU PRIČU",18,77,64,5,{fontSize:8,color:"#8A7651",align:"center"}));
+  out.push(el("divider","",25,86,50,1,{color:"#D9DED4"}));
+  state.elements[String(state.active)]=out;
+  render();
+}
+function buildPromptWorksheet(promptText){
   pushHistory();
   ensurePage(state.active);
   const el=(type,text,x,y,w,h,opts={})=>({id:uid(),type,text:text||"",x,y,w,h,font:opts.font||state.bodyFont,fontSize:opts.fontSize||11,color:opts.color||"#26312A",align:opts.align||"left",rotate:0,opacity:100,locked:false,radius:opts.radius||0,fill:opts.fill,shadow:false});
