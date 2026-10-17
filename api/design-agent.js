@@ -33,7 +33,7 @@ ${JSON.stringify({name:project.name,format:project.format,pages:project.pages,ac
       body:JSON.stringify({
         model,
         instructions:system,
-        input:userMessage,
+        input:"Return a valid JSON object only. User design request: "+userMessage,
         text:{format:{type:"json_object"}}
       })
     });
