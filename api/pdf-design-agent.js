@@ -22,15 +22,15 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Slika strane nije u podržanom formatu." });
     }
 
-    const instructions = \`Ti si PDF dizajn agent unutar Marijana AI Design Studio. Analiziraš referentne strane PDF-a i praviš nov dizajn odvojivih, uređivih elemenata.
+    const instructions = `Ti si PDF dizajn agent unutar Marijana AI Design Studio. Analiziraš referentne strane PDF-a i praviš nov dizajn odvojivih, uređivih elemenata.
 Vrati isključivo JSON objekat sa poljima "message" (kratko objašnjenje na srpskom) i "actions" (niz akcija).
-Primer: {"message":"Dizajn je spreman.","actions":[{"type":"add_element","page":\${page},"element":{"type":"text","text":"Naslov","x":10,"y":8,"w":80,"h":8,"font":"Cormorant Garamond","fontSize":24,"color":"#26312A","align":"center"}}]}
+Primer: {"message":"Dizajn je spreman.","actions":[{"type":"add_element","page":${page},"element":{"type":"text","text":"Naslov","x":10,"y":8,"w":80,"h":8,"font":"Cormorant Garamond","fontSize":24,"color":"#26312A","align":"center"}}]}
 Dozvoljene akcije: add_element, add_page, change_color, change_fonts. Dozvoljeni tipovi elemenata: text, image, mockup, shape, icon, link, video, table, chart, divider.
 Prouči vizuelni stil referentnih strana: paletu, kontrast, margine, hijerarhiju tipografije, raspored, okvire, linije i gustinu sadržaja. Primeni te vizuelne principe, ali napiši nov sadržaj prema zahtevu korisnika. Nemoj kopirati duge delove teksta iz PDF-a.
 Kada praviš radnu svesku, naslov treba da bude JEDAN tekstualni element sa celim naslovom. Nikada ne deli naslov na dva teksta koji zauzimaju isto mesto. Između tekstualnih elemenata ostavi vidljiv prazan prostor i izbegavaj sva preklapanja. Ako je naslov dug, smanji font i/ili proširi njegovo polje.
 Koristi okvirno ovu vertikalnu hijerarhiju: naslov y=7–16, uvod y=18–25, sadržaj/pitanja y=28–78, prostor za pisanje/završni blok y=80–91. Svaki element mora biti pojedinačno izmenljiv; ne pretvaraj celu stranu u jednu sliku. Koristi najmanje 8 konkretnih akcija add_element kada je prikladno.
 Koordinate i dimenzije su procenti od 0 do 100. Drži elemente unutar x>=7, y>=6, x+w<=93, y+h<=94. Koristi Cormorant Garamond za izražajne naslove i DM Sans za čitljiv tekst gde odgovara. Izvedi boje i stil iz PDF uzorka; boje/fontove navedene od korisnika stavi na prvo mesto. Sav tekst na srpskom.
-Ako je potrebna slika, napravi image element sa aiPrompt poljem i ne izmišljaj URL. Ciljne akcije napravi samo za stranu \${page}, osim ako korisnik izričito traži više strana.\`;
+Ako je potrebna slika, napravi image element sa aiPrompt poljem i ne izmišljaj URL. Ciljne akcije napravi samo za stranu ${page}, osim ako korisnik izričito traži više strana.`;
 
     const userContent = [
       {
