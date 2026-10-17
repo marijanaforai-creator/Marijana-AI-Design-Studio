@@ -284,3 +284,22 @@ body{min-height:100vh}
 #typographyBody[hidden],
 #colorLibraryBody[hidden],
 #paletteLibraryBody[hidden]{display:none!important}
+
+
+/* PDF Design AI — dedicated visual analysis workflow */
+.pdf-design-modal[hidden]{display:none!important}
+.pdf-design-modal{position:fixed;inset:0;z-index:1200;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(10,6,15,.76);backdrop-filter:blur(6px)}
+.pdf-design-card{width:min(760px,96vw);max-height:90vh;overflow:auto;padding:26px;background:#170d20;color:#f7f0e7;border:1px solid rgba(200,166,106,.48);border-radius:18px;box-shadow:0 28px 90px rgba(0,0,0,.5)}
+.pdf-design-head{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin-bottom:22px}
+.pdf-design-head h2{margin:4px 0 6px;font:600 32px "Cormorant Garamond",serif;color:#f8f1e8}
+.pdf-design-head p{margin:0;color:#c6b8ca;font-size:12px;line-height:1.6}
+.pdf-design-grid,.pdf-design-options{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+.pdf-design-card label{display:block;margin:0 0 7px;color:#e7d8e9;font-size:11px;font-weight:700}
+.pdf-design-card input[type="text"],.pdf-design-card input[type="file"],.pdf-design-card textarea,.pdf-design-card select{box-sizing:border-box;width:100%;min-width:0;padding:11px 12px;border:1px solid #4b3852;border-radius:9px;background:#21152a;color:#f8f0f8;font:12px "DM Sans",sans-serif}
+.pdf-design-card input[type="file"]{padding:9px;font-size:10px}
+.pdf-design-card textarea{resize:vertical;min-height:100px;line-height:1.6;margin-bottom:16px}
+.pdf-design-card small{display:block;margin-top:6px;color:#b8aabd;font-size:10px;line-height:1.5}
+.pdf-design-status{padding:12px 14px;margin:2px 0 18px;border:1px solid rgba(200,166,106,.3);border-radius:10px;background:rgba(200,166,106,.08);color:#e8d6b5;font-size:11px;line-height:1.6}
+.pdf-design-actions{display:flex;justify-content:flex-end;gap:10px}
+.pdf-design-actions button{min-height:40px}
+@media(max-width:600px){.pdf-design-modal{padding:8px}.pdf-design-card{padding:16px}.pdf-design-grid,.pdf-design-options{grid-template-columns:1fr;gap:12px}.pdf-design-head h2{font-size:27px}.pdf-design-actions{flex-direction:column-reverse}.pdf-design-actions button{width:100%}}
