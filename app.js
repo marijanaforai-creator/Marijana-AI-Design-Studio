@@ -485,7 +485,7 @@ function exportSVG(){
   const escAttr=value=>esc(String(value??"")).replace(/&#39;/g,"&apos;");
   const px=(value,total)=>Number(value||0)/100*total;
   const elements=state.elements[pageKey()]||[];
-  const background=state.active===1?"#171717":"#F6F1E8";
+  const background="#F7F4ED";
   const body=elements.map(el=>{
    const x=px(el.x,width),y=px(el.y,height),w=px(el.w,width),h=px(el.h,height);
    const transform=el.rotate?' transform="rotate('+Number(el.rotate)+' '+(x+w/2)+' '+(y+h/2)+')"':"";
@@ -534,7 +534,7 @@ function render(){
 function renderPreview(){
  const p=$("preview");p.className="preview"+(state.active===1?" cover":"")+(state.previewMode?" preview-mode":"");p.innerHTML="";
  ensurePage();
- const pageBg=state.active===1?"linear-gradient(145deg,#121212,#28251f)":"var(--paper)";p.style.background=pageBg;p.style.setProperty("--body-font",'"'+state.bodyFont+'"');
+ const pageBg="#F7F4ED";p.style.background=pageBg;p.style.backgroundImage="none";p.style.setProperty("--body-font",'"'+state.bodyFont+'"');
  state.elements[pageKey()].forEach(el=>{
   const d=document.createElement("div");d.className="design-element "+el.type+"-element"+(el.id===state.selectedElement?" selected":"")+(el.locked?" locked":"");
   d.dataset.id=el.id;d.style.left=el.x+"%";d.style.top=el.y+"%";d.style.width=el.w+"%";d.style.height=el.h+"%";d.style.opacity=(el.opacity??100)/100;d.style.transform="rotate("+(el.rotate||0)+"deg)";d.style.fontFamily='"'+(el.font||state.bodyFont)+'"';d.style.fontSize=(el.fontSize||12)+"px";d.style.color=el.color||"#171717";d.style.textAlign=el.align||"left";
