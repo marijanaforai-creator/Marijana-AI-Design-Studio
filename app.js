@@ -547,7 +547,7 @@ function renderPreview(){
   else if(el.type==="video")d.innerHTML="▶ Video<br><small>"+esc(el.url||"Dodaj video URL")+"</small>";
   else if(el.type==="table")d.innerHTML="▦ Tabela<br><small>3 × 4</small>";
   else if(el.type==="chart")d.innerHTML="◒ Grafikon<br><small>Podaci za vizuelizaciju</small>";
-  if(!state.previewMode&&!el.locked){const h=document.createElement("span");h.className="resize-handle";h.addEventListener("pointerdown",ev=>startResize(ev,el));d.appendChild(h)}
+  if(!state.previewMode&&!el.locked&&el.id===state.selectedElement){const h=document.createElement("span");h.className="resize-handle";h.addEventListener("pointerdown",ev=>startResize(ev,el));d.appendChild(h)}
   d.addEventListener("pointerdown",e=>{if(e.target.classList.contains("resize-handle"))return;startDrag(e,el)});d.addEventListener("click",e=>{e.stopPropagation();state.selectedElement=el.id;render()});p.appendChild(d);
  });
  p.onclick=()=>{state.selectedElement=null;renderElementInspector();renderStudioEffects()}
