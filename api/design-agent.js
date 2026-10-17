@@ -39,7 +39,7 @@ ${JSON.stringify({name:project.name,format:project.format,pages:project.pages,ac
     });
     const data=await response.json();
     if(!response.ok) return res.status(response.status).json({error:data?.error?.message||"AI zahtev nije uspeo. Proveri OPENAI_MODEL i API ključ."});
-    const content=String(data.output_text||"").trim();
+    const content=String(data.output_text||data.output?.flatMap(item=>Array.isArray(item.content)?item.content.filter(part=>part.type==="output_text"||part.type==="text").map(part=>part.text||""):[]).join("\\n")||"").trim();
     if(!content) return res.status(502).json({error:"AI servis je vratio prazan odgovor. Pokušaj ponovo sa kraćim promptom."});
     try{JSON.parse(content)}catch{
       return res.status(502).json({error:"AI odgovor nije bio u ispravnom JSON formatu. Pokušaj ponovo."});
