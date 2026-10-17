@@ -463,21 +463,35 @@ function exportJSON(){
 }
 function exportPDF(){
  saveProject(true);
- const w=window.open("","_blank");if(!w){addMessage("Pregledač je blokirao prozor za PDF. Dozvoli pop-up za ovaj sajt.");return}
+ const w=window.open("","_blank");
+ if(!w){addMessage("Pregledač je blokirao prozor za PDF. Dozvoli pop-up za ovaj sajt.");return}
  const oldActive=state.active;
  const pages=[];
- for(let i=1;i<=state.pages;i++){state.active=i;render();pages.push('<section class="print-page">'+$("preview").outerHTML+'</section>')}
+ for(let i=1;i<=state.pages;i++){
+  state.active=i;state.selectedElement=null;render();
+  pages.push('<section class="print-page">'+$("preview").outerHTML+'</section>');
+ }
  state.active=oldActive;render();
  const widthMm=state.printWidthMm||PRINT_SIZES[state.format]?.mm?.[0]||210;
  const heightMm=state.printHeightMm||PRINT_SIZES[state.format]?.mm?.[1]||297;
- w.document.write("<html><head><title>"+esc(state.name)+"</title><style>"+
- "@page{size:"+widthMm+"mm "+heightMm+"mm;margin:0}"+
- "html,body{margin:0;padding:0;background:#fff}"+
- ".print-page{width:"+widthMm+"mm;height:"+heightMm+"mm;page-break-after:always;break-after:page;overflow:hidden;position:relative}"+
- ".print-page:last-child{page-break-after:auto;break-after:auto}"+
- ".print-page .preview{width:100%!important;height:100%!important;max-width:none!important;aspect-ratio:auto!important;box-shadow:none!important;margin:0!important}"+
- "</style></head><body>"+pages.join("")+"</body></html>");
- w.document.close();setTimeout(()=>w.print(),500);
+ w.document.open();
+ w.document.write("<!doctype html><html><head><meta charset='utf-8'><title>"+esc(state.name)+"</title>"+
+  "<link rel='stylesheet' href='https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap'>"+
+  "<style>"+
+  "@page{size:"+widthMm+"mm "+heightMm+"mm;margin:0}"+
+  "html,body{margin:0;padding:0;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}"+
+  ".print-page{width:"+widthMm+"mm;height:"+heightMm+"mm;page-break-after:always;break-after:page;overflow:hidden;position:relative;background:#F7F4ED}"+
+  ".print-page:last-child{page-break-after:auto;break-after:auto}"+
+  ".print-page .preview{width:100%!important;height:100%!important;max-width:none!important;min-width:0!important;aspect-ratio:auto!important;box-shadow:none!important;margin:0!important;padding:0!important;box-sizing:border-box!important;position:relative!important;overflow:hidden!important;background:#F7F4ED!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}"+
+  ".print-page .design-element{position:absolute!important;box-sizing:border-box!important;user-select:none;cursor:default}"+
+  ".print-page .text-element{white-space:pre-wrap;line-height:1.25;overflow:hidden;overflow-wrap:anywhere}"+
+  ".print-page .design-element img{width:100%;height:100%;display:block;object-fit:cover}"+
+  ".print-page .shape-element{border-radius:12px}"+
+  ".print-page .divider-element{height:2px;background:#C8A66A}"+
+  ".print-page .preview:before{content:'';position:absolute;inset:5.5%;border:1px solid rgba(200,166,106,.6);pointer-events:none;box-sizing:border-box}"+
+  "</style></head><body>"+pages.join("")+"</body></html>");
+ w.document.close();
+ w.onload=()=>setTimeout(()=>w.print(),300);
 }
 function exportSVG(){
  try{
