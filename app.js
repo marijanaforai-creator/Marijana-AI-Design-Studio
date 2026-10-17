@@ -1091,7 +1091,8 @@ function initPdfDesign(){
   finally{if(button){button.disabled=false;button.textContent="Uvezi PDF"}$("pdfUpload").value=""}
  }
 
- function initToolPanels(){\n initPdfDesign();
+ function initToolPanels(){
+ initPdfDesign();
  $("templatesButton").onclick=()=>{$("templatesPanel").hidden=false;renderTemplates()};
  $("closeTemplates").onclick=()=>{$("templatesPanel").hidden=true};
  $("projectsButton").onclick=()=>{const saved=saveProject(true);$("projectsPanel").hidden=false;renderProjects();if(!saved)addMessage("Poslednje izmene nisu sačuvane u biblioteci. Proveri slobodan prostor u pregledaču.")};
