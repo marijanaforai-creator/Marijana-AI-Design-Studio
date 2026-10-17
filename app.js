@@ -1004,6 +1004,9 @@ async function runPdfDesign(){
   if(!response.ok)throw new Error(data.error||"PDF dizajn servis nije dostupan.");
   if(!Array.isArray(data.actions)||!data.actions.length)throw new Error(data.message||"AI nije vratio elemente za uređivanje. Pokušaj sa konkretnijim promptom.");
   const actions=data.actions.map(a=>a.type==="add_element"?{...a,page:targetPage}:a);
+  // Fresh pages contain default placeholder title/intro elements. Remove those before applying the AI layout.
+  // Keep existing page content untouched when the user selected the current page.
+  if($("pdfDesignTarget").value==="new")state.elements[String(targetPage)]=[];
   applyAIActions(actions);
   state.pageNames=state.pageNames||[];
   if($("pdfDesignTarget").value==="new")state.pageNames[targetPage-1]="PDF dizajn";
