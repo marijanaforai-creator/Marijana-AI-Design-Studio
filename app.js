@@ -998,7 +998,9 @@ async function runPdfDesign(){
   if(status)status.textContent="AI analizira boje, tipografiju i raspored i pravi elemente…";
   const extra=$("pdfDesignMode").value==="fresh"?" Osveži originalni stil modernijim rasporedom, ali zadrži njegov vizuelni karakter.":" Koristi vizuelni stil PDF-a kao referencu.";
   const response=await fetch("/api/pdf-design-agent",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prompt:promptText+extra,page:targetPage,images})});
-  const data=await response.json();
+  const rawResponse=await response.text();
+  let data;
+  try{data=JSON.parse(rawResponse)}catch(parseError){const detail=rawResponse.replace(/<[^>]*>/g," ").replace(/\\s+/g," ").trim().slice(0,180);throw new Error("AI servis je vratio nečitljiv odgovor (HTTP "+response.status+"). "+(detail||"Pokušaj ponovo."))}
   if(!response.ok)throw new Error(data.error||"PDF dizajn servis nije dostupan.");
   if(!Array.isArray(data.actions)||!data.actions.length)throw new Error(data.message||"AI nije vratio elemente za uređivanje. Pokušaj sa konkretnijim promptom.");
   const actions=data.actions.map(a=>a.type==="add_element"?{...a,page:targetPage}:a);
