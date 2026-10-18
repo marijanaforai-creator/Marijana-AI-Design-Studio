@@ -1089,12 +1089,43 @@ function initPdfDesign(){
 }
 async function redesignPdfDocument(file,pdf,button){
  const total=pdf.numPages;
- const actions=[];
- const pageNames=[];
- let documentType="originalna vrsta dokumenta — sačuvaj postojeću namenu";
- const designPrompt="Redizajniraj samo VIZUELNI IZGLED ove strane postojećeg PDF-a. Sačuvaj postojeću vrstu dokumenta, sadržaj i redosled. Nemoj pretvarati dnevnik u planer, niti dodavati generičke naslove šablona. Krem pozadina #FAF7F2, tamni tekst #1C1917, sage green #8A9A86 i diskretni gold #C5A059; jasna tipografija, margine i razmaci. Tekst izvučen iz PDF-a je jedini izvor sadržaja. Slika služi samo kao vizuelna referenca. Bez ponavljanja naslova, bez novih rečenica, bez lažnih mockup/slika i bez preklapanja.";
+ const pageData=[];
+ const designPrompt="Redizajniraj samo VIZUELNI IZGLED postojećeg PDF-a. Sačuvaj vrstu dokumenta, sav originalni sadržaj i redosled. Nemoj dodavati generičke naslove, nova pitanja ili reklamni tekst. Koristi krem pozadinu #FAF7F2, tamni tekst #1C1917, sage green #8A9A86 i diskretni gold #C5A059. Tekst izvučen iz PDF-a je jedini izvor sadržaja; slika je samo vizuelna referenca. Bez ponavljanja naslova, lažnih mockup/slika i preklapanja.";
  try{
+  for(let i=1;i<=total;i++){
+   if(button)button.textContent="Analiza sadržaja "+i+" / "+total+"…";
+   const page=await pdf.getPage(i);
+   const content=await page.getTextContent();
+   const pageText=content.items
+    .filter(item=>item.str&&item.str.trim())
+    .map(item=>item.str+(item.hasEOL?"\n":" "))
+    .join("")
+    .replace(/[ \t]+\n/g,"\n")
+    .replace(/ {2,}/g," ")
+    .trim()
+    .slice(0,18000);
+   pageData.push({page:i,text:pageText});
+  }
+  const analysisPages=pageData.map(item=>({
+   page:item.page,
+   text:item.text.length>3000?item.text.slice(0,2200)+"\n[… sredina izostavljena u pregledu …]\n"+item.text.slice(-650):item.text
+  }));
+  if(button)button.textContent="Analiza strukture celog dokumenta…";
+  const analysisResponse=await fetch("/api/pdf-design-agent",{
+   method:"POST",headers:{"Content-Type":"application/json"},
+   body:JSON.stringify({mode:"analyze_document",prompt:designPrompt,pageCount:total,pages:analysisPages})
+  });
+  const analysisRaw=await analysisResponse.text();
+  let analysisData;
+  try{analysisData=JSON.parse(analysisRaw)}catch(e){throw new Error("Globalna analiza PDF-a nije vratila ispravan odgovor (HTTP "+analysisResponse.status+").")}
+  if(!analysisResponse.ok)throw new Error(analysisData.error||"Globalna analiza PDF-a nije uspela.");
+  const documentPlan=analysisData.documentPlan;
+  if(!documentPlan||typeof documentPlan!=="object"||!Array.isArray(documentPlan.pageSummaries))throw new Error("AI nije napravio mapu kompletnog dokumenta. Originalni projekat nije zamenjen.");
+  const summarizedPages=new Set(documentPlan.pageSummaries.map(item=>Number(item.page)));
+  for(let i=1;i<=total;i++)if(!summarizedPages.has(i))throw new Error("Globalna analiza nije obuhvatila stranu "+i+". Originalni projekat nije zamenjen.");
   const allActions=[];
+  const outputNames=[];
+  const summaries=documentPlan.pageSummaries;
   for(let i=1;i<=total;i++){
    if(button)button.textContent="AI redizajn "+i+" / "+total+"…";
    const page=await pdf.getPage(i);
@@ -1108,20 +1139,20 @@ async function redesignPdfDocument(file,pdf,button){
    await page.render({canvasContext:ctx,viewport}).promise;
    const image=canvas.toDataURL("image/jpeg",0.62);
    canvas.width=canvas.height=1;
-   const content=await page.getTextContent();
-   const pageText=content.items
-    .filter(item=>item.str&&item.str.trim())
-    .map(item=>item.str+(item.hasEOL?"\n":" "))
-    .join("")
-    .replace(/[ \t]+\n/g,"\n")
-    .replace(/ {2,}/g," ")
-    .trim()
-    .slice(0,18000);
-   if(i===1)documentType=detectPdfDocumentType(pageText);
+   const currentSummary=summaries.find(item=>Number(item.page)===i)||null;
+   const previousSummary=summaries.find(item=>Number(item.page)===i-1)||null;
+   const nextSummary=summaries.find(item=>Number(item.page)===i+1)||null;
+   const documentContext={
+    documentTitle:documentPlan.documentTitle||file.name,
+    documentType:documentPlan.documentType||detectPdfDocumentType(pageData[i-1].text),
+    purpose:documentPlan.purpose||"",
+    styleGuide:documentPlan.styleGuide||{},
+    sections:Array.isArray(documentPlan.sections)?documentPlan.sections:[],
+    pageSummary:currentSummary,previousPageSummary:previousSummary,nextPageSummary:nextSummary,pageCount:total
+   };
    const response=await fetch("/api/pdf-design-agent",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({prompt:designPrompt,page:i,pageText,documentType,images:[image]})
+    method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({prompt:designPrompt,page:i,pageCount:total,pageText:pageData[i-1].text,documentType:documentContext.documentType,documentContext,images:[image]})
    });
    const raw=await response.text();
    let data;
@@ -1131,12 +1162,8 @@ async function redesignPdfDocument(file,pdf,button){
    const pageActions=data.actions.filter(a=>a&&a.type==="add_element").map(a=>({...a,page:i}));
    if(!pageActions.length)throw new Error("Strana "+i+": nisu pronađeni elementi za dizajn. Dokument nije zamenjen.");
    allActions.push(...pageActions);
-   pageNames.push("Strana "+i);
   }
-  // Prebaci tekstualne blokove koji su završili na samom dnu na dodatne nastavne strane.
-  // To sprečava da tekst bude sabijen ili odsečen kada originalna strana ima previše sadržaja.
   const outputActions=[];
-  const outputNames=[];
   let outputPageCount=0;
   for(let sourcePage=1;sourcePage<=total;sourcePage++){
    const sourceActions=allActions.filter(action=>Number(action.page)===sourcePage);
@@ -1153,35 +1180,28 @@ async function redesignPdfDocument(file,pdf,button){
     const estimatedLines=Math.max(1,Math.ceil(textValue.length/48));
     const height=Math.min(22,Math.max(6,estimatedLines*fontSize*1.45/5.8+2));
     if(!continuationPage||cursor+height>91){
-     continuationPage=++outputPageCount;
-     continuationIndex++;
-     outputNames.push("Strana "+sourcePage+" — nastavak "+continuationIndex);
-     cursor=8;
+     continuationPage=++outputPageCount;continuationIndex++;
+     outputNames.push("Strana "+sourcePage+" — nastavak "+continuationIndex);cursor=8;
     }
     element.x=9;element.y=Number(cursor.toFixed(2));element.w=82;element.h=Number(height.toFixed(2));
     element.fontSize=fontSize;element.align=element.align||"left";
-    outputActions.push({...action,page:continuationPage});
-    cursor+=height+2.5;
+    outputActions.push({...action,page:continuationPage});cursor+=height+2.5;
    }
   }
   if(outputPageCount>200)throw new Error("Redizajn zahteva "+outputPageCount+" strana, a projekat trenutno podržava najviše 200. Originalni projekat nije zamenjen.");
-  // Ne menjaj trenutni projekat dok se sve strane uspešno ne obrade.
   pushHistory();
   state.name=(file.name||"Redizajniran PDF").replace(/\.pdf$/i,"");
   state.format="A4";state.width=794;state.height=1123;state.printWidthMm=210;state.printHeightMm=297;
   state.pages=outputPageCount;state.active=1;state.pageNames=outputNames;state.elements={};state.selectedElement=null;
   $("projectName").value=state.name;$("format").value="A4";$("pageCount").value=outputPageCount;
-  applyAIActions(outputActions);
-  render();
+  applyAIActions(outputActions);render();
   const saved=saveProject(true);
-  addMessage("AI redizajn je završen za "+total+" strana. Proveri stranice i izvezi PDF tek nakon vizuelne kontrole.");
+  addMessage("Globalna analiza i AI redizajn su završeni za "+total+" originalnih strana. Proveri stranice i izvezi PDF tek nakon vizuelne kontrole.");
   if(!saved)addMessage("Upozorenje: automatsko čuvanje nije uspelo. Odmah izvezi kopiju projekta kao JSON.");
  }catch(error){
   console.error("AI redizajn celog PDF-a nije uspeo:",error);
   addMessage("AI redizajn nije završen: "+(error?.message||"nepoznata greška")+". Postojeći projekat nije zamenjen.");
- }finally{
-  if(button){button.disabled=false;button.textContent="Uvezi PDF"}
- }
+ }finally{if(button){button.disabled=false;button.textContent="Uvezi PDF"}}
 }
 async function importPdfFile(file){
   if(!file)return;
