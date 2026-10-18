@@ -794,6 +794,23 @@ function parseDesignCommand(value){
  if(/(?:crn|crnu|black)/.test(v)){updateColor("#171717");return "Primeniла sam crnu boju."}
  return null;
 }
+function hasOverlappingDesignActions(actions){
+ const items=(actions||[]).filter(a=>a.type==="add_element"&&a.element).map(a=>({
+  type:String(a.element.type||"text"),
+  x:Number(a.element.x??12),y:Number(a.element.y??18),
+  w:Number(a.element.w??70),h:Number(a.element.h??20)
+ }));
+ for(let i=0;i<items.length;i++){
+  for(let j=i+1;j<items.length;j++){
+   const a=items[i],b=items[j];
+   if(!["text","divider"].includes(a.type)||!["text","divider"].includes(b.type))continue;
+   const overlapX=Math.min(a.x+a.w,b.x+b.w)-Math.max(a.x,b.x);
+   const overlapY=Math.min(a.y+a.h,b.y+b.h)-Math.max(a.y,b.y);
+   if(overlapX>Math.min(a.w,b.w)*0.18 && overlapY>0.35)return true;
+  }
+ }
+ return false;
+}
 async function send(){
  const value=$("prompt").value.trim();if(!value)return;
  if(!hasAccess("ai")){limitMessage("ai","CREATOR PRO");return}
@@ -809,9 +826,11 @@ async function send(){
    if(result?.actions?.length) {
     const actions=result.actions;
     const looksLikePromptDump=actions.length<5 || actions.every(a=>a.type==="add_element" && /pozadina mora|dodaj naslov|ne koristi gotov|svaki deo napravi|ostavi sve unutar/i.test(String(a.element?.text||"")));
-    if(looksLikePromptDump && /radn|stranic|stran|naslovn|pitanj|linij|kontrolnu listu|moj plan|vodič/i.test(value)){
+    const isWorksheetRequest=/(?:napravi|kreiraj|dizajniraj|osmisli).*(?:radn(?:u|a|i)|stranicu|a4|pitanj|linij|kontrolnu listu|moj plan)/i.test(value);
+    const badLayout=isWorksheetRequest&&hasOverlappingDesignActions(actions);
+    if((looksLikePromptDump||badLayout) && /radn|stranic|stran|naslovn|pitanj|linij|kontrolnu listu|moj plan|vodič/i.test(value)){
       buildPromptFromPrompt(value);
-      addMessage("Napravila sam početni raspored sa zasebnim elementima. Proveri stranicu i po potrebi uredi svaki element pojedinačno.");
+      addMessage(badLayout?"AI je predložio elemente koji bi se preklapali, pa sam primenila uredan početni raspored koji možeš da uređuješ.":"Napravila sam početni raspored sa zasebnim elementima. Proveri stranicu i po potrebi uredi svaki element pojedinačno.");
     } else {
       applyAIActions(actions);
       addMessage(result?.message||"Dizajn je dodat na stranicu.");
