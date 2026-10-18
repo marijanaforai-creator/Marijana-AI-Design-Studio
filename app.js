@@ -828,9 +828,12 @@ async function send(){
     const looksLikePromptDump=actions.length<5 || actions.every(a=>a.type==="add_element" && /pozadina mora|dodaj naslov|ne koristi gotov|svaki deo napravi|ostavi sve unutar/i.test(String(a.element?.text||"")));
     const isWorksheetRequest=/(?:napravi|kreiraj|dizajniraj|osmisli).*(?:radn(?:u|a|i)|stranicu|a4|pitanj|linij|kontrolnu listu|moj plan)/i.test(value);
     const badLayout=isWorksheetRequest&&hasOverlappingDesignActions(actions);
-    if((looksLikePromptDump||badLayout) && /radn|stranic|stran|naslovn|pitanj|linij|kontrolnu listu|moj plan|vodič/i.test(value)){
+    if(isWorksheetRequest){
       buildPromptFromPrompt(value);
-      addMessage(badLayout?"AI je predložio elemente koji bi se preklapali, pa sam primenila uredan početni raspored koji možeš da uređuješ.":"Napravila sam početni raspored sa zasebnim elementima. Proveri stranicu i po potrebi uredi svaki element pojedinačno.");
+      addMessage("Napravila sam uredan početni raspored sa zasebnim pitanjima i linijama za odgovore. Svaki element možeš pojedinačno da uređuješ u panelu Slojevi.");
+    } else if(looksLikePromptDump||badLayout){
+      buildPromptFromPrompt(value);
+      addMessage("Napravila sam početni raspored sa zasebnim elementima. Proveri stranicu i po potrebi uredi svaki element pojedinačno.");
     } else {
       applyAIActions(actions);
       addMessage(result?.message||"Dizajn je dodat na stranicu.");
@@ -868,22 +871,24 @@ function buildPromptWorksheet(promptText){
   ensurePage(state.active);
   const el=(type,text,x,y,w,h,opts={})=>({id:uid(),type,text:text||"",x,y,w,h,font:opts.font||state.bodyFont,fontSize:opts.fontSize||11,color:opts.color||"#26312A",align:opts.align||"left",rotate:0,opacity:100,locked:false,radius:opts.radius||0,fill:opts.fill,shadow:false});
   const out=[];
-  out.push(el("text","MOJ PLAN",8,7,84,7,{font:state.headingFont,fontSize:25,color:"#52694C",align:"center"}));
-  out.push(el("text","Radni list za jasnoću, fokus i sledeće korake",10,15,80,5,{fontSize:10,color:"#6E756D",align:"center"}));
-  out.push(el("divider","",22,22,56,1,{color:"#C8A66A"}));
-  const qs=["1. Šta želim da postignem?","2. Zašto mi je ovaj cilj važan?","3. Koji je moj prvi sledeći korak?"];
-  let y=27;
+  const isWeekly=/nedelj|sedmic/i.test(String(promptText||""));
+  const title=isWeekly?"PLANIRANJE NEDELJE":"MOJ PLAN";
+  const subtitle=isWeekly?"Jasni prioriteti, korisne navike i prostor za tvoje odgovore":"Radni list za jasnoću, fokus i sledeće korake";
+  out.push(el("text",title,8,6,84,8,{font:state.headingFont,fontSize:23,color:"#26312A",align:"center"}));
+  out.push(el("text",subtitle,12,15,76,7,{fontSize:10,color:"#6E756D",align:"center"}));
+  out.push(el("divider","",22,24,56,1,{color:"#C8A66A"}));
+  const qs=isWeekly
+    ?["1. Koji su moji glavni ciljevi ove nedelje?","2. Koje zadatke moram da završim?","3. Kada ću odvojiti vreme za sebe?","4. Koje navike želim da razvijam?","5. Kako ću nagraditi svoj napredak?"]
+    :["1. Šta želim da postignem?","2. Zašto mi je ovaj cilj važan?","3. Koji je moj prvi sledeći korak?","4. Koja podrška ili resursi su mi potrebni?","5. Kako ću pratiti svoj napredak?"];
+  let y=28;
   for(const q of qs){
-   out.push(el("text",q,10,y,80,5,{fontSize:12,color:"#26312A"}));
-   out.push(el("text","________________________________________________________________",10,y+5,80,4,{fontSize:9,color:"#8A8A80"}));
-   out.push(el("text","________________________________________________________________",10,y+9,80,4,{fontSize:9,color:"#8A8A80"}));
-   y+=16;
+   out.push(el("text",q,10,y,80,5,{fontSize:10,color:"#26312A"}));
+   out.push(el("divider","",12,y+6,76,0.6,{color:"#C8A66A"}));
+   out.push(el("divider","",12,y+9,76,0.6,{color:"#D8D5CC"}));
+   y+=11.5;
   }
-  out.push(el("shape","",10,77,80,9,{color:"#8EA386",fill:"#E9EEE6",radius:5}));
-  out.push(el("text","VAŽNA NAPOMENA",13,78,74,4,{fontSize:10,color:"#52694C"}));
-  out.push(el("text","________________________________________________",13,82,74,3,{fontSize:9,color:"#6E756D"}));
-  out.push(el("text","KONTROLNA LISTA",10,88,80,4,{fontSize:10,color:"#52694C"}));
-  out.push(el("text","□  Definisala sam cilj     □  Zapisala sam sledeći korak",10,92,80,3,{fontSize:8,color:"#26312A"}));
+  out.push(el("shape","",10,87,80,7,{color:"#8EA386",fill:"#E9EEE6",radius:2}));
+  out.push(el("text","Mali koraci stvaraju veliki napredak.",12,88,76,4,{fontSize:9,color:"#52694C",align:"center"}));
   state.elements[String(state.active)]=out;
   render();
  }
