@@ -1,6 +1,7 @@
+import { generateText } from "./_ai-provider.js";
+
 export default async function handler(req,res){
   if(req.method!=="POST") return res.status(405).json({error:"Metod nije dozvoljen."});
-  if(!process.env.OPENAI_API_KEY) return res.status(500).json({error:"OPENAI_API_KEY nije podešen na serveru."});
   try{
     const body=req.body||{};
     const project=body.project||{};
@@ -17,13 +18,11 @@ Ako korisnik traži više koraka, vrati akcije u tačnom redosledu izvršavanja.
 Ako zahtev nije akcija editora, vrati actions kao [] i odgovori korisno.
 Trenutni projekat:
 ${JSON.stringify({name:project.name,format:project.format,pages:project.pages,active:project.active,style:project.style,headingFont:project.headingFont,bodyFont:project.bodyFont,color:project.color})}`;
-    const r2=await fetch("https://api.openai.com/v1/responses",{
-      method:"POST",
-      headers:{"Content-Type":"application/json","Authorization":"Bearer "+process.env.OPENAI_API_KEY},
-      body:JSON.stringify({model:process.env.OPENAI_MODEL||"gpt-6-luna",instructions:system,input:userMessage})
-    });
-    const data=await r2.json();
-    if(!r2.ok) return res.status(r2.status).json({error:data?.error?.message||"AI zahtev nije uspeo."});
-    return res.status(200).json({content:data.output_text||"",response_id:data.id});
-  }catch(e){return res.status(500).json({error:e.message||"Greška servera."});}
+    const result=await generateText({system,input:userMessage,openaiModel:process.env.OPENAI_MODEL||"gpt-4.1"});
+    return res.status(200).json({content:result.text,response_id:result.responseId,provider:result.provider});
+  }catch(e){
+    const message=e.message||"Greška servera.";
+    const status=message.includes("nije podešen")?503:500;
+    return res.status(status).json({error:message});
+  }
 }
