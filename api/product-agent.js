@@ -15,7 +15,7 @@ export default async function handler(req,res){
       "POSTOJEĆI RAD: "+context,
       "Ako nešto nedostaje, napiši [DOPUNITI]."
     ].join("\n\n");
-    const result=await generateText({input:prompt,openaiModel:process.env.OPENAI_MODEL||"gpt-4.1"});
+    const result=await generateText({input:prompt,openaiModel:process.env.OPENAI_MODEL||"gpt-6-luna"});
     return res.status(200).json({result:result.text,provider:result.provider});
   }catch(e){
     const message=e.message||"Greška";
