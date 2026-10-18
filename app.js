@@ -1078,11 +1078,21 @@ function initPdfDesign(){
  });
 }
 
- async function redesignPdfDocument(file,pdf,button){
+ function detectPdfDocumentType(text){
+ const t=String(text||"").toLocaleLowerCase("sr");
+ if(/dnevnik|ličnog rasta|licnog rasta|samorefleks|reprogramiranje podsves|unutrašnja transformacija/.test(t))return "dnevnik ličnog rasta / vođeni dnevnik";
+ if(/nedeljni planer|dnevni planer|planer|raspored nedelje|weekly planner/.test(t))return "planer";
+ if(/radna sveska|radni list|pitanja za refleksiju|vežba|vezba|zapiši|zabeleži/.test(t))return "radna sveska / workbook";
+ if(/e-knjiga|ebook|e-book|poglavlje|sadržaj knjige|sadrzaj knjige/.test(t))return "e-knjiga / knjiga";
+ if(/priručnik|prirucnik|vodič|vodic|korak po korak|uputstvo/.test(t))return "vodič / priručnik";
+ return "originalna vrsta dokumenta — sačuvaj tip koji prepoznaješ iz naslova i sadržaja";
+}
+async function redesignPdfDocument(file,pdf,button){
  const total=pdf.numPages;
  const actions=[];
  const pageNames=[];
- const designPrompt="Redizajniraj vizuelno ovu stranu postojeće digitalne radne sveske. Sačuvaj originalni tekst, redosled i značenje iz dostavljenog teksta. Primeni dosledan elegantan stil: krem #FAF7F2 pozadina, tamni charcoal #1C1917, sage green #8A9A86 i diskretni gold #C5A059; jasni naslovi, čitljivi fontovi, ujednačene margine, kartice i razmaci. Ne preklapaj elemente. Nemoj izostavljati originalni sadržaj da bi stao; daj prednost čitljivosti.";
+ let documentType="originalna vrsta dokumenta — sačuvaj postojeću namenu";
+ const designPrompt="Redizajniraj samo VIZUELNI IZGLED ove strane postojećeg PDF-a. Sačuvaj postojeću vrstu dokumenta, sadržaj i redosled. Nemoj pretvarati dnevnik u planer, niti dodavati generičke naslove šablona. Krem pozadina #FAF7F2, tamni tekst #1C1917, sage green #8A9A86 i diskretni gold #C5A059; jasna tipografija, margine i razmaci. Tekst izvučen iz PDF-a je jedini izvor sadržaja. Slika služi samo kao vizuelna referenca. Bez ponavljanja naslova, bez novih rečenica, bez lažnih mockup/slika i bez preklapanja.";
  try{
   const allActions=[];
   for(let i=1;i<=total;i++){
@@ -1107,10 +1117,11 @@ function initPdfDesign(){
     .replace(/ {2,}/g," ")
     .trim()
     .slice(0,18000);
+   if(i===1)documentType=detectPdfDocumentType(pageText);
    const response=await fetch("/api/pdf-design-agent",{
     method:"POST",
     headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({prompt:designPrompt,page:i,pageText,images:[image]})
+    body:JSON.stringify({prompt:designPrompt,page:i,pageText,documentType,images:[image]})
    });
    const raw=await response.text();
    let data;
@@ -1129,7 +1140,7 @@ function initPdfDesign(){
   let outputPageCount=0;
   for(let sourcePage=1;sourcePage<=total;sourcePage++){
    const sourceActions=allActions.filter(action=>Number(action.page)===sourcePage);
-   const overflow=sourceActions.filter(action=>action.element?.type==="text"&&Number(action.element.y||0)>=91);
+   const overflow=sourceActions.filter(action=>action.element?.type==="text"&&(Number(action.element.y||0)+Number(action.element.h||0)>91));
    const main=sourceActions.filter(action=>!overflow.includes(action));
    const mainPage=++outputPageCount;
    outputNames.push("Strana "+sourcePage);
