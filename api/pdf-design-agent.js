@@ -8,39 +8,49 @@ export default async function handler(req, res) {
 
   try {
     const body = req.body || {};
+    const mode = String(body.mode || "page_design");
     const prompt = String(body.prompt || "").trim();
     const page = Math.max(1, Number(body.page) || 1);
+    const pageCount = Math.max(1, Number(body.pageCount) || 1);
     const pageText = String(body.pageText || "").slice(0, 18000);
     const documentType = String(body.documentType || "vrsta originalnog dokumenta").slice(0, 120);
+    const documentContext = body.documentContext && typeof body.documentContext === "object" ? body.documentContext : {};
     const images = Array.isArray(body.images) ? body.images.slice(0, 3) : [];
+    const documentPages = Array.isArray(body.pages) ? body.pages.slice(0, 200) : [];
 
-    if (!prompt) {
-      return res.status(400).json({ error: "Napiši šta želiš da napraviš na osnovu PDF-a." });
-    }
-    if (!images.length) {
-      return res.status(400).json({ error: "Izaberi PDF i strane za vizuelnu analizu." });
-    }
-    if (images.some((image) => typeof image !== "string" || !/^data:image\/(png|jpeg|webp);base64,/.test(image))) {
-      return res.status(400).json({ error: "Slika strane nije u podržanom formatu." });
+    if (!prompt) return res.status(400).json({ error: "Napiši šta želiš da napraviš na osnovu PDF-a." });
+    if (mode === "analyze_document") {
+      if (!documentPages.length) return res.status(400).json({ error: "Nema teksta strana za globalnu analizu PDF-a." });
+    } else {
+      if (!images.length) return res.status(400).json({ error: "Izaberi PDF i strane za vizuelnu analizu." });
+      if (images.some((image) => typeof image !== "string" || !/^data:image\/(png|jpeg|webp);base64,/.test(image))) {
+        return res.status(400).json({ error: "Slika strane nije u podržanom formatu." });
+      }
     }
 
-    const instructions = `Ti si PDF dizajn agent unutar Marijana AI Design Studio. Analiziraš referentne strane PDF-a i praviš nov dizajn odvojivih, uređivih elemenata.
-Vrati isključivo JSON objekat sa poljima "message" (kratko objašnjenje na srpskom) i "actions" (niz akcija).
-Primer: {"message":"Dizajn je spreman.","actions":[{"type":"add_element","page":${page},"element":{"type":"text","text":"Naslov","x":10,"y":8,"w":80,"h":8,"font":"Cormorant Garamond","fontSize":24,"color":"#26312A","align":"center"}}]}
-Dozvoljene akcije: add_element, add_page, change_color, change_fonts. Dozvoljeni tipovi elemenata: text, image, mockup, shape, icon, link, video, table, chart, divider.
-VRSTA DOKUMENTA JE ZAKLJUČANA: ${documentType}. Ovu vrstu moraš sačuvati na svakoj strani. Ne pretvaraj dnevnik u planer, planer u radnu svesku, e-knjigu u planer niti menjaj namenu dokumenta.
-TEKSTUALNO PRAVILO: Ako je dostavljen TEKST ORIGINALNE PDF STRANE, koristi njega kao jedini izvor za tekstualni sadržaj. Slika je samo referenca za vizuelni stil; ne prepisuj tekst sa slike i ne dodaj tekst koji nije u pageText. Sačuvaj redosled, naslove, pitanja, primere i pasuse. Nemoj ponavljati naslov niti stvarati alternativne naslove. Nemoj dodavati nazive šablona, kao što su „Nedeljni planer“, „Premium planner“ ili „Nova priča“, osim ako se tačan izraz pojavljuje u originalnom tekstu.
-Prouči vizuelni stil referentne strane: paletu, kontrast, margine, hijerarhiju tipografije i gustinu. Uredi postojeći sadržaj u jasne, uređive tekstualne elemente. Ne izostavljaj delove i ne sabijaj tekst. Ako je stranica puna, postavi kasnije tekstualne blokove niže od y=91 da bi aplikacija mogla da ih premesti na nastavnu stranu.
-Ograniči se na 1 glavni naslov samo ako ga originalni tekst sadrži, postojeće podnaslove i postojeći tekst. Nemoj izmišljati uvod, završetak, pitanja ili reklamne natpise. Koristi najviše 1–2 diskretna dekorativna elementa i izbegavaj image, mockup i lažne ilustracije. Daj prednost čitljivosti nad ukrasima.
-Koordinate i dimenzije su procenti od 0 do 100. Drži elemente unutar x>=7, x+w<=93; y može biti veći od 94 samo za tekstualne blokove koji se nastavljaju na dodatnu stranu. Koristi Cormorant Garamond za naslove i DM Sans za tekst gde odgovara. Koristi dosledno boje: #FAF7F2, #1C1917, #8A9A86 i #C5A059. Sav tekst mora ostati na srpskom. Ciljne akcije napravi samo za stranu ${page}.`;
+    const globalAnalysisInstructions = "Ti si stručnjak za analizu celih PDF dokumenata. Napravi mapu dokumenta pre redizajniranja pojedinačnih strana.\n" +
+      "Vrati isključivo JSON oblika {\"documentPlan\":{\"documentTitle\":\"...\",\"documentType\":\"...\",\"purpose\":\"...\",\"styleGuide\":{\"palette\":[\"#FAF7F2\",\"#1C1917\",\"#8A9A86\",\"#C5A059\"],\"headingFont\":\"Cormorant Garamond\",\"bodyFont\":\"DM Sans\",\"layoutPrinciples\":[\"...\"]},\"sections\":[{\"title\":\"...\",\"startPage\":1,\"endPage\":1,\"purpose\":\"...\"}],\"pageSummaries\":[{\"page\":1,\"role\":\"...\",\"contentSummary\":\"...\",\"preserve\":[\"...\"]}]}}.\n" +
+      "Pregledaj sve dostavljene strane i prepoznaj naslov, namenu, tok sadržaja, poglavlja, ponavljajuće tipove stranica i razlike među njima. Svaka dostavljena strana mora dobiti kratak sažetak u pageSummaries. Ne izmišljaj delove koji nisu podržani tekstom. Sačuvaj originalnu vrstu dokumenta, sadržaj, redosled i jezik. Razlikuj naslovne strane, sadržajne strane, radne listove, primere, beleške i završne strane. Predloži dosledan vizuelni sistem, ali nemoj forsirati isti raspored na svim tipovima stranica.";
+    const pageIndexText = documentPages.map((item) => "STRANA " + Number(item.page || 0) + ":\n" + String(item.text || "").slice(0, 3000)).join("\n\n---\n\n");
+    const pageInstructions = "Ti si PDF dizajn agent unutar Marijana AI Design Studio. Redizajniraš jednu stranu uz kontekst celog dokumenta i praviš uređive elemente.\n" +
+      "Vrati isključivo JSON objekat sa poljima \"message\" i \"actions\".\n" +
+      "Primer: {\"message\":\"Dizajn je spreman.\",\"actions\":[{\"type\":\"add_element\",\"page\":" + page + ",\"element\":{\"type\":\"text\",\"text\":\"Naslov\",\"x\":10,\"y\":8,\"w\":80,\"h\":8,\"font\":\"Cormorant Garamond\",\"fontSize\":24,\"color\":\"#26312A\",\"align\":\"center\"}}]}\n" +
+      "Dozvoljene akcije: add_element, add_page, change_color, change_fonts. Dozvoljeni tipovi elemenata: text, image, mockup, shape, icon, link, video, table, chart, divider.\n" +
+      "VRSTA DOKUMENTA: " + documentType + ". Sačuvaj je. Ne pretvaraj dnevnik u planer niti menjaj namenu.\n" +
+      "GLOBALNI KONTEKST: " + JSON.stringify(documentContext).slice(0, 12000) + "\n" +
+      "Tekst originalne strane je jedini izvor za tekstualni sadržaj. Slika je samo vizuelna referenca. Sačuvaj redosled, naslove, pitanja, primere i pasuse; ne izmišljaj ili ponavljaj tekst. Raspored prilagodi ulozi strane iz globalnog plana. Koristi doslednu paletu i tipografiju iz plana. Sav tekst mora ostati na srpskom. Ciljne akcije napravi samo za stranu " + page + " od ukupno " + pageCount + ".";
 
-    const userContent = [
-      {
-        type: "input_text",
-        text: "Output format: json. Return only a valid JSON object.\nVrsta originalnog dokumenta: " + documentType + "\nKorisnički zahtev: " + prompt + "\nCiljna strana u editoru: " + page + "\n" + (pageText ? "TEKST ORIGINALNE PDF STRANE — JEDINI IZVOR ZA TEKST, ne dodaj druge naslove ili sadržaj:\n" + pageText + "\n" : "") + "\nSlike služe isključivo za vizuelni stil. Napravi uredive elemente bez ponavljanja sadržaja i bez menjanja vrste dokumenta."
-      },
-      ...images.map((image_url) => ({ type: "input_image", image_url, detail: "high" }))
-    ];
+    const userContent = mode === "analyze_document"
+      ? [{ type: "input_text", text: "Napravi globalnu mapu dokumenta. Ukupan broj dostavljenih strana: " + documentPages.length + ". Zahtev: " + prompt + "\n\n" + pageIndexText }]
+      : [
+          {
+            type: "input_text",
+            text: "Output format: json. Return only a valid JSON object.\nVrsta originalnog dokumenta: " + documentType + "\nKorisnički zahtev: " + prompt + "\nStrana " + page + " od " + pageCount + "\nGlobalni kontekst: " + JSON.stringify(documentContext).slice(0, 12000) + "\n" + (pageText ? "TEKST ORIGINALNE PDF STRANE — JEDINI IZVOR ZA TEKST:\n" + pageText + "\n" : "") + "\nSlika služi isključivo za vizuelni stil. Napravi uređive elemente bez ponavljanja sadržaja i bez menjanja vrste dokumenta."
+          },
+          ...images.map((image_url) => ({ type: "input_image", image_url, detail: "high" }))
+        ];
+
+    const instructions = mode === "analyze_document" ? globalAnalysisInstructions : pageInstructions;
 
     const upstream = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
@@ -105,6 +115,14 @@ Koordinate i dimenzije su procenti od 0 do 100. Drži elemente unutar x>=7, x+w<
         console.error("PDF design agent: output not JSON", outputText.slice(0, 300));
         return res.status(502).json({ error: "AI nije vratio JSON dizajna. Pokušaj ponovo." });
       }
+    }
+
+    if (mode === "analyze_document") {
+      const documentPlan = result && typeof result.documentPlan === "object" ? result.documentPlan : null;
+      if (!documentPlan || !Array.isArray(documentPlan.pageSummaries)) {
+        return res.status(502).json({ error: "AI nije vratio validnu mapu kompletnog PDF dokumenta." });
+      }
+      return res.status(200).json({ documentPlan });
     }
 
     if (!result || !Array.isArray(result.actions)) {
