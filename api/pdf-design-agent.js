@@ -52,19 +52,48 @@ export default async function handler(req, res) {
 
     const instructions = mode === "analyze_document" ? globalAnalysisInstructions : pageInstructions;
 
-    const upstream = await fetch("https://api.openai.com/v1/responses", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer " + process.env.OPENAI_API_KEY
-      },
-      body: JSON.stringify({
-        model: process.env.OPENAI_MODEL || "gpt-4.1",
-        instructions,
-        input: [{ role: "user", content: userContent }],
-        text: { format: { type: "json_object" } }
-      })
-    });
+    // Claude is an optional provider for document-wide analysis only.
+    // It remains inactive unless PDF_ANALYSIS_PROVIDER=claude is explicitly configured.
+    const useClaudeForAnalysis = mode === "analyze_document" &&
+      String(process.env.PDF_ANALYSIS_PROVIDER || "").toLowerCase() === "claude";
+
+    if (useClaudeForAnalysis && !process.env.ANTHROPIC_API_KEY) {
+      return res.status(503).json({
+        error: "Claude analiza nije aktivirana: nedostaje ANTHROPIC_API_KEY kao serverska promenljiva."
+      });
+    }
+
+    const upstream = useClaudeForAnalysis
+      ? await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": process.env.ANTHROPIC_API_KEY,
+            "anthropic-version": "2023-06-01"
+          },
+          body: JSON.stringify({
+            model: process.env.CLAUDE_MODEL || "claude-sonnet-4-5",
+            max_tokens: 6000,
+            system: instructions + "\nVrati isključivo validan JSON bez markdown oznaka.",
+            messages: [{
+              role: "user",
+              content: userContent.map((part) => part.text || "").join("\n")
+            }]
+          })
+        })
+      : await fetch("https://api.openai.com/v1/responses", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + process.env.OPENAI_API_KEY
+          },
+          body: JSON.stringify({
+            model: process.env.OPENAI_MODEL || "gpt-4.1",
+            instructions,
+            input: [{ role: "user", content: userContent }],
+            text: { format: { type: "json_object" } }
+          })
+        });
 
     const upstreamText = await upstream.text();
     let data;
@@ -80,17 +109,19 @@ export default async function handler(req, res) {
     if (!upstream.ok) {
       console.error("PDF design agent upstream error", upstream.status, data?.error?.message || "unknown");
       return res.status(upstream.status).json({
-        error: data?.error?.message || "PDF dizajn analiza nije uspela."
+        error: data?.error?.message || data?.message || "PDF dizajn analiza nije uspela."
       });
     }
 
     const outputText = String(
-      data.output_text ||
-      (Array.isArray(data.output) ? data.output.flatMap((item) =>
-        Array.isArray(item.content)
-          ? item.content.filter((part) => part.type === "output_text" || part.type === "text").map((part) => part.text || "")
-          : []
-      ).join("\n") : "")
+      useClaudeForAnalysis
+        ? (Array.isArray(data.content) ? data.content.filter((part) => part.type === "text").map((part) => part.text || "").join("\n") : "")
+        : (data.output_text ||
+          (Array.isArray(data.output) ? data.output.flatMap((item) =>
+            Array.isArray(item.content)
+              ? item.content.filter((part) => part.type === "output_text" || part.type === "text").map((part) => part.text || "")
+              : []
+          ).join("\n") : ""))
     ).trim();
 
     if (!outputText) {
