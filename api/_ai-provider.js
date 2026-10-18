@@ -51,5 +51,17 @@ export async function generateText({ system = "", input = "", openaiModel } = {}
   if (!response.ok) {
     throw new Error(data?.error?.message || "OpenAI zahtev nije uspeo.");
   }
-  return { text: data.output_text || "", provider: "openai", responseId: data.id || null };
+  const extracted = data.output_text || (Array.isArray(data.output)
+    ? data.output.flatMap(item => Array.isArray(item.content)
+      ? item.content.filter(part => part.type === "output_text" || part.type === "text").map(part => part.text || "")
+      : []).join("\\n")
+    : "");
+  const text = String(extracted || "").trim();
+  if (!text) {
+    const reason = data.incomplete_details?.reason;
+    throw new Error(reason
+      ? "OpenAI odgovor je prekinut pre nego što je vratio sadržaj (" + reason + "). Pokušaj ponovo."
+      : "OpenAI nije vratio tekstualni sadržaj. Pokušaj ponovo.");
+  }
+  return { text, provider: "openai", responseId: data.id || null };
 }
