@@ -17,7 +17,7 @@ Only after deciding to fund API use and test in a preview environment:
 
 - `PDF_ANALYSIS_PROVIDER=claude`
 - `ANTHROPIC_API_KEY` — secret, add only in Vercel Project Settings → Environment Variables
-- `CLAUDE_MODEL` — optional; defaults to `claude-sonnet-4-5`
+- `CLAUDE_MODEL` — optional; defaults to `claude-sonnet-5-5`
 
 Do not place API keys in browser JavaScript, commits, screenshots, or chat messages. Do not configure these variables in Production during preparation.
 
