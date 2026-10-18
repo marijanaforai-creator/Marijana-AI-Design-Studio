@@ -515,7 +515,7 @@ function exportPDF(){
   ".print-page .text-element{white-space:pre-wrap;line-height:1.25;overflow:hidden;overflow-wrap:anywhere}"+
   ".print-page .design-element img{width:100%;height:100%;display:block;object-fit:cover}"+
   ".print-page .shape-element{border-radius:12px}"+
-  ".print-page .divider-element{height:2px;background:#C8A66A}"+
+  ".print-page .divider-element{height:1px;background:#C8A66A}"+
   ".print-page .preview:before{content:'';position:absolute;inset:5.5%;border:1px solid rgba(200,166,106,.6);pointer-events:none;box-sizing:border-box}"+
   "</style></head><body>"+pages.join("")+"</body></html>");
  w.document.close();
@@ -544,7 +544,7 @@ function exportSVG(){
     return '<image x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" href="'+escAttr(src)+'" preserveAspectRatio="xMidYMid meet" opacity="'+opacity+'"'+transform+'/>';
    }
    if(el.type==="divider"){
-    return '<line x1="'+x+'" y1="'+(y+h/2)+'" x2="'+(x+w)+'" y2="'+(y+h/2)+'" stroke="'+escAttr(el.color||"#C8A66A")+'" stroke-width="'+Math.max(1,h)+'" opacity="'+opacity+'"'+transform+'/>';
+    return '<line x1="'+x+'" y1="'+(y+h/2)+'" x2="'+(x+w)+'" y2="'+(y+h/2)+'" stroke="'+escAttr(el.color||"#C8A66A")+'" stroke-width="'+Math.max(.35,h)+'" opacity="'+opacity+'"'+transform+'/>';
    }
    const fill=el.type==="shape"?(el.color||"#C8A66A"):"#F6F1E8";
    const label={video:"Video",table:"Tabela",chart:"Grafikon"}[el.type];
@@ -888,8 +888,8 @@ function buildPromptWorksheet(promptText){
   let y=28;
   for(const q of qs){
    out.push(el("text",q,10,y,80,5,{fontSize:10,color:"#26312A"}));
-   out.push(el("divider","",12,y+6,76,0.6,{color:"#C8A66A"}));
-   out.push(el("divider","",12,y+9,76,0.6,{color:"#D8D5CC"}));
+   out.push(el("divider","",12,y+6,76,0.35,{color:"#C8A66A"}));
+   out.push(el("divider","",12,y+9,76,0.35,{color:"#D8D5CC"}));
    y+=11.5;
   }
   out.push(el("shape","",10,87,80,7,{color:"#8EA386",fill:"#E9EEE6",radius:2}));
