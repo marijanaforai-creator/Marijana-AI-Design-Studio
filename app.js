@@ -1121,6 +1121,8 @@ async function redesignPdfDocument(file,pdf,button){
   if(!analysisResponse.ok)throw new Error(analysisData.error||"Globalna analiza PDF-a nije uspela.");
   const documentPlan=analysisData.documentPlan;
   if(!documentPlan||typeof documentPlan!=="object"||!Array.isArray(documentPlan.pageSummaries))throw new Error("AI nije napravio mapu kompletnog dokumenta. Originalni projekat nije zamenjen.");
+  const summarizedPages=new Set(documentPlan.pageSummaries.map(item=>Number(item.page)));
+  for(let i=1;i<=total;i++)if(!summarizedPages.has(i))throw new Error("Globalna analiza nije obuhvatila stranu "+i+". Originalni projekat nije zamenjen.");
   const allActions=[];
   const outputNames=[];
   const summaries=documentPlan.pageSummaries;
@@ -1160,7 +1162,6 @@ async function redesignPdfDocument(file,pdf,button){
    const pageActions=data.actions.filter(a=>a&&a.type==="add_element").map(a=>({...a,page:i}));
    if(!pageActions.length)throw new Error("Strana "+i+": nisu pronađeni elementi za dizajn. Dokument nije zamenjen.");
    allActions.push(...pageActions);
-   outputNames.push("Strana "+i);
   }
   const outputActions=[];
   let outputPageCount=0;
@@ -1169,6 +1170,7 @@ async function redesignPdfDocument(file,pdf,button){
    const overflow=sourceActions.filter(action=>action.element?.type==="text"&&(Number(action.element.y||0)+Number(action.element.h||0)>91));
    const main=sourceActions.filter(action=>!overflow.includes(action));
    const mainPage=++outputPageCount;
+   outputNames.push("Strana "+sourcePage);
    main.forEach(action=>outputActions.push({...action,page:mainPage}));
    let continuationPage=0,continuationIndex=0,cursor=8;
    for(const action of overflow){
