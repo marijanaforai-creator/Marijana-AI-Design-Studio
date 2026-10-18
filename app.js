@@ -868,6 +868,11 @@ window.sendPrompt=send;
 }
 function buildPromptWorksheet(promptText){
   pushHistory();
+  if(/\bA4\b/i.test(String(promptText||""))){
+    state.format="A4";
+    if($("format"))$("format").value="A4";
+    updateCanvasDimensions();
+  }
   ensurePage(state.active);
   const el=(type,text,x,y,w,h,opts={})=>({id:uid(),type,text:text||"",x,y,w,h,font:opts.font||state.bodyFont,fontSize:opts.fontSize||11,color:opts.color||"#26312A",align:opts.align||"left",rotate:0,opacity:100,locked:false,radius:opts.radius||0,fill:opts.fill,shadow:false});
   const out=[];
