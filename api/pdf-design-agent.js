@@ -11,6 +11,7 @@ export default async function handler(req, res) {
     const prompt = String(body.prompt || "").trim();
     const page = Math.max(1, Number(body.page) || 1);
     const pageText = String(body.pageText || "").slice(0, 18000);
+    const documentType = String(body.documentType || "vrsta originalnog dokumenta").slice(0, 120);
     const images = Array.isArray(body.images) ? body.images.slice(0, 3) : [];
 
     if (!prompt) {
@@ -27,16 +28,16 @@ export default async function handler(req, res) {
 Vrati isključivo JSON objekat sa poljima "message" (kratko objašnjenje na srpskom) i "actions" (niz akcija).
 Primer: {"message":"Dizajn je spreman.","actions":[{"type":"add_element","page":${page},"element":{"type":"text","text":"Naslov","x":10,"y":8,"w":80,"h":8,"font":"Cormorant Garamond","fontSize":24,"color":"#26312A","align":"center"}}]}
 Dozvoljene akcije: add_element, add_page, change_color, change_fonts. Dozvoljeni tipovi elemenata: text, image, mockup, shape, icon, link, video, table, chart, divider.
-Prouči vizuelni stil referentnih strana: paletu, kontrast, margine, hijerarhiju tipografije, raspored, okvire, linije i gustinu sadržaja. Ako je dostavljen TEKST ORIGINALNE STRANE, on je izvor istine: sačuvaj važne rečenice, naslove, primere, numerisane korake i redosled; nemoj izmišljati nov sadržaj umesto originala i nemoj tiho izostavljati delove. Preuredi postojeći sadržaj u čitljive, uređive tekstualne elemente. Ako tekst ne može čitljivo da stane, vrati u polju message upozorenje da je potrebna dodatna strana umesto sabijanja teksta. Ako originalni tekst nije dostupan, kreiraj sadržaj prema zahtevu korisnika.
-Kada praviš radnu svesku, napravi samo JEDAN glavni naslov kao jedan tekstualni element. Ne pravi alternativne, engleske, ponovljene ili preklopljene naslove. Ako korisnik traži tri pitanja, prikaži tačno tri pitanja. Ograniči stranicu na oko 8–12 ukupnih elemenata i daj prednost čitljivosti nad dodatnim ukrasima. Između tekstualnih elemenata ostavi vidljiv prazan prostor i izbegavaj sva preklapanja. Ako je naslov dug, smanji font i/ili proširi njegovo polje.
-Koristi okvirno ovu vertikalnu hijerarhiju: naslov y=7–16, uvod y=18–25, sadržaj/pitanja y=28–78, prostor za pisanje/završni blok y=80–91. Svaki element mora biti pojedinačno izmenljiv; ne pretvaraj celu stranu u jednu sliku. Koristi najmanje 8 konkretnih akcija add_element kada je prikladno.
-Koordinate i dimenzije su procenti od 0 do 100. Drži elemente unutar x>=7, y>=6, x+w<=93, y+h<=94. Koristi Cormorant Garamond za izražajne naslove i DM Sans za čitljiv tekst gde odgovara. Izvedi boje i stil iz PDF uzorka; boje/fontove navedene od korisnika stavi na prvo mesto. Sav tekst na srpskom.
-Ako je potrebna slika, napravi image element sa aiPrompt poljem i ne izmišljaj URL. Ciljne akcije napravi samo za stranu ${page}, osim ako korisnik izričito traži više strana.`;
+VRSTA DOKUMENTA JE ZAKLJUČANA: ${documentType}. Ovu vrstu moraš sačuvati na svakoj strani. Ne pretvaraj dnevnik u planer, planer u radnu svesku, e-knjigu u planer niti menjaj namenu dokumenta.
+TEKSTUALNO PRAVILO: Ako je dostavljen TEKST ORIGINALNE PDF STRANE, koristi njega kao jedini izvor za tekstualni sadržaj. Slika je samo referenca za vizuelni stil; ne prepisuj tekst sa slike i ne dodaj tekst koji nije u pageText. Sačuvaj redosled, naslove, pitanja, primere i pasuse. Nemoj ponavljati naslov niti stvarati alternativne naslove. Nemoj dodavati nazive šablona, kao što su „Nedeljni planer“, „Premium planner“ ili „Nova priča“, osim ako se tačan izraz pojavljuje u originalnom tekstu.
+Prouči vizuelni stil referentne strane: paletu, kontrast, margine, hijerarhiju tipografije i gustinu. Uredi postojeći sadržaj u jasne, uređive tekstualne elemente. Ne izostavljaj delove i ne sabijaj tekst. Ako je stranica puna, postavi kasnije tekstualne blokove niže od y=91 da bi aplikacija mogla da ih premesti na nastavnu stranu.
+Ograniči se na 1 glavni naslov samo ako ga originalni tekst sadrži, postojeće podnaslove i postojeći tekst. Nemoj izmišljati uvod, završetak, pitanja ili reklamne natpise. Koristi najviše 1–2 diskretna dekorativna elementa i izbegavaj image, mockup i lažne ilustracije. Daj prednost čitljivosti nad ukrasima.
+Koordinate i dimenzije su procenti od 0 do 100. Drži elemente unutar x>=7, x+w<=93; y može biti veći od 94 samo za tekstualne blokove koji se nastavljaju na dodatnu stranu. Koristi Cormorant Garamond za naslove i DM Sans za tekst gde odgovara. Koristi dosledno boje: #FAF7F2, #1C1917, #8A9A86 i #C5A059. Sav tekst mora ostati na srpskom. Ciljne akcije napravi samo za stranu ${page}.`;
 
     const userContent = [
       {
         type: "input_text",
-        text: "Output format: json. Return only a valid JSON object.\nKorisnički zahtev: " + prompt + "\nCiljna strana u editoru: " + page + "\n" + (pageText ? "TEKST ORIGINALNE PDF STRANE (sačuvaj sadržaj, smisao i redosled; menjaj prelom i raspored):\n" + pageText + "\n" : "") + "\nAnaliziraj vizuelne reference i generiši uređive elemente. Prioritet su čitljivost, vernost originalnom sadržaju i odsustvo preklapanja."
+        text: "Output format: json. Return only a valid JSON object.\nVrsta originalnog dokumenta: " + documentType + "\nKorisnički zahtev: " + prompt + "\nCiljna strana u editoru: " + page + "\n" + (pageText ? "TEKST ORIGINALNE PDF STRANE — JEDINI IZVOR ZA TEKST, ne dodaj druge naslove ili sadržaj:\n" + pageText + "\n" : "") + "\nSlike služe isključivo za vizuelni stil. Napravi uredive elemente bez ponavljanja sadržaja i bez menjanja vrste dokumenta."
       },
       ...images.map((image_url) => ({ type: "input_image", image_url, detail: "high" }))
     ];
@@ -196,7 +197,7 @@ Ako je potrebna slika, napravi image element sa aiPrompt poljem i ne izmišljaj 
       element.w = Number(w.toFixed(2));
       element.h = Number(h.toFixed(2));
       element.fontSize = Number(fontSize.toFixed(1));
-      cursor = Math.min(pageBottom, cursor + h + gap);
+      cursor = cursor + h + gap; // Keep overflow positions so the caller can move them to continuation pages.
     }
 
     // Keep long decorative rules outside text blocks; AI-generated dividers must never cut through titles.
