@@ -72,7 +72,7 @@ export default async function handler(req, res) {
             "anthropic-version": "2023-06-01"
           },
           body: JSON.stringify({
-            model: process.env.CLAUDE_MODEL || "claude-sonnet-4-5",
+            model: process.env.CLAUDE_MODEL || "claude-sonnet-5-5",
             max_tokens: 6000,
             system: instructions + "\nVrati isključivo validan JSON bez markdown oznaka.",
             messages: [{
