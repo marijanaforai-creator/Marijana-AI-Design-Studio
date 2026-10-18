@@ -1,6 +1,7 @@
+import { generateText } from "./_ai-provider.js";
+
 export default async function handler(req,res){
   if(req.method!=="POST") return res.status(405).json({error:"Metod nije dozvoljen."});
-  if(!process.env.OPENAI_API_KEY) return res.status(500).json({error:"Nedostaje OPENAI_API_KEY u Vercel Environment Variables."});
   try{
     const body=req.body||{};
     const project=body.project||{};
@@ -26,25 +27,11 @@ VAŽNO:
 - Ako zahtev nije izmena u editoru, vrati actions:[] i odgovori korisno.
 Kontekst projekta:
 ${JSON.stringify({name:project.name,format:project.format,pages:project.pages,active:project.active,style:project.style,headingFont:project.headingFont,bodyFont:project.bodyFont,color:project.color})}`;
-    const model=process.env.OPENAI_MODEL||"gpt-4.1";
-    const response=await fetch("https://api.openai.com/v1/responses",{
-      method:"POST",
-      headers:{"Content-Type":"application/json","Authorization":"Bearer "+process.env.OPENAI_API_KEY},
-      body:JSON.stringify({
-        model,
-        instructions:system,
-        input:"Return a valid JSON object only. User design request: "+userMessage,
-        text:{format:{type:"json_object"}}
-      })
-    });
-    const data=await response.json();
-    if(!response.ok) return res.status(response.status).json({error:data?.error?.message||"AI zahtev nije uspeo. Proveri OPENAI_MODEL i API ključ."});
-    const content=String(data.output_text||data.output?.flatMap(item=>Array.isArray(item.content)?item.content.filter(part=>part.type==="output_text"||part.type==="text").map(part=>part.text||""):[]).join("\\n")||"").trim();
+    const result=await generateText({system,input:"Return a valid JSON object only. User design request: "+userMessage,openaiModel:process.env.OPENAI_MODEL||"gpt-4.1"});
+    const content=String(result.text||"").trim();
     if(!content) return res.status(502).json({error:"AI servis je vratio prazan odgovor. Pokušaj ponovo sa kraćim promptom."});
-    try{JSON.parse(content)}catch{
-      return res.status(502).json({error:"AI odgovor nije bio u ispravnom JSON formatu. Pokušaj ponovo."});
-    }
-    return res.status(200).json({content,response_id:data.id});
+    try{JSON.parse(content)}catch{return res.status(502).json({error:"AI odgovor nije bio u ispravnom JSON formatu. Pokušaj ponovo."});}
+    return res.status(200).json({content,response_id:result.responseId,provider:result.provider});
   }catch(error){
     return res.status(500).json({error:error?.message||"Došlo je do greške u AI servisu."});
   }
