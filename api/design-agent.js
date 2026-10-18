@@ -18,7 +18,7 @@ Ako korisnik traži više koraka, vrati akcije u tačnom redosledu izvršavanja.
 Ako zahtev nije akcija editora, vrati actions kao [] i odgovori korisno.
 Trenutni projekat:
 ${JSON.stringify({name:project.name,format:project.format,pages:project.pages,active:project.active,style:project.style,headingFont:project.headingFont,bodyFont:project.bodyFont,color:project.color})}`;
-    const result=await generateText({system,input:userMessage,openaiModel:process.env.OPENAI_MODEL||"gpt-4.1"});
+    const result=await generateText({system,input:userMessage,openaiModel:process.env.OPENAI_MODEL||"gpt-6-luna"});
     return res.status(200).json({content:result.text,response_id:result.responseId,provider:result.provider});
   }catch(e){
     const message=e.message||"Greška servera.";
