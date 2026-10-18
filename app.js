@@ -457,27 +457,69 @@ function updateCanvasDimensions(){
   $("customHeight").value=state.format==="Prilagođeno"?Number((state.printHeightMm/factor).toFixed(2)):state.printHeightMm/factor;
  }
 }
+async function importProjectJSONFile(file){
+ if(!file)return;
+ try{
+  const imported=JSON.parse(await file.text());
+  if(!imported||typeof imported!=="object"||!imported.elements||!Number.isFinite(Number(imported.pages))){
+   throw new Error("Ovaj JSON fajl ne sadrži prepoznatljiv projekat iz Studija.");
+  }
+  pushHistory();
+  Object.assign(state,imported);
+  state.pages=Math.max(1,Math.min(200,Number(imported.pages)||1));
+  state.active=Math.max(1,Math.min(state.pages,Number(imported.active)||1));
+  state.projectId=imported.projectId||("p_"+Date.now());
+  state.history=[];state.historyIndex=-1;state.selectedElement=null;
+  $("projectName").value=state.name||"Uvezeni projekat";
+  $("format").value=state.format||"A4";
+  $("pageCount").value=state.pages;
+  ensurePage(state.active);
+  render();
+  const saved=saveProject(true);
+  addMessage(saved?"JSON projekat je uvezen i sačuvan u biblioteci ovog pregledača.":"JSON projekat je uvezen, ali automatsko čuvanje nije uspelo. Sačuvaj i izvezi rezervnu kopiju.");
+  $("exportPanel").hidden=true;
+ }catch(error){
+  console.error("Uvoz JSON projekta nije uspeo:",error);
+  addMessage("JSON projekat nije uvezen: "+(error.message||"nepoznata greška"));
+ }finally{
+  const input=$("projectJsonUpload");if(input)input.value="";
+ }
+}
 function exportJSON(){
  const blob=new Blob([JSON.stringify({...state,history:[],historyIndex:-1},null,2)],{type:"application/json"});
  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=(state.name||"projekat")+".json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 }
 function exportPDF(){
  saveProject(true);
- const w=window.open("","_blank");if(!w){addMessage("Pregledač je blokirao prozor za PDF. Dozvoli pop-up za ovaj sajt.");return}
+ const w=window.open("","_blank");
+ if(!w){addMessage("Pregledač je blokirao prozor za PDF. Dozvoli pop-up za ovaj sajt.");return}
  const oldActive=state.active;
  const pages=[];
- for(let i=1;i<=state.pages;i++){state.active=i;render();pages.push('<section class="print-page">'+$("preview").outerHTML+'</section>')}
+ for(let i=1;i<=state.pages;i++){
+  state.active=i;state.selectedElement=null;render();
+  pages.push('<section class="print-page">'+$("preview").outerHTML+'</section>');
+ }
  state.active=oldActive;render();
  const widthMm=state.printWidthMm||PRINT_SIZES[state.format]?.mm?.[0]||210;
  const heightMm=state.printHeightMm||PRINT_SIZES[state.format]?.mm?.[1]||297;
- w.document.write("<html><head><title>"+esc(state.name)+"</title><style>"+
- "@page{size:"+widthMm+"mm "+heightMm+"mm;margin:0}"+
- "html,body{margin:0;padding:0;background:#fff}"+
- ".print-page{width:"+widthMm+"mm;height:"+heightMm+"mm;page-break-after:always;break-after:page;overflow:hidden;position:relative}"+
- ".print-page:last-child{page-break-after:auto;break-after:auto}"+
- ".print-page .preview{width:100%!important;height:100%!important;max-width:none!important;aspect-ratio:auto!important;box-shadow:none!important;margin:0!important}"+
- "</style></head><body>"+pages.join("")+"</body></html>");
- w.document.close();setTimeout(()=>w.print(),500);
+ w.document.open();
+ w.document.write("<!doctype html><html><head><meta charset='utf-8'><title>"+esc(state.name)+"</title>"+
+  "<link rel='stylesheet' href='https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap'>"+
+  "<style>"+
+  "@page{size:"+widthMm+"mm "+heightMm+"mm;margin:0}"+
+  "html,body{margin:0;padding:0;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}"+
+  ".print-page{width:"+widthMm+"mm;height:"+heightMm+"mm;page-break-after:always;break-after:page;overflow:hidden;position:relative;background:#F7F4ED}"+
+  ".print-page:last-child{page-break-after:auto;break-after:auto}"+
+  ".print-page .preview{width:100%!important;height:100%!important;max-width:none!important;min-width:0!important;aspect-ratio:auto!important;box-shadow:none!important;margin:0!important;padding:0!important;box-sizing:border-box!important;position:relative!important;overflow:hidden!important;background:#F7F4ED!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}"+
+  ".print-page .design-element{position:absolute!important;box-sizing:border-box!important;user-select:none;cursor:default}"+
+  ".print-page .text-element{white-space:pre-wrap;line-height:1.25;overflow:hidden;overflow-wrap:anywhere}"+
+  ".print-page .design-element img{width:100%;height:100%;display:block;object-fit:cover}"+
+  ".print-page .shape-element{border-radius:12px}"+
+  ".print-page .divider-element{height:1px;background:#C8A66A}"+
+  ".print-page .preview:before{content:'';position:absolute;inset:5.5%;border:1px solid rgba(200,166,106,.6);pointer-events:none;box-sizing:border-box}"+
+  "</style></head><body>"+pages.join("")+"</body></html>");
+ w.document.close();
+ w.onload=()=>setTimeout(()=>w.print(),300);
 }
 function exportSVG(){
  try{
@@ -485,7 +527,7 @@ function exportSVG(){
   const escAttr=value=>esc(String(value??"")).replace(/&#39;/g,"&apos;");
   const px=(value,total)=>Number(value||0)/100*total;
   const elements=state.elements[pageKey()]||[];
-  const background=state.active===1?"#171717":"#F6F1E8";
+  const background="#F7F4ED";
   const body=elements.map(el=>{
    const x=px(el.x,width),y=px(el.y,height),w=px(el.w,width),h=px(el.h,height);
    const transform=el.rotate?' transform="rotate('+Number(el.rotate)+' '+(x+w/2)+' '+(y+h/2)+')"':"";
@@ -502,7 +544,7 @@ function exportSVG(){
     return '<image x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" href="'+escAttr(src)+'" preserveAspectRatio="xMidYMid meet" opacity="'+opacity+'"'+transform+'/>';
    }
    if(el.type==="divider"){
-    return '<line x1="'+x+'" y1="'+(y+h/2)+'" x2="'+(x+w)+'" y2="'+(y+h/2)+'" stroke="'+escAttr(el.color||"#C8A66A")+'" stroke-width="'+Math.max(1,h)+'" opacity="'+opacity+'"'+transform+'/>';
+    return '<line x1="'+x+'" y1="'+(y+h/2)+'" x2="'+(x+w)+'" y2="'+(y+h/2)+'" stroke="'+escAttr(el.color||"#C8A66A")+'" stroke-width="'+Math.max(.35,h)+'" opacity="'+opacity+'"'+transform+'/>';
    }
    const fill=el.type==="shape"?(el.color||"#C8A66A"):"#F6F1E8";
    const label={video:"Video",table:"Tabela",chart:"Grafikon"}[el.type];
@@ -534,7 +576,7 @@ function render(){
 function renderPreview(){
  const p=$("preview");p.className="preview"+(state.active===1?" cover":"")+(state.previewMode?" preview-mode":"");p.innerHTML="";
  ensurePage();
- const pageBg=state.active===1?"linear-gradient(145deg,#121212,#28251f)":"var(--paper)";p.style.background=pageBg;p.style.setProperty("--body-font",'"'+state.bodyFont+'"');
+ const pageBg="#F7F4ED";p.style.background=pageBg;p.style.backgroundImage="none";p.style.setProperty("--body-font",'"'+state.bodyFont+'"');
  state.elements[pageKey()].forEach(el=>{
   const d=document.createElement("div");d.className="design-element "+el.type+"-element"+(el.id===state.selectedElement?" selected":"")+(el.locked?" locked":"");
   d.dataset.id=el.id;d.style.left=el.x+"%";d.style.top=el.y+"%";d.style.width=el.w+"%";d.style.height=el.h+"%";d.style.opacity=(el.opacity??100)/100;d.style.transform="rotate("+(el.rotate||0)+"deg)";d.style.fontFamily='"'+(el.font||state.bodyFont)+'"';d.style.fontSize=(el.fontSize||12)+"px";d.style.color=el.color||"#171717";d.style.textAlign=el.align||"left";
@@ -547,7 +589,7 @@ function renderPreview(){
   else if(el.type==="video")d.innerHTML="▶ Video<br><small>"+esc(el.url||"Dodaj video URL")+"</small>";
   else if(el.type==="table")d.innerHTML="▦ Tabela<br><small>3 × 4</small>";
   else if(el.type==="chart")d.innerHTML="◒ Grafikon<br><small>Podaci za vizuelizaciju</small>";
-  if(!state.previewMode&&!el.locked){const h=document.createElement("span");h.className="resize-handle";h.addEventListener("pointerdown",ev=>startResize(ev,el));d.appendChild(h)}
+  if(!state.previewMode&&!el.locked&&el.id===state.selectedElement){const h=document.createElement("span");h.className="resize-handle";h.addEventListener("pointerdown",ev=>startResize(ev,el));d.appendChild(h)}
   d.addEventListener("pointerdown",e=>{if(e.target.classList.contains("resize-handle"))return;startDrag(e,el)});d.addEventListener("click",e=>{e.stopPropagation();state.selectedElement=el.id;render()});p.appendChild(d);
  });
  p.onclick=()=>{state.selectedElement=null;renderElementInspector();renderStudioEffects()}
@@ -752,22 +794,109 @@ function parseDesignCommand(value){
  if(/(?:crn|crnu|black)/.test(v)){updateColor("#171717");return "Primeniла sam crnu boju."}
  return null;
 }
+function hasOverlappingDesignActions(actions){
+ const items=(actions||[]).filter(a=>a.type==="add_element"&&a.element).map(a=>({
+  type:String(a.element.type||"text"),
+  x:Number(a.element.x??12),y:Number(a.element.y??18),
+  w:Number(a.element.w??70),h:Number(a.element.h??20)
+ }));
+ for(let i=0;i<items.length;i++){
+  for(let j=i+1;j<items.length;j++){
+   const a=items[i],b=items[j];
+   if(!["text","divider"].includes(a.type)||!["text","divider"].includes(b.type))continue;
+   const overlapX=Math.min(a.x+a.w,b.x+b.w)-Math.max(a.x,b.x);
+   const overlapY=Math.min(a.y+a.h,b.y+b.h)-Math.max(a.y,b.y);
+   if(overlapX>Math.min(a.w,b.w)*0.18 && overlapY>0.35)return true;
+  }
+ }
+ return false;
+}
 async function send(){
  const value=$("prompt").value.trim();if(!value)return;
  if(!hasAccess("ai")){limitMessage("ai","CREATOR PRO");return}
  if(!DEV_MODE){state.aiUsed++;localStorage.setItem("marijanaDesignStudioAIUsed",String(state.aiUsed))}
  addMessage(value,"user");$("prompt").value="";
- const direct=parseDesignCommand(value);if(direct){addMessage(direct);return}
+  const isFullPagePrompt=/(?:napravi|kreiraj|dizajniraj|osmisli).*(?:radn(?:u|a|i)|stranicu|a4|pitanj|linij|kontrolnu listu|moj plan)/i.test(value);
+  const direct=isFullPagePrompt?null:parseDesignCommand(value);if(direct){addMessage(direct);return}
  addMessage("AI dizajner radi…");
  try{
   const response=await fetch("/api/design-agent",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:value,project:{name:state.name,format:state.format,pages:state.pages,active:state.active,style:state.style,headingFont:state.headingFont,bodyFont:state.bodyFont,color:state.color}})});
   const data=await response.json();if(!response.ok)throw new Error(data.error||"AI servis nije dostupan.");
   const raw=String(data.content||"").trim();let result=null;try{result=JSON.parse(raw)}catch(e){const m=raw.match(/\{[\\s\\S]*\}/);if(m)try{result=JSON.parse(m[0])}catch(e2){}}
-  if(result?.actions?.length) applyAIActions(result.actions);
-  addMessage(result?.message||raw||"AI nije vratio odgovor.");
- }catch(e){addMessage("AI backend još nije povezan u ovom okruženju. Kada se aplikacija postavi na Vercel i doda OPENAI_API_KEY, razgovor će raditi direktno.");}
+   if(result?.actions?.length) {
+    const actions=result.actions;
+    const looksLikePromptDump=actions.length<5 || actions.every(a=>a.type==="add_element" && /pozadina mora|dodaj naslov|ne koristi gotov|svaki deo napravi|ostavi sve unutar/i.test(String(a.element?.text||"")));
+    const isWorksheetRequest=/(?:napravi|kreiraj|dizajniraj|osmisli).*(?:radn(?:u|a|i)|stranicu|a4|pitanj|linij|kontrolnu listu|moj plan)/i.test(value);
+    const badLayout=isWorksheetRequest&&hasOverlappingDesignActions(actions);
+    if(isWorksheetRequest){
+      buildPromptFromPrompt(value);
+      addMessage("Napravila sam uredan početni raspored sa zasebnim pitanjima i linijama za odgovore. Svaki element možeš pojedinačno da uređuješ u panelu Slojevi.");
+    } else if(looksLikePromptDump||badLayout){
+      buildPromptFromPrompt(value);
+      addMessage("Napravila sam početni raspored sa zasebnim elementima. Proveri stranicu i po potrebi uredi svaki element pojedinačno.");
+    } else {
+      applyAIActions(actions);
+      addMessage(result?.message||"Dizajn je dodat na stranicu.");
+    }
+   } else if(/(?:napravi|kreiraj|dizajniraj|osmisli).*(?:stran|naslov|vodič|radn|a4|pitanj|linij|plan)/i.test(value)) {
+    buildPromptFromPrompt(value);
+    addMessage("AI nije vratio upotrebljive elemente, pa sam napravila uređiv početni raspored na osnovu tvog zahteva.");
+   } else {
+    addMessage(result?.message||raw||"AI nije vratio elemente za dizajn.");
+   }
+ }catch(e){const waiting=$("messages")?.querySelector(".msg.ai:last-child");if(waiting&&waiting.textContent==="AI dizajner radi…")waiting.remove();addMessage("Nismo uspeli da generišemo dizajn: "+(e?.message||"proveri API ključ i Vercel podešavanja.") );}
 }
 window.sendPrompt=send;
+ function buildPromptFromPrompt(promptText){
+  const v=String(promptText||"").toLowerCase();
+  const isCover=/(naslovn|naslovnu stranu|naslovna strana|koric|vodič|e-knjig|digitalnog vodiča)/i.test(v);
+  if(!isCover){buildPromptWorksheet(promptText);return;}
+  pushHistory();
+  ensurePage(state.active);
+  const el=(type,text,x,y,w,h,opts={})=>({id:uid(),type,text:text||"",x,y,w,h,font:opts.font||state.bodyFont,fontSize:opts.fontSize||11,color:opts.color||"#26312A",align:opts.align||"left",rotate:0,opacity:100,locked:false,radius:opts.radius||0,fill:opts.fill,shadow:!!opts.shadow});
+  const out=[];
+  out.push(el("text","VODIČ ZA LIČNI RAST",12,12,76,4,{fontSize:8,color:"#8A7651",align:"center"}));
+  out.push(el("divider","",35,20,30,1,{color:"#C8A66A"}));
+  out.push(el("text","MOJ NOVI POČETAK",10,28,80,12,{font:state.headingFont,fontSize:28,color:"#26312A",align:"center"}));
+  out.push(el("text","Mali koraci ka životu koji želim da stvaram",15,43,70,7,{fontSize:12,color:"#52694C",align:"center"}));
+  out.push(el("text","Praktičan vodič za jasnoću, nameru i svakodnevno delovanje",17,54,66,8,{fontSize:10,color:"#6E756D",align:"center"}));
+  out.push(el("shape","",43,69,14,1,{fill:"#8EA386",color:"#8EA386",radius:1}));
+  out.push(el("text","TVOJ PROSTOR ZA NOVU PRIČU",18,77,64,5,{fontSize:8,color:"#8A7651",align:"center"}));
+  out.push(el("divider","",25,86,50,1,{color:"#D9DED4"}));
+  state.elements[String(state.active)]=out;
+  render();
+}
+function buildPromptWorksheet(promptText){
+  pushHistory();
+  if(/\bA4\b/i.test(String(promptText||""))){
+    state.format="A4";
+    if($("format"))$("format").value="A4";
+    updateCanvasDimensions();
+  }
+  ensurePage(state.active);
+  const el=(type,text,x,y,w,h,opts={})=>({id:uid(),type,text:text||"",x,y,w,h,font:opts.font||state.bodyFont,fontSize:opts.fontSize||11,color:opts.color||"#26312A",align:opts.align||"left",rotate:0,opacity:100,locked:false,radius:opts.radius||0,fill:opts.fill,shadow:false});
+  const out=[];
+  const isWeekly=/nedelj|sedmic/i.test(String(promptText||""));
+  const title=isWeekly?"PLANIRANJE NEDELJE":"MOJ PLAN";
+  const subtitle=isWeekly?"Jasni prioriteti, korisne navike i prostor za tvoje odgovore":"Radni list za jasnoću, fokus i sledeće korake";
+  out.push(el("text",title,8,6,84,8,{font:state.headingFont,fontSize:23,color:"#26312A",align:"center"}));
+  out.push(el("text",subtitle,12,15,76,7,{fontSize:10,color:"#6E756D",align:"center"}));
+  out.push(el("divider","",22,24,56,1,{color:"#C8A66A"}));
+  const qs=isWeekly
+    ?["1. Koji su moji glavni ciljevi ove nedelje?","2. Koje zadatke moram da završim?","3. Kada ću odvojiti vreme za sebe?","4. Koje navike želim da razvijam?","5. Kako ću nagraditi svoj napredak?"]
+    :["1. Šta želim da postignem?","2. Zašto mi je ovaj cilj važan?","3. Koji je moj prvi sledeći korak?","4. Koja podrška ili resursi su mi potrebni?","5. Kako ću pratiti svoj napredak?"];
+  let y=28;
+  for(const q of qs){
+   out.push(el("text",q,10,y,80,5,{fontSize:10,color:"#26312A"}));
+   out.push(el("divider","",12,y+6,76,0.35,{color:"#C8A66A"}));
+   out.push(el("divider","",12,y+9,76,0.35,{color:"#D8D5CC"}));
+   y+=11.5;
+  }
+  out.push(el("shape","",10,87,80,7,{color:"#8EA386",fill:"#E9EEE6",radius:2}));
+  out.push(el("text","Mali koraci stvaraju veliki napredak.",12,88,76,4,{fontSize:9,color:"#52694C",align:"center"}));
+  state.elements[String(state.active)]=out;
+  render();
+ }
 function applyAIActions(actions){
  const before=snapshot();
  pushHistory();
@@ -901,7 +1030,209 @@ function deleteProject(id){
  delete all[id];localStorage.setItem("marijanaDesignStudioProjects",JSON.stringify(all));
 }
 
- async function importPdfFile(file){
+
+async function runPdfDesign(){
+ const file=$("pdfDesignFile")?.files?.[0];
+ const promptText=$("pdfDesignPrompt")?.value?.trim();
+ const status=$("pdfDesignStatus"), button=$("runPdfDesign");
+ if(!file){if(status)status.textContent="Prvo izaberi PDF dokument.";return}
+ if(!promptText){if(status)status.textContent="Napiši šta želiš da AI napravi.";return}
+ if(!window.pdfjsLib){if(status)status.textContent="PDF biblioteka nije učitana. Osveži stranicu i pokušaj ponovo.";return}
+ if(file.type!=="application/pdf"&&!file.name.toLowerCase().endsWith(".pdf")){if(status)status.textContent="Izaberi PDF fajl.";return}
+ const pagesText=$("pdfDesignPages").value.trim()||"1";
+ const pageNums=[...new Set(pagesText.split(",").map(x=>Number(x.trim())).filter(Number.isInteger))].slice(0,3);
+ if(!pageNums.length||pageNums.some(n=>n<1)){if(status)status.textContent="Unesi validne brojeve strana, na primer 1, 5, 12.";return}
+ if(button){button.disabled=true;button.textContent="Analiziram PDF…"}
+ try{
+  pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+  const pdf=await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise;
+  if(pdf.numPages>300)throw new Error("Ovaj modul podržava PDF dokumente do 300 strana.");
+  if(pageNums.some(n=>n>pdf.numPages))throw new Error("PDF ima "+pdf.numPages+" strana. Proveri brojeve koje si unela.");
+  const images=[];
+  for(let idx=0;idx<pageNums.length;idx++){
+   if(status)status.textContent="Pripremam vizuelni uzorak "+(idx+1)+" od "+pageNums.length+"…";
+   const page=await pdf.getPage(pageNums[idx]);
+   const base=page.getViewport({scale:1});
+   const scale=Math.min(1,1000/Math.max(base.width,base.height));
+   const viewport=page.getViewport({scale});
+   const canvas=document.createElement("canvas");
+   canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);
+   await page.render({canvasContext:canvas.getContext("2d",{alpha:false}),viewport}).promise;
+   images.push(canvas.toDataURL("image/jpeg",0.66));
+   canvas.width=canvas.height=1;
+  }
+  let targetPage=state.active;
+  if($("pdfDesignTarget").value==="new"){
+   if(!addPage(true,"PDF dizajn"))throw new Error("Nije moguće dodati novu stranu. Proveri ograničenje broja strana.");
+   targetPage=state.active;
+  }
+  if(status)status.textContent="AI analizira boje, tipografiju i raspored i pravi elemente…";
+  const extra=$("pdfDesignMode").value==="fresh"?" Osveži originalni stil modernijim rasporedom, ali zadrži njegov vizuelni karakter.":" Koristi vizuelni stil PDF-a kao referencu.";
+  const response=await fetch("/api/pdf-design-agent",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prompt:promptText+extra,page:targetPage,images})});
+  const rawResponse=await response.text();
+  let data;
+  try{data=JSON.parse(rawResponse)}catch(parseError){const detail=rawResponse.replace(/<[^>]*>/g," ").replace(/\\s+/g," ").trim().slice(0,180);throw new Error("AI servis je vratio nečitljiv odgovor (HTTP "+response.status+"). "+(detail||"Pokušaj ponovo."))}
+  if(!response.ok)throw new Error(data.error||"PDF dizajn servis nije dostupan.");
+  if(!Array.isArray(data.actions)||!data.actions.length)throw new Error(data.message||"AI nije vratio elemente za uređivanje. Pokušaj sa konkretnijim promptom.");
+  const actions=data.actions.map(a=>a.type==="add_element"?{...a,page:targetPage}:a);
+  // Fresh pages contain default placeholder title/intro elements. Remove those before applying the AI layout.
+  // Keep existing page content untouched when the user selected the current page.
+  if($("pdfDesignTarget").value==="new")state.elements[String(targetPage)]=[];
+  applyAIActions(actions);
+  state.pageNames=state.pageNames||[];
+  if($("pdfDesignTarget").value==="new")state.pageNames[targetPage-1]="PDF dizajn";
+  render();
+  saveProject(true);
+  addMessage("PDF dizajn je napravljen na strani "+targetPage+". Elementi, boje i fontovi mogu se dalje menjati u editoru.");
+  if(status)status.textContent="Gotovo — dizajn je dodat na stranu "+targetPage+". Možeš da menjaš elemente u editoru.";
+  $("pdfDesignModal").hidden=true;
+ }catch(error){
+  console.error("PDF dizajn AI greška:",error);
+  if(status)status.textContent="Nismo uspeli da napravimo dizajn: "+(error.message||"nepoznata greška");
+ }finally{if(button){button.disabled=false;button.textContent="Analiziraj i napravi dizajn →"}}
+}
+function initPdfDesign(){
+ const modal=$("pdfDesignModal");
+ if(!modal)return;
+ $("pdfDesignButton").onclick=()=>{modal.hidden=false};
+ $("closePdfDesign").onclick=$("cancelPdfDesign").onclick=()=>{modal.hidden=true};
+ modal.addEventListener("click",e=>{if(e.target===modal)modal.hidden=true});
+ $("runPdfDesign").onclick=runPdfDesign;
+ $("pdfDesignFile").addEventListener("change",async e=>{
+  const file=e.target.files?.[0];if(!file)return;
+  const info=$("pdfDesignInfo");if(info)info.textContent="Izabran fajl: "+file.name+" · broj strana proverava se pri analizi.";
+  try{
+   if(window.pdfjsLib){pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";const doc=await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise;if(info)info.textContent=file.name+" · "+doc.numPages+" strana. Podržano do 300; izaberi do 3 strane kao vizuelni uzorak."}
+  }catch(err){if(info)info.textContent="Nije moguće pročitati PDF. Proveri da fajl nije oštećen ili zaštićen."}
+ });
+}
+
+ function detectPdfDocumentType(text){
+ const t=String(text||"").toLocaleLowerCase("sr");
+ if(/dnevnik|ličnog rasta|licnog rasta|samorefleks|reprogramiranje podsves|unutrašnja transformacija/.test(t))return "dnevnik ličnog rasta / vođeni dnevnik";
+ if(/nedeljni planer|dnevni planer|planer|raspored nedelje|weekly planner/.test(t))return "planer";
+ if(/radna sveska|radni list|pitanja za refleksiju|vežba|vezba|zapiši|zabeleži/.test(t))return "radna sveska / workbook";
+ if(/e-knjiga|ebook|e-book|poglavlje|sadržaj knjige|sadrzaj knjige/.test(t))return "e-knjiga / knjiga";
+ if(/priručnik|prirucnik|vodič|vodic|korak po korak|uputstvo/.test(t))return "vodič / priručnik";
+ return "originalna vrsta dokumenta — sačuvaj tip koji prepoznaješ iz naslova i sadržaja";
+}
+async function redesignPdfDocument(file,pdf,button){
+ const total=pdf.numPages;
+ const pageData=[];
+ const designPrompt="Redizajniraj samo VIZUELNI IZGLED postojećeg PDF-a. Sačuvaj vrstu dokumenta, sav originalni sadržaj i redosled. Nemoj dodavati generičke naslove, nova pitanja ili reklamni tekst. Koristi krem pozadinu #FAF7F2, tamni tekst #1C1917, sage green #8A9A86 i diskretni gold #C5A059. Tekst izvučen iz PDF-a je jedini izvor sadržaja; slika je samo vizuelna referenca. Bez ponavljanja naslova, lažnih mockup/slika i preklapanja.";
+ try{
+  for(let i=1;i<=total;i++){
+   if(button)button.textContent="Analiza sadržaja "+i+" / "+total+"…";
+   const page=await pdf.getPage(i);
+   const content=await page.getTextContent();
+   const pageText=content.items
+    .filter(item=>item.str&&item.str.trim())
+    .map(item=>item.str+(item.hasEOL?"\n":" "))
+    .join("")
+    .replace(/[ \t]+\n/g,"\n")
+    .replace(/ {2,}/g," ")
+    .trim()
+    .slice(0,18000);
+   pageData.push({page:i,text:pageText});
+  }
+  const analysisPages=pageData.map(item=>({
+   page:item.page,
+   text:item.text.length>3000?item.text.slice(0,2200)+"\n[… sredina izostavljena u pregledu …]\n"+item.text.slice(-650):item.text
+  }));
+  if(button)button.textContent="Analiza strukture celog dokumenta…";
+  const analysisResponse=await fetch("/api/pdf-design-agent",{
+   method:"POST",headers:{"Content-Type":"application/json"},
+   body:JSON.stringify({mode:"analyze_document",prompt:designPrompt,pageCount:total,pages:analysisPages})
+  });
+  const analysisRaw=await analysisResponse.text();
+  let analysisData;
+  try{analysisData=JSON.parse(analysisRaw)}catch(e){throw new Error("Globalna analiza PDF-a nije vratila ispravan odgovor (HTTP "+analysisResponse.status+").")}
+  if(!analysisResponse.ok)throw new Error(analysisData.error||"Globalna analiza PDF-a nije uspela.");
+  const documentPlan=analysisData.documentPlan;
+  if(!documentPlan||typeof documentPlan!=="object"||!Array.isArray(documentPlan.pageSummaries))throw new Error("AI nije napravio mapu kompletnog dokumenta. Originalni projekat nije zamenjen.");
+  const summarizedPages=new Set(documentPlan.pageSummaries.map(item=>Number(item.page)));
+  for(let i=1;i<=total;i++)if(!summarizedPages.has(i))throw new Error("Globalna analiza nije obuhvatila stranu "+i+". Originalni projekat nije zamenjen.");
+  const allActions=[];
+  const outputNames=[];
+  const summaries=documentPlan.pageSummaries;
+  for(let i=1;i<=total;i++){
+   if(button)button.textContent="AI redizajn "+i+" / "+total+"…";
+   const page=await pdf.getPage(i);
+   const base=page.getViewport({scale:1});
+   const scale=Math.min(1,1000/Math.max(base.width,base.height));
+   const viewport=page.getViewport({scale});
+   const canvas=document.createElement("canvas");
+   canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);
+   const ctx=canvas.getContext("2d",{alpha:false});
+   ctx.fillStyle="#ffffff";ctx.fillRect(0,0,canvas.width,canvas.height);
+   await page.render({canvasContext:ctx,viewport}).promise;
+   const image=canvas.toDataURL("image/jpeg",0.62);
+   canvas.width=canvas.height=1;
+   const currentSummary=summaries.find(item=>Number(item.page)===i)||null;
+   const previousSummary=summaries.find(item=>Number(item.page)===i-1)||null;
+   const nextSummary=summaries.find(item=>Number(item.page)===i+1)||null;
+   const documentContext={
+    documentTitle:documentPlan.documentTitle||file.name,
+    documentType:documentPlan.documentType||detectPdfDocumentType(pageData[i-1].text),
+    purpose:documentPlan.purpose||"",
+    styleGuide:documentPlan.styleGuide||{},
+    sections:Array.isArray(documentPlan.sections)?documentPlan.sections:[],
+    pageSummary:currentSummary,previousPageSummary:previousSummary,nextPageSummary:nextSummary,pageCount:total
+   };
+   const response=await fetch("/api/pdf-design-agent",{
+    method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({prompt:designPrompt,page:i,pageCount:total,pageText:pageData[i-1].text,documentType:documentContext.documentType,documentContext,images:[image]})
+   });
+   const raw=await response.text();
+   let data;
+   try{data=JSON.parse(raw)}catch(e){throw new Error("Strana "+i+": AI servis nije vratio ispravan odgovor (HTTP "+response.status+").")}
+   if(!response.ok)throw new Error("Strana "+i+": "+(data.error||"AI obrada nije uspela."));
+   if(!Array.isArray(data.actions)||!data.actions.length)throw new Error("Strana "+i+": AI nije napravio elemente. Dokument nije zamenjen.");
+   const pageActions=data.actions.filter(a=>a&&a.type==="add_element").map(a=>({...a,page:i}));
+   if(!pageActions.length)throw new Error("Strana "+i+": nisu pronađeni elementi za dizajn. Dokument nije zamenjen.");
+   allActions.push(...pageActions);
+  }
+  const outputActions=[];
+  let outputPageCount=0;
+  for(let sourcePage=1;sourcePage<=total;sourcePage++){
+   const sourceActions=allActions.filter(action=>Number(action.page)===sourcePage);
+   const overflow=sourceActions.filter(action=>action.element?.type==="text"&&(Number(action.element.y||0)+Number(action.element.h||0)>91));
+   const main=sourceActions.filter(action=>!overflow.includes(action));
+   const mainPage=++outputPageCount;
+   outputNames.push("Strana "+sourcePage);
+   main.forEach(action=>outputActions.push({...action,page:mainPage}));
+   let continuationPage=0,continuationIndex=0,cursor=8;
+   for(const action of overflow){
+    const element=action.element;
+    const textValue=String(element.text||"");
+    const fontSize=Math.max(10,Number(element.fontSize)||12);
+    const estimatedLines=Math.max(1,Math.ceil(textValue.length/48));
+    const height=Math.min(22,Math.max(6,estimatedLines*fontSize*1.45/5.8+2));
+    if(!continuationPage||cursor+height>91){
+     continuationPage=++outputPageCount;continuationIndex++;
+     outputNames.push("Strana "+sourcePage+" — nastavak "+continuationIndex);cursor=8;
+    }
+    element.x=9;element.y=Number(cursor.toFixed(2));element.w=82;element.h=Number(height.toFixed(2));
+    element.fontSize=fontSize;element.align=element.align||"left";
+    outputActions.push({...action,page:continuationPage});cursor+=height+2.5;
+   }
+  }
+  if(outputPageCount>200)throw new Error("Redizajn zahteva "+outputPageCount+" strana, a projekat trenutno podržava najviše 200. Originalni projekat nije zamenjen.");
+  pushHistory();
+  state.name=(file.name||"Redizajniran PDF").replace(/\.pdf$/i,"");
+  state.format="A4";state.width=794;state.height=1123;state.printWidthMm=210;state.printHeightMm=297;
+  state.pages=outputPageCount;state.active=1;state.pageNames=outputNames;state.elements={};state.selectedElement=null;
+  $("projectName").value=state.name;$("format").value="A4";$("pageCount").value=outputPageCount;
+  applyAIActions(outputActions);render();
+  const saved=saveProject(true);
+  addMessage("Globalna analiza i AI redizajn su završeni za "+total+" originalnih strana. Proveri stranice i izvezi PDF tek nakon vizuelne kontrole.");
+  if(!saved)addMessage("Upozorenje: automatsko čuvanje nije uspelo. Odmah izvezi kopiju projekta kao JSON.");
+ }catch(error){
+  console.error("AI redizajn celog PDF-a nije uspeo:",error);
+  addMessage("AI redizajn nije završen: "+(error?.message||"nepoznata greška")+". Postojeći projekat nije zamenjen.");
+ }finally{if(button){button.disabled=false;button.textContent="Uvezi PDF"}}
+}
+async function importPdfFile(file){
   if(!file)return;
   if(!window.pdfjsLib){addMessage("PDF uvoz nije dostupan jer biblioteka za čitanje PDF-a nije učitana. Osveži stranicu i pokušaj ponovo.");return}
   if(file.type!=="application/pdf"&&!file.name.toLowerCase().endsWith(".pdf")){addMessage("Izaberi PDF fajl.");return}
@@ -912,10 +1243,11 @@ function deleteProject(id){
    const data=await file.arrayBuffer();
    const pdf=await pdfjsLib.getDocument({data}).promise;
    if(pdf.numPages>200)throw new Error("PDF ima "+pdf.numPages+" strana. Aplikacija trenutno podržava najviše 200 strana po projektu.");
-   const mode=prompt("PDF ima "+pdf.numPages+" strana. Izaberi način uvoza:\n\n1 = TEKST ZA UREĐIVANJE (tekst se uvozi kao pojedinačni elementi; slike, ukrasni elementi i precizan prelom se ne prenose)\n\n2 = STRANE KAO SLIKE (izgled se čuva bolje, ali tekst nije pojedinačno izmenljiv)\n\nUnesi 1 ili 2. Za odustajanje izaberi Otkaži.","1");
-   if(mode!=="1"&&mode!=="2")return;
-   const ok=confirm("Uvoz će zameniti sadržaj trenutno otvorenog projekta. Pre nastavka proveri da je projekat sačuvan u „Moji projekti“. Nastaviti?");
+   const mode=prompt("PDF ima "+pdf.numPages+" strana. Izaberi način uvoza:\n\n1 = TEKST ZA UREĐIVANJE (brz uvoz; izgled se može promeniti)\n\n2 = STRANE KAO SLIKE (izgled se čuva, ali tekst nije pojedinačno izmenljiv)\n\n3 = AI REDIZAJN CELOG PDF-A (analiza i novo oblikovanje svake strane; zahteva više vremena i AI poziva)\n\nUnesi 1, 2 ili 3. Za odustajanje izaberi Otkaži.","3");
+   if(mode!=="1"&&mode!=="2"&&mode!=="3")return;
+   const ok=confirm("Uvoz će zameniti sadržaj trenutno otvorenog projekta. Pre nastavka proveri da je projekat sačuvan u „Moji projekti“. Za AI redizajn obrada ide stranu po stranu. Nastaviti?");
    if(!ok)return;
+   if(mode==="3"){await redesignPdfDocument(file,pdf,button);return}
    const imported={};const names=[];
    for(let i=1;i<=pdf.numPages;i++){
     const page=await pdf.getPage(i);
@@ -963,6 +1295,7 @@ function deleteProject(id){
  }
 
  function initToolPanels(){
+ initPdfDesign();
  $("templatesButton").onclick=()=>{$("templatesPanel").hidden=false;renderTemplates()};
  $("closeTemplates").onclick=()=>{$("templatesPanel").hidden=true};
  $("projectsButton").onclick=()=>{const saved=saveProject(true);$("projectsPanel").hidden=false;renderProjects();if(!saved)addMessage("Poslednje izmene nisu sačuvane u biblioteci. Proveri slobodan prostor u pregledaču.")};
@@ -972,6 +1305,8 @@ function deleteProject(id){
  $("closeExport").onclick=()=>{$("exportPanel").hidden=true};
  ["templatesPanel","projectsPanel","exportPanel"].forEach(id=>$(id).addEventListener("click",e=>{if(e.target.id===id)$(id).hidden=true}));
  $("exportJson").onclick=exportJSON;$("exportPdf").onclick=exportPDF;$("exportSvg").onclick=exportSVG;
+ $("importProjectJson").onclick=()=>$("projectJsonUpload").click();
+ $("projectJsonUpload").onchange=e=>importProjectJSONFile(e.target.files&&e.target.files[0]);
  renderTemplates();
 }
 function createNewProjectFromModal(){
